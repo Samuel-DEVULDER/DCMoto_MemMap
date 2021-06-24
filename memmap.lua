@@ -124,30 +124,30 @@ local memoize = {
 }
 
 ------------------------------------------------------------------------------
--- Quelques addresses bien connues
+-- Quelques adresses bien connues
 ------------------------------------------------------------------------------
 
 local EQUATES = {
-	_mach = '',
-	m = function(self,mach)
-		self._mach = mach or ''
-		return self
-	end,
-	_page = '',
-	p = function(self,page)
-		self._page = page or ''
-		return self
-	end,
-	d = function(self,addr,name, ...) 
-		if addr then
-			self[self._page .. addr] = self._mach .. name
-			self:d(...)
-		end
-		return self
-	end,
-	t = function(self,addr)
-		return self[addr or ''] and ' <'..self[addr]..'>' or ''
-	end
+    _mach = '',
+    m = function(self,mach)
+        self._mach = mach or ''
+        return self
+    end,
+    _page = '',
+    p = function(self,page)
+        self._page = page or ''
+        return self
+    end,
+    d = function(self,addr,name, ...) 
+        if addr then
+            self[self._page .. addr] = self._mach .. name
+            self:d(...)
+        end
+        return self
+    end,
+    t = function(self,addr)
+        return self[addr or ''] and ' <'..self[addr]..'>' or ''
+    end
 } EQUATES
 :d('FFFE','VEC.RESET',
    'FFFC','VEC.NMI',
@@ -305,7 +305,7 @@ local EQUATES = {
    '60F9','DKIFA',
    '60FA','DKPSB',
    '60FB','DKPBC',
-   nil)	
+   nil) 
 -- minidos
 :d('E004','DKCON',
    'E007','DKBOOT',
@@ -438,18 +438,18 @@ local function newTSVWriter(file, tablen)
     }
 end
 
--- Writer HTML
+-- Writer HTML (quelle horreur!)
 local function newHtmlWriter(file, mem)
-    -- prevent empty file
+    -- evite les fichier nil
     file=file or {write=function() end, close=function() end}
-    -- print helper
+    -- aide pour imprimer
     local function w(...)
         for _,s in ipairs{...} do
             if type(s)=='table' then s = string.format(unpack(s)) end
             file:write(tostring(s))
         end
     end
-    -- collect interresting addresses
+    -- récup des adresses utiles
     local valid = {} for i=MINADR,MAXADR do valid[string.format('%04X',i)] = true end
     local rev   = {}
     for i=MAXADR,MINADR,-1 do 
@@ -458,8 +458,8 @@ local function newHtmlWriter(file, mem)
         if m and m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
         if m and m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
     end
-	-- describe some address
-	local function describe(addr, opt_asm, opt_asm_addr)
+    -- descrit le contenu d'une adresse
+    local function describe(addr, opt_asm, opt_asm_addr)
         local function code(where)
             if where~=NOADDR then
                 local i = tonumber(where,16)
@@ -483,9 +483,9 @@ local function newHtmlWriter(file, mem)
             elseif RWX=='-R-'              then anchor = m.r
             elseif RWX=='--W'              then anchor = m.w end
             --
-			local equate = EQUATES:t(addr)
+            local equate = EQUATES:t(addr)
             local title  = '$' .. addr .. ' : ' .. RWX .. equate ..
-			               (opt_asm and '\n' .. opt_asm:gsub(equate,'') or '') ..
+                           (opt_asm and '\n' .. opt_asm:gsub(equate,'') or '') ..
                            code(m.r):gsub(equate,'')
             if m.r~=m.w then title = title .. code(m.w):gsub(equate,'') end
 
@@ -494,14 +494,36 @@ local function newHtmlWriter(file, mem)
             return '$' .. addr .. ' : untouched' .. EQUATES:t(addr), '---', addr
         end
     end
+	-- affiche le code html pour un hyperlien sur "addr" avec le texte
+    -- "txt" (le tout pour l'adresse "from")
     local function ahref(from, addr, txt)
         local title, RWX, anchor = describe(addr)
         if from == anchor then anchor = addr end -- no loop back
         return '<a href="#' .. anchor .. '" title="' .. title .. '">' .. txt .. '</a>'
     end
+	local memm
+	
+	
     local function memmap(mem)
-        local COLS=128
-        
+		local COLS = 128
+        local STYLE = [[
+  <style>
+    .c0 {background-color:#111;}
+    .c1 {background-color:#e11;}
+    .c2 {background-color:#1e1;}
+    .c3 {background-color:#ee1;}
+    .c4 {background-color:#11e;}
+    .c5 {background-color:#e1e;}
+    .c6 {background-color:#1ee;}
+    .c7 {background-color:#eee;}
+    .mm {table-layout: fixed;}]] .. 
+	'\n    .mm td {padding:0; border: 1px solid #ddd;' ..
+    ' width: ' .. (100/COLS) .. '%;' ..
+	' height: ' .. (100/COLS) .. 'vh;' .. [[
+    .mm tr:hover {background-color:initial;}
+    .mm a {text-decoration:none; display: block; height:100%; width:100%;}
+  </style>]]
+		      
         local min,max = MINADR,MAXADR
         for i=min,MAXADR    do if mem[i] then min=i break end end
         for i=MAXADR,min,-1 do if mem[i] then max=i break end end
@@ -516,23 +538,8 @@ local function newHtmlWriter(file, mem)
             ['XR-'] = 6,
             ['XRW'] = 0,
         }
-        local px = (100/COLS)
         w('  <h1>Memory map between $', {'%04X',min}, ' and $', {'%04X',max},'</h1>')
-        w([[  <style>
-    .c0 {background-color:#111;}
-    .c1 {background-color:#e11;}
-    .c2 {background-color:#1e1;}
-    .c3 {background-color:#ee1;}
-    .c4 {background-color:#11e;}
-    .c5 {background-color:#e1e;}
-    .c6 {background-color:#1ee;}
-    .c7 {background-color:#eee;}
-    .mm {table-layout: fixed;}
-]],'    .mm td {padding:0; border: 1px solid #ddd; width: ',px,'%; height: ',px,[[vh;}
-    .mm tr:hover {background-color:initial;}
-    .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-  </style>
-  <table class="mm">]])
+        w(STYLE, '\n  <table class="mm">')
         
         local last_asm, last_asm_addr ='',''
         for j=math.floor(min/COLS),math.floor(max/COLS) do
@@ -570,8 +577,7 @@ local function newHtmlWriter(file, mem)
             local t, cols = '', {'&nbsp;'}
             for i,n in ipairs(columns) do 
                 local s = type(n)=='table' and string.format(unpack(n)) or tostring(n)
-                cols[i] = s--:gsub(' ','&nbsp;')
-                           :gsub('<','&lt;'):gsub('>','&gt;'):gsub('\n','<br>')
+                cols[i] = s:gsub('<','&lt;'):gsub('>','&gt;'):gsub('\n','<br>')--:gsub(' ','&nbsp;')
             end
             local last = #cols
             if last>1 then t = t .. ' id="'..cols[1]..'"' end t = t .. '>'
@@ -589,16 +595,16 @@ local function newHtmlWriter(file, mem)
                     local back = rev[cols[1]]
                     if back then
                         local before,arg,after = n:match('^(%S+%s+%S+%s+%$?)(%S+)(.*)$')
-						if not arg then before,arg,after = '',n,'' end
+                        if not arg then before,arg,after = '',n,'' end
                         -- if arg:sub(1,1)=='$' then before,arg = before..'$',arg:sub(2) end
                         n = before .. ahref(cols[1], back, arg) .. after
                     else
-						-- sauts divers
+                        -- sauts divers
                         local before,addr,after = n:match('(.*%$)(%x%x%x%x)(.*)')
                         if addr and mem[tonumber(addr,16)] then 
                             n = before .. ahref(cols[1], addr,addr) .. after
                         end
-						-- if addr then n = n .. EQUATES:t(addr) end
+                        -- if addr then n = n .. EQUATES:t(addr) end
                     end
                     t = t .. n
                 end
@@ -606,10 +612,7 @@ local function newHtmlWriter(file, mem)
             end
             w('    <tr', t , '</tr>\n')
         end,
-        header = function(self, columns)
-            local cols = {}
-            self.ncols = #columns
-            w([[<!DOCTYPE html>
+		_header = [[<!DOCTYPE html>
 <html>
   <style>
     :target {background-color:lightgray;}
@@ -642,8 +645,10 @@ local function newHtmlWriter(file, mem)
       width:    100%;
       height:   100vh;
     }
-]])
-            local align={['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
+]],     header = function(self, columns)
+            self.ncols = #columns      
+			w(self._header)
+            local cols,align={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
             for i,n in ipairs(columns) do
                 local tag = n:match('^([<=>])')
                 cols[i] = trim(tag and n:sub(2) or n)
@@ -682,6 +687,7 @@ end
 
 ------------------------------------------------------------------------------
 -- detecte les points chauds
+------------------------------------------------------------------------------
 
 local function findHotspots(mem)
     local spots,hot = {}
@@ -692,7 +698,7 @@ local function findHotspots(mem)
                 return math.abs(m.x - self.x)<=1
             end,
             add = function(self,m)
-				self.x = m.x
+                self.x = m.x
                 if m.asm then
                     local cycles = tonumber(m.asm:match('%((%d+)')) or 0
                     self.t = self.t + m.x * cycles
@@ -723,6 +729,7 @@ end
 
 ------------------------------------------------------------------------------
 -- analyseur de mémoire
+------------------------------------------------------------------------------
 
 local mem = {
     -- accesseur privé à une case mémoire
@@ -775,7 +782,7 @@ local mem = {
         end
         return f
     end,
-    -- écrit un fichier en utilisant le writer fournit
+    -- écrit un fichier en utilisant le writer fourni
     save = function(self, writer)
         writer = writer or newParallelWriter()
         
@@ -864,7 +871,6 @@ function getaddr(args, regs)
     -- TODO PCR ?
     error(args)
 end
-
 -- getaddr = memoize:make(getaddr)
 
 -- Auxiliaire qui marque les adresses pointée par "ptr" comme
@@ -897,7 +903,10 @@ local function push(reg, args, regs)
     stack(regs:match(reg..'=(%x%x%x%x)'),-1,args)
 end
 
+------------------------------------------------------------------------------
 -- type d'instructions:
+------------------------------------------------------------------------------
+
 -- a) lecture 1 octet
 local R8  = set{'ADCA','ADCB','ADDA','ADDB','ANDA','ANDB','ANDCC',
                 'BITA','BITB','CMPA','CMPB','EORA','EORB',
@@ -911,7 +920,7 @@ local R16 = set{'ADDD','CMPD','CMPX','CMPY','CMPU','CMPS','LDD','LDX','LDY','LDU
 -- e) écriture 2 octets
 local W16 = set{'STD','STX','STY','STU','STS'} --'JSR','BSR','LBSR'}
 
--- coe hexa propre à DCMOTO pour les I/ORA
+-- code hexa propre à DCMOTO pour les I/ORA
 local DCMOTO_RESERVED = {
     ['11EC'] = "K7BIT",
     ['11ED'] = "K7RD",
@@ -926,17 +935,16 @@ local DCMOTO_RESERVED = {
     ['11FC'] = "KBRD",
     ['11FD'] = "KBWR",
     ['11FE'] = "NETWR",
-    ['11FF'] = "INPEN"
-}
+    ['11FF'] = "INPEN",
+nil}
 
 -- lecture ancien fichier si pas reset
 if not RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
 
--- boucle principale (sortie par ctrl-c)
-repeat
-    -- attente de l'arrivée d'un fichier de trace
-    out('Waiting for %s...', TRACE)
-    while not os.rename(TRACE,TRACE) do
+-- attente d'un fichier
+local function wait_for_file(filename)
+    out('Waiting for %s...', filename)
+    while not os.rename(filename,filename) do
         if os.getenv('COMSPEC') then -- windows
             os.execute('ping -n 1 127.0.0.1 >NUL')
         else
@@ -945,63 +953,70 @@ repeat
         end
     end
     out('\r                                                 \r')
-    -- ouverture et analyse du fichier de trace
-    local num,f = 0, assert(io.open(TRACE,'r'))
+end
+
+-- ouverture et analyse du fichier de trace
+local function read_trace(filename)
+    local num,f = 0, assert(io.open(filename,'r'))
     local size = f:seek('end') f:seek('set')
-    
-	-- local SPECIAL = set{'???','PULS','PSHS','PULU','PSHU','BSR','LBSR','JSR','JMP','RTS','SWI','RTI'}
-		
-    -- local cut = memoize:make(function(s) return s:match('(%x+)%s+(%S+)%s+(%S+)%s+(%S*)%s*$') end)
-	local pc,hexa,opcode,args,regs,sig,jmp,curr_pc
+
+    local pc,hexa,opcode,args,regs,sig,jmp,curr_pc
     local nomem = {} -- cache des codes hexa ne touchant pas la mémoire (pour aller plus vite)
     local jmp = nil -- pour tracer d'où l'on vient en cas de saut
-	local function maybe_indirect()
-		if args:sub(1,1)=='[' then
-			local a = getaddr(args,regs) 
-			if a then mem:r(a,2) end
-		end
-	end
-	local DISPATCH = {
-		['???']  = function() opcode = DCMOTO_RESERVED[hexa] or opcode; nomem[sig] = true end,
-		['PULS'] = function() pull('S',args,regs) end,
-		['PSHS'] = function() push('S',args,regs) end,
-		['PULU'] = function() pull('U',args,regs) end,
-		['PSHU'] = function() push('U',args,regs) end,
-		['BSR']  = function() push('S','PC',regs) jmp = curr_pc end,
-		['LBSR'] = function() push('S','PC',regs) jmp = curr_pc end,
-		['JSR']  = function() push('S','PC',regs) maybe_indirect() jmp = curr_pc end,
+    local function maybe_indirect()
+        if args:sub(1,1)=='[' then
+            local a = getaddr(args,regs) 
+            if a then mem:r(a,2) end
+        end
+    end
+    local DISPATCH = {
+        ['???']  = function() opcode = DCMOTO_RESERVED[hexa] or opcode; nomem[sig] = true end,
+        ['PULS'] = function() pull('S',args,regs) end,
+        ['PSHS'] = function() push('S',args,regs) end,
+        ['PULU'] = function() pull('U',args,regs) end,
+        ['PSHU'] = function() push('U',args,regs) end,
+        ['BSR']  = function() push('S','PC',regs) jmp = curr_pc end,
+        ['LBSR'] = function() push('S','PC',regs) jmp = curr_pc end,
+        ['JSR']  = function() push('S','PC',regs) maybe_indirect() jmp = curr_pc end,
         ['JMP']  = function() maybe_indirect() jmp = curr_pc end,
         ['RTS']  = function() pull('S','PC',regs) end,
         ['SWI']  = function() push('S','A/B/X/Y/U/CC/DP/PC',regs) end,
         ['RTI']  = function() pull('S','A/B/X/Y/U/CC/DP/PC',regs) end, -- take E flag of cc into account ?
-		_ = function(self, set, fcn) for k in pairs(set) do self[k] = fcn end end
-	}
-	DISPATCH:_(R8,  function() local a = getaddr(args,regs) if a then mem:r(a) else nomem[sig] = true end end)
-	DISPATCH:_(W8,  function() local a = getaddr(args,regs) if a then mem:w(a) else nomem[sig] = true end end)
-	DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:r(a):w(a) else nomem[sig] = true end end)
-	DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
-	DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
+        _ = function(self, set, fcn) for k in pairs(set) do self[k] = fcn end end
+    }
+    DISPATCH:_(R8,  function() local a = getaddr(args,regs) if a then mem:r(a) else nomem[sig] = true end end)
+    DISPATCH:_(W8,  function() local a = getaddr(args,regs) if a then mem:w(a) else nomem[sig] = true end end)
+    DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:r(a):w(a) else nomem[sig] = true end end)
+    DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
+    DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
+	
+	local REL_BRANCH = set{'16','17','20','21','22','23','24','25','27','28','29','2C','2D','2E','2F',
+		'1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'}
+	
     for s in f:lines() do
         -- print(s) io.stdout:flush()
-        if num%50000==0 then out('%6.02f%%\r', 100*f:seek()/size) end
-		num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
+        if 50000==num then num=0; out('%6.02f%%\r', 100*f:seek()/size) end
+        num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
-		 -- print(pc, hexa, opcode, args)
+         -- print(pc, hexa, opcode, args)
         if opcode then
             -- print(pc,hex,opcode,args)
             curr_pc = tonumber(pc,16)
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
             mem:pc(curr_pc):x(hexa,1)
-			sig = pc..':'..hexa
+            sig = 
+				-- pc .. '.' .. hexa
+				-- hexa if REL_BRANCH[sig] then sig = pc .. ':' .. hexa end
+				REL_BRANCH[hexa] and pc..':'..hexa or hexa
             if nomem[sig] then 
                 mem:a(nomem[sig])
             else
                 regs = s:sub(61,106)
-				local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
+                local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
                 -- on ne connait le code asm vraiment qu'à la fin
                 local asm, cycles = 
-					args=='' and opcode or string.format("%-5s %s", opcode, args),
-					"(" .. trim(s:sub(43,46)) .. ")"
+                    args=='' and opcode or string.format("%-5s %s", opcode, args),
+                    "(" .. trim(s:sub(43,46)) .. ")"
                 asm = string.format("%-5s %s%s%s", cycles, asm, EQUATES:t(args:match('%$(%x%x%x%x)')), EQUATES:t(pc))
                 if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
@@ -1010,6 +1025,16 @@ repeat
     end
     f:close()
     out('                \r')
+end
+
+------------------------------------------------------------------------------
+-- boucle principale (sortie par ctrl-c)
+------------------------------------------------------------------------------
+repeat
+    -- attente de l'arrivée d'un fichier de trace
+	wait_for_file(TRACE)
+	-- lecture fichier de trace
+	read_trace(TRACE)
     -- écriture résultat TSV & html
     mem:save(newParallelWriter( 
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
