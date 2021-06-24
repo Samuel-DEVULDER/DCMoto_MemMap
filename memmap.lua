@@ -464,7 +464,7 @@ local function newHtmlWriter(file, mem)
             if where~=NOADDR then
                 local i = tonumber(where,16)
                 local m = mem[i]
-                return m and m.asm and '<br>' .. m.asm .. ' (from $' .. where .. ')' or ''
+                return m and m.asm and '\n' .. m.asm .. ' (from $' .. where .. ')' or ''
             else
                 return ''
             end
@@ -485,7 +485,7 @@ local function newHtmlWriter(file, mem)
             --
             local equate = EQUATES:t(addr)
             local title  = '$' .. addr .. ' : ' .. RWX .. equate ..
-                           (opt_asm and '<br>' .. opt_asm:gsub(equate,'') or '') ..
+                           (opt_asm and '\n' .. opt_asm:gsub(equate,'') or '') ..
                            code(m.r):gsub(equate,'')
             if m.r~=m.w then title = title .. code(m.w):gsub(equate,'') end
 
