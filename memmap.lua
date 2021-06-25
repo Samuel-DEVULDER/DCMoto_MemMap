@@ -57,14 +57,19 @@ local RESULT = 'memmap'            -- racine des fichiers résultats
 local HTML   = false               -- produit une analyse html?
 local LOOP   = false               -- reboucle ?
 local RESET  = false               -- ignore les analyses précédentes ?
-local GRAPH  = false               -- ajoute une version graphique de la map
+local MAP    = false               -- ajoute une version graphique de la map
 local MINADR = 0x0000              -- adresse de départ
 local MAXADR = 0xFFFF              -- adresse de fin
+
+-- local BRAKET = {' .oO(',')'}
+-- local BRAKET = {' (',')'}
+-- local BRAKET = {'<<',''}
+local BRAKET = {' <-',''}
 
 for i,v in ipairs(arg) do local t
     if v=='-loop'  then LOOP  = true end
     if v=='-html'  then HTML  = true end
-    if v=='-map'   then GRAPH = true end
+    if v=='-map'   then MAP   = true end
     if v=='-reset' then RESET = true end
     t=v:match('%-from=(%x+)') if t then MINADR = tonumber(t,16) end
     t=v:match('%-to=(%x+)')   if t then MAXADR = tonumber(t,16) end
@@ -146,7 +151,7 @@ local EQUATES = {
         return self
     end,
     t = function(self,addr)
-        return self[addr or ''] and ' <-'..self[addr] or ''
+        return self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2] or ''
     end
 } EQUATES
 :d('FFFE','VEC.RESET',
@@ -454,8 +459,9 @@ local function newHtmlWriter(file, mem)
 	-- échappement html
 	local function esc(txt)
 		return txt
-		:gsub("<%-", "&larr;"):gsub("%->", "&rarr;")
+		-- :gsub("<<","&laquo;")
 		:gsub([['"<>&]], {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
+		:gsub("<%-", "&larr;")
 		:gsub(' ','&nbsp;')
 	end
     -- récup des adresses utiles
@@ -573,7 +579,7 @@ local function newHtmlWriter(file, mem)
             local f = self.file
             w('</table>')
             w('</code><h1>End of analysis</h1>')
-            if GRAPH then 
+            if MAP then 
                 w('</div><div id="memmap">\n')
                 memmap(mem) 
                 w('</div>')
@@ -605,14 +611,14 @@ local function newHtmlWriter(file, mem)
                 elseif i==5 then
                     local back = rev[cols[1]]
                     if back then
-                        local before,arg,after = n:match('^(%S+%s+%S+%s+%$?)(%S+)(.*)$')
-                        if not arg then before,arg,after = n:match('^(%S+%s+)(%S+)(.*)$') end
+                        local before,arg,after = n:match('^(%S+%s+%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
+                        if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.+)$') end
 						if not arg then before,arg,after = '',n,'' end
                         -- if arg:sub(1,1)=='$' then before,arg = before..'$',arg:sub(2) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
                     else
                         -- sauts divers
-                        local before,addr,after = n:match('(.*%$)(%x%x%x%x)(.*)')
+                        local before,addr,after = n:match('^(.*%$)(%x%x%x%x)(.*)$')
                         if addr and mem[tonumber(addr,16)] then 
                             n = esc(before) .. ahref(cols[1], addr,addr) .. esc(after)
 						else
@@ -690,7 +696,7 @@ local function newHtmlWriter(file, mem)
 	  background-color: white;
 	  z-index: 100;
 	}
-]], align_style, GRAPH and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
+]], align_style, MAP and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
   </style>
 <body>
   <script type="text/javascript">
@@ -715,7 +721,7 @@ local function newHtmlWriter(file, mem)
 		<h1>Please wait while loading...</h1>
 	</button>
   </div>]])
-            w(GRAPH and '<div id="main">\n' or '',
+            w(MAP and '<div id="main">\n' or '',
               {'  <h1>Analysis of %s between $%04X and $%04X</h1>\n', TRACE, MINADR, MAXADR},
                '  <code>\n',
                '  <table id="t1">\n')
