@@ -928,20 +928,19 @@ end
 -- l'opération de pile
 local function stack(ptr, dir, args)
     ptr = tonumber(ptr,16)
-    local function mk(dir, len)
-        len = len or 2
-        if dir>0 then mem:r(ptr, len) else mem:w(add16(ptr,dir), len) end
+    local function mk(len)
+        if dir>0 then mem:r(ptr, len) else mem:w(add16(ptr,-len), len) end
         ptr = add16(ptr,dir*len)
     end
-    if args:match('A')  then mk(dir) end
-    if args:match('B')  then mk(dir) end
-    if args:match('CC') then mk(dir) end
-    if args:match('DP') then mk(dir) end
-    if args:match('X')  then mk(dir,2) end
-    if args:match('Y')  then mk(dir,2) end
-    if args:match('S')  then mk(dir,2) end
-    if args:match('U')  then mk(dir,2) end
-    if args:match('PC') then mk(dir,2) end
+    if args:match('A')  then mk(1) end
+    if args:match('B')  then mk(1) end
+    if args:match('CC') then mk(1) end
+    if args:match('DP') then mk(1) end
+    if args:match('X')  then mk(2) end
+    if args:match('Y')  then mk(2) end
+    if args:match('S')  then mk(2) end
+    if args:match('U')  then mk(2) end
+    if args:match('PC') then mk(2) end
     return ptr
 end
 -- lecture depuis la pile "reg"
