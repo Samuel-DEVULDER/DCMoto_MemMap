@@ -146,7 +146,7 @@ local EQUATES = {
         return self
     end,
     t = function(self,addr)
-        return self[addr or ''] and ' <'..self[addr]..'>' or ''
+        return self[addr or ''] and ' <-'..self[addr] or ''
     end
 } EQUATES
 :d('FFFE','VEC.RESET',
@@ -157,8 +157,10 @@ local EQUATES = {
    'FFF4','VEC.SWI2',
    'FFF2','VEC.SWI3',
    'FFF0','VEC.UNK')
--- TO8 monitor
 :m('TO.')
+:d('0000','<CART','3FFF','CART>')
+:d('4000','<VRAM','5F40','VRAM>')
+-- TO8 monitor
 :d('EC0C','EXTRA',
    'EC09','PEIN',
    'EC06','GEPE',
@@ -185,17 +187,17 @@ local EQUATES = {
    'E803','PUTC')
 -- PAGE 0
 -- Redir moniteur TO
-:d('6000','VEC.GETLP',
-   '6002','VEC.LPIN',
-   '6004','VEC.GETP',
-   '6006','VEC.GACH',
-   '6008','VEC.PUTC',
-   '600A','VEC.GETC',
-   '600C','VEC.DRAW',
-   '600E','VEC.PLOT',
-   '6010','VEC.RSCONT',
-   '6012','VEC.GETP',
-   '6014','VEC.GETS',
+:d('6000','*GETLP',
+   '6002','*LPIN',
+   '6004','*GETP',
+   '6006','*GACH',
+   '6008','*PUTC',
+   '600A','*GETC',
+   '600C','*DRAW',
+   '600E','*PLOT',
+   '6010','*RSCONT',
+   '6012','*GETP',
+   '6014','*GETS',
    nil)
 -- Registres moniteur
 :d('6016','SAVPAL',
@@ -449,6 +451,13 @@ local function newHtmlWriter(file, mem)
             file:write(tostring(s))
         end
     end
+	-- échappement html
+	local function esc(txt)
+		return txt
+		:gsub("<%-", "&larr;"):gsub("%->", "&rarr;")
+		:gsub([['"<>&]], {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
+		:gsub(' ','&nbsp;')
+	end
     -- récup des adresses utiles
     local valid = {} for i=MINADR,MAXADR do valid[string.format('%04X',i)] = true end
     local rev   = {}
@@ -484,10 +493,11 @@ local function newHtmlWriter(file, mem)
             elseif RWX=='--W'              then anchor = m.w end
             --
             local equate = EQUATES:t(addr)
-            local title  = '$' .. addr .. ' : ' .. RWX .. equate ..
-                           (opt_asm and '\n' .. opt_asm:gsub(equate,'') or '') ..
-                           code(m.r):gsub(equate,'')
-            if m.r~=m.w then title = title .. code(m.w):gsub(equate,'') end
+			local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+            local title  = '$' .. addr .. equate .. ' : ' .. RWX ..
+                           (opt_asm and '\n' .. opt_asm:gsub(equate_ptn,'') or '') ..
+                           code(m.r):gsub(equate_ptn,'')
+            if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
 
             return title, RWX, anchor
         else
@@ -499,9 +509,8 @@ local function newHtmlWriter(file, mem)
     local function ahref(from, addr, txt)
         local title, RWX, anchor = describe(addr)
         if from == anchor then anchor = addr end -- no loop back
-        return '<a href="#' .. anchor .. '" title="' .. title .. '">' .. txt .. '</a>'
+        return '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
     end
-	local memm
 	
 	
     local function memmap(mem)
@@ -549,9 +558,9 @@ local function newHtmlWriter(file, mem)
               if m then
                   local title, RWX, anchor = describe(a, last_asm, last_asm_addr) 
                   if m.asm then last_asm,last_asm_addr = m.asm, a end
-                  w('<td', ' class="c', color[RWX],'"', ' title="',title, '"><a href="#',anchor,'"/></td>')
+                  w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '"><a href="#',anchor,'"/><noscript>#</noscript></td>')
               else
-                w('<td class="c7" title="$',a,' : untouched', EQUATES:t(addr),'"/>')
+                w('<td class="c7" title="$',a,' : untouched', esc(EQUATES:t(a)),'"/>')
               end
             end
             w('</tr>\n')
@@ -569,15 +578,17 @@ local function newHtmlWriter(file, mem)
                 memmap(mem) 
                 w('</div>')
             end
+			w('<script>',
+			  'window.addEventListener("load", hideLoading);',
+			  '</script>\n')
             w('</body></html>\n')
             w()
             f:close() 
         end,
         _row = function(self, tag, columns)
-            local t, cols = '', {'&nbsp;'}
+            local t, cols = '', {' '}
             for i,n in ipairs(columns) do 
-                local s = type(n)=='table' and string.format(unpack(n)) or tostring(n)
-                cols[i] = s:gsub('<','&lt;'):gsub('>','&gt;'):gsub('\n','<br>')--:gsub(' ','&nbsp;')
+                cols[i] = type(n)=='table' and string.format(unpack(n)) or tostring(n)
             end
             local last = #cols
             if last>1 then t = t .. ' id="'..cols[1]..'"' end t = t .. '>'
@@ -586,23 +597,26 @@ local function newHtmlWriter(file, mem)
                     (i==last and i~=self.ncols and ' colspan="'..(self.ncols - i + 1)..'"' or '') ..
                     '>'
                 if i==1 then
-                    t = t .. n
+                    t = t .. esc(n)
                 elseif i==2 or i==3 then
-                    t = t .. (valid[n] and ahref(cols[1], n,n) or n)
+                    t = t .. (valid[n] and ahref(cols[1], n,n) or esc(n))
                 elseif i==4 then 
-                    t = t .. n
+                    t = t .. esc(n)
                 elseif i==5 then
                     local back = rev[cols[1]]
                     if back then
                         local before,arg,after = n:match('^(%S+%s+%S+%s+%$?)(%S+)(.*)$')
-                        if not arg then before,arg,after = '',n,'' end
+                        if not arg then before,arg,after = n:match('^(%S+%s+)(%S+)(.*)$') end
+						if not arg then before,arg,after = '',n,'' end
                         -- if arg:sub(1,1)=='$' then before,arg = before..'$',arg:sub(2) end
-                        n = before .. ahref(cols[1], back, arg) .. after
+                        n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
                     else
                         -- sauts divers
                         local before,addr,after = n:match('(.*%$)(%x%x%x%x)(.*)')
                         if addr and mem[tonumber(addr,16)] then 
-                            n = before .. ahref(cols[1], addr,addr) .. after
+                            n = esc(before) .. ahref(cols[1], addr,addr) .. esc(after)
+						else
+							n = esc(n)
                         end
                         -- if addr then n = n .. EQUATES:t(addr) end
                     end
@@ -612,7 +626,20 @@ local function newHtmlWriter(file, mem)
             end
             w('    <tr', t , '</tr>\n')
         end,
-		_header = [[<!DOCTYPE html>
+		header = function(self, columns)
+            self.ncols = #columns      
+			
+			local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},''
+            for i,n in ipairs(columns) do
+                local tag = n:match('^([<=>])')
+                cols[i] = trim(tag and n:sub(2) or n)
+				align_style = align_style ..
+					'    #t1 td:nth-of-type(' .. i .. ') {text-align: ' .. align[tag or '<'] ..  ';' ..
+					((i==1 or i==4) and ' font-weight: bold;' or '') .. '}\n'
+            end
+
+			
+			w([[<!DOCTYPE html>
 <html>
   <style>
     :target {background-color:lightgray;}
@@ -645,32 +672,49 @@ local function newHtmlWriter(file, mem)
       width:    100%;
       height:   100vh;
     }
-]],     header = function(self, columns)
-            self.ncols = #columns      
-			w(self._header)
-            local cols,align={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
-            for i,n in ipairs(columns) do
-                local tag = n:match('^([<=>])')
-                cols[i] = trim(tag and n:sub(2) or n)
-                w('    #t1 td:nth-of-type(',i,') {text-align: ', align[tag or '<'],  ';',
-                  (i==1 or i==4) and ' font-weight: bold;' or '', '}\n')
-            end
-            if GRAPH then w('    body {overflow: hidden; margin: 0; display:flex;}\n') end
-            w('  </style>\n',
-              '<body>\n',
-              '  <script type="text/javascript">')
-            local function on(event, color)
-                w('    document.addEventListener("',event,'",function(event) {\n',
-                  -- '      console.log(event.target.tagName)\n',
-                  '      if(event.target.tagName==="A") {\n',
-                  '      var id = event.target.getAttribute("href").substring(1);\n',
-                  -- '      console.log(id);\n',
-                  '      document.getElementById(id).style.background = ' .. color .. '\n',
-                  '    }})\n')
-            end
-            on('mouseover','"yellow"')
-            on('mouseout','null')
-            w('  </script>\n')
+	#loading {
+	  position: fixed;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  width: 100%;
+	  height: 100%;
+	  top: 0;
+	  left: 0;
+	  opacity: 0.7;
+	  background-color: #000;
+	  z-index: 99;
+	}
+	#closeButton {
+	  foreground-color: black;
+	  background-color: white;
+	  z-index: 100;
+	}
+]], align_style, GRAPH and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
+  </style>
+<body>
+  <script type="text/javascript">
+    function on(event, color) {
+	    document.addEventListener(event,function(event) {
+		    if(event.target.tagName==="A") {
+                var id = event.target.getAttribute("href").substring(1);
+                document.getElementById(id).style.background = color;
+			}
+		});
+	}
+	on('mouseover', 'yellow');
+	on('mouseout',  null);
+	function hideLoading() {
+	    var loading = document.getElementById("loading");
+		loading.style.display = "none";
+		document.body.removeChild(loading);
+	}
+  </script>
+  <div id="loading">
+	<button id="closeButton" onclick="hideLoading()" title="click to close">
+		<h1>Please wait while loading...</h1>
+	</button>
+  </div>]])
             w(GRAPH and '<div id="main">\n' or '',
               {'  <h1>Analysis of %s between $%04X and $%04X</h1>\n', TRACE, MINADR, MAXADR},
                '  <code>\n',
