@@ -470,7 +470,7 @@ local function newHtmlWriter(file, mem)
         return txt
         -- :gsub("<<","&laquo;")
         :gsub('['..[['"<>&]]..']', {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
-        :gsub("<%-", "&larr;")
+        :gsub("&lt;%-", "&larr;")
         :gsub(' ','&nbsp;')
     end
     -- récup des adresses utiles
@@ -559,10 +559,10 @@ local function newHtmlWriter(file, mem)
                   if m.asm then last_asm,last_asm_addr = m.asm, a end
                   w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
                     '<a href="#',anchor,'"></a>',
-                    '<noscript>#</noscript>',
+                    '<noscript>',RWX,'</noscript>',
                     '</td>')
               else
-                w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>#</noscript></td>')
+                w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>---</noscript></td>')
               end
             end
             w('</tr>\n')
