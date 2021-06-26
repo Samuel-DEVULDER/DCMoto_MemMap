@@ -3,7 +3,7 @@
 --
 -- Usage:
 --     lua.exe memmap.lua [-reset] [-loop] [-from=XXXX] [-to=XXXX]
---                        [-html [-map]] 
+--                        [-html [-map[=NBCOLS]]] 
 --
 -- Le programme attends que le fichier dcmoto_trace.txt apparaisse dans
 -- le repertoire courant. Ensuite il l'analyse, et produit un fichier
@@ -58,6 +58,7 @@ local HTML   = false               -- produit une analyse html?
 local LOOP   = false               -- reboucle ?
 local RESET  = false               -- ignore les analyses précédentes ?
 local MAP    = false               -- ajoute une version graphique de la map
+local MAPCOL = 128                 -- nb de colonnes de la table map
 local MINADR = 0x0000              -- adresse de départ
 local MAXADR = 0xFFFF              -- adresse de fin
 
@@ -69,19 +70,25 @@ local BRAKET = {' <-',''}
 for i,v in ipairs(arg) do local t
     if v=='-loop'  then LOOP  = true end
     if v=='-html'  then HTML  = true end
-    if v=='-map'   then MAP   = true end
     if v=='-reset' then RESET = true end
+    if v=='-map'   then MAP   = true end
     t=v:match('%-from=(%x+)') if t then MINADR = tonumber(t,16) end
     t=v:match('%-to=(%x+)')   if t then MAXADR = tonumber(t,16) end
+    t=v:match('%-map=(%d+)')  if t then MAP,MAPCOL = true,tonumber(t) end
 end
 
 ------------------------------------------------------------------------------
 
 local unpack = unpack or table.unpack
 
+-- formatage à la C
+local function sprintf(...)
+    return string.format(...)
+end
+
 -- affiche un truc sur la sortie d'erreur (pas de buffferisation)
 local function out(...)
-    io.stderr:write(string.format(...))
+    io.stderr:write(sprintf(...))
     io.stderr:flush()
 end
 
@@ -94,7 +101,7 @@ end
 
 -- hexa 16 bits
 local function hex(n)
-    return string.format('%04X', n)
+    return sprintf('%04X', n)
 end
 
 -- addition 16 bits
@@ -163,8 +170,6 @@ local EQUATES = {
    'FFF2','VEC.SWI3',
    'FFF0','VEC.UNK')
 :m('TO.')
-:d('0000','<CART','3FFF','CART>')
-:d('4000','<VRAM','5F40','VRAM>')
 -- TO8 monitor
 :d('EC0C','EXTRA',
    'EC09','PEIN',
@@ -373,6 +378,10 @@ local EQUATES = {
    'E7E6','LGAROM',
    'E7E7','LGASYS1',
    nil)
+for i=0,math.floor(8192/40) do 
+    EQUATES:m('TO.'):d(hex(0x4000+i*40),sprintf('VRAM+40*%d',i))
+    -- EQUATES:m('MO.').d(hex(0x0000+i*40),sprintf('VLIN.%03d',i))
+end
    
 ------------------------------------------------------------------------------
 -- différent formateurs de résultat
@@ -429,7 +438,7 @@ local function newTSVWriter(file, tablen)
             local t = ''
             for i,n in ipairs(cels) do
                 t = t .. '\t'
-                if type(n)=='table' then n = string.format(unpack(n)) else n = tostring(n) end
+                if type(n)=='table' then n = sprintf(unpack(n)) else n = tostring(n) end
                 if n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
                 if self.align[i]=='>' then 
                     t = t .. string.rep(' ', self.clen[i] - n:len() - 1) .. n
@@ -452,24 +461,24 @@ local function newHtmlWriter(file, mem)
     -- aide pour imprimer
     local function w(...)
         for _,s in ipairs{...} do
-            if type(s)=='table' then s = string.format(unpack(s)) end
+            if type(s)=='table' then s = sprintf(unpack(s)) end
             file:write(tostring(s))
         end
     end
-	-- échappement html
-	local function esc(txt)
-		return txt
-		-- :gsub("<<","&laquo;")
-		:gsub([['"<>&]], {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
-		:gsub("<%-", "&larr;")
-		:gsub(' ','&nbsp;')
-	end
+    -- échappement html
+    local function esc(txt)
+        return txt
+        -- :gsub("<<","&laquo;")
+        :gsub('['..[['"<>&]]..']', {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
+        :gsub("<%-", "&larr;")
+        :gsub(' ','&nbsp;')
+    end
     -- récup des adresses utiles
-    local valid = {} for i=MINADR,MAXADR do valid[string.format('%04X',i)] = true end
+    local valid = {} for i=MINADR,MAXADR do valid[hex(i)] = true end
     local rev   = {}
     for i=MAXADR,MINADR,-1 do 
         local m = mem[i] 
-        i = string.format('%04X',i)
+        i = hex(i)
         if m and m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
         if m and m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
     end
@@ -499,7 +508,7 @@ local function newHtmlWriter(file, mem)
             elseif RWX=='--W'              then anchor = m.w end
             --
             local equate = EQUATES:t(addr)
-			local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+            local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
             local title  = '$' .. addr .. equate .. ' : ' .. RWX ..
                            (opt_asm and '\n' .. opt_asm:gsub(equate_ptn,'') or '') ..
                            code(m.r):gsub(equate_ptn,'')
@@ -507,42 +516,20 @@ local function newHtmlWriter(file, mem)
 
             return title, RWX, anchor
         else
-            return '$' .. addr .. ' : untouched' .. EQUATES:t(addr), '---', addr
+            return '$' .. addr  .. EQUATES:t(addr) .. ' : untouched', '---', addr
         end
     end
-	-- affiche le code html pour un hyperlien sur "addr" avec le texte
+    -- affiche le code html pour un hyperlien sur "addr" avec le texte
     -- "txt" (le tout pour l'adresse "from")
     local function ahref(from, addr, txt)
         local title, RWX, anchor = describe(addr)
         if from == anchor then anchor = addr end -- no loop back
         return '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
     end
-	
-	
+    
+    
     local function memmap(mem)
-		local COLS = 128
-        local STYLE = [[
-  <style>
-    .c0 {background-color:#111;}
-    .c1 {background-color:#e11;}
-    .c2 {background-color:#1e1;}
-    .c3 {background-color:#ee1;}
-    .c4 {background-color:#11e;}
-    .c5 {background-color:#e1e;}
-    .c6 {background-color:#1ee;}
-    .c7 {background-color:#eee;}
-    .mm {table-layout: fixed;}]] .. 
-	'\n    .mm td {padding:0; border: 1px solid #ddd;' ..
-    ' width: ' .. (100/COLS) .. '%;' ..
-	' height: ' .. (100/COLS) .. 'vh;}\n' .. [[
-    .mm tr:hover {background-color:initial;}
-    .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-  </style>]]
-		      
-        local min,max = MINADR,MAXADR
-        for i=min,MAXADR    do if mem[i] then min=i break end end
-        for i=MAXADR,min,-1 do if mem[i] then max=i break end end
-        
+        -- encodage des couleurs de cases
         local color = {
             ['---'] = 7,
             ['--W'] = 1,
@@ -553,20 +540,29 @@ local function newHtmlWriter(file, mem)
             ['XR-'] = 6,
             ['XRW'] = 0,
         }
-        w('  <h1>Memory map between $', {'%04X',min}, ' and $', {'%04X',max},'</h1>')
-        w(STYLE, '\n  <table class="mm">')
+
+        -- affine le min/max pour réduire la taille de la carte
+        local min,max = MINADR,MAXADR
+        for i=min,MAXADR    do if mem[i] then min=i break end end
+        for i=MAXADR,min,-1 do if mem[i] then max=i break end end
+        
+        w('  <h1>Memory map between $', hex(min), ' and $', hex(max),'</h1>\n')
+        w('  <table class="mm">\n')
         
         local last_asm, last_asm_addr ='',''
-        for j=math.floor(min/COLS),math.floor(max/COLS) do
+        for j=math.floor(min/MAPCOL),math.floor(max/MAPCOL) do
             w('    <tr>')
-            for i=0,COLS-1 do 
-              local m,a = mem[COLS*j+i],string.format('%04X',COLS*j+i)
+            for i=0,MAPCOL-1 do 
+              local m,a = mem[MAPCOL*j+i],hex(MAPCOL*j+i)
               if m then
                   local title, RWX, anchor = describe(a, last_asm, last_asm_addr) 
                   if m.asm then last_asm,last_asm_addr = m.asm, a end
-                  w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '"><a href="#',anchor,'"/><noscript>#</noscript></td>')
+                  w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
+                    '<a href="#',anchor,'"></a>',
+                    '<noscript>#</noscript>',
+                    '</td>')
               else
-                w('<td class="c7" title="$',a,' : untouched', esc(EQUATES:t(a)),'"/>')
+                w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>#</noscript></td>')
               end
             end
             w('</tr>\n')
@@ -578,19 +574,19 @@ local function newHtmlWriter(file, mem)
         close = function(self) 
             local f = self.file
             w('</table>\n',
-              '</code>\n',
-			  '<div><p/></div>\n',
-			  '<a href="#TOP" id="BOTTOM">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
-			  '<h1>End of analysis</h1>\n')
+              '<div><p></p></div>\n',
+              '<a href="#TOP" id="BOTTOM">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
+              '<h1>End of analysis</h1>\n')
             if MAP then 
                 w('</div>\n',
-				  '<div id="memmap">\n')
+                  -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
+                  '<div id="memmap">\n')
                 memmap(mem) 
                 w('</div>')
             end
-			w('<script>',
-			  'window.addEventListener("load", hideLoading);',
-			  '</script>\n')
+            w('<script>',
+              'window.addEventListener("load", hideLoading);',
+              '</script>\n')
             w('</body></html>\n')
             w()
             f:close() 
@@ -598,10 +594,10 @@ local function newHtmlWriter(file, mem)
         _row = function(self, tag, columns)
             local t, cols = '', {' '}
             for i,n in ipairs(columns) do 
-                cols[i] = type(n)=='table' and string.format(unpack(n)) or tostring(n)
+                cols[i] = type(n)=='table' and sprintf(unpack(n)) or tostring(n)
             end
             local last = #cols
-            if last>1 then t = t .. ' id="'..cols[1]..'"' end t = t .. '>'
+            if last>1 and cols[1]:match("^%x%x%x%x$") then t = t .. ' id="'..cols[1]..'"' end t = t .. '>'
             for i,n in ipairs(cols) do 
                 t = t .. '<' .. tag .. 
                     (i==last and i~=self.ncols and ' colspan="'..(self.ncols - i + 1)..'"' or '') ..
@@ -617,7 +613,7 @@ local function newHtmlWriter(file, mem)
                     if back then
                         local before,arg,after = n:match('^(%S+%s+%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
                         if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.+)$') end
-						if not arg then before,arg,after = '',n,'' end
+                        if not arg then before,arg,after = '',n,'' end
                         -- if arg:sub(1,1)=='$' then before,arg = before..'$',arg:sub(2) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
                     else
@@ -625,8 +621,8 @@ local function newHtmlWriter(file, mem)
                         local before,addr,after = n:match('^(.*%$)(%x%x%x%x)(.*)$')
                         if addr and mem[tonumber(addr,16)] then 
                             n = esc(before) .. ahref(cols[1], addr,addr) .. esc(after)
-						else
-							n = esc(n)
+                        else
+                            n = esc(n)
                         end
                         -- if addr then n = n .. EQUATES:t(addr) end
                     end
@@ -636,21 +632,23 @@ local function newHtmlWriter(file, mem)
             end
             w('    <tr', t , '</tr>\n')
         end,
-		header = function(self, columns)
-            self.ncols = #columns      
-			
-			local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},''
+        header = function(self, columns)
+            self.ncols = #columns
+            
+            local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},''
             for i,n in ipairs(columns) do
                 local tag = n:match('^([<=>])')
                 cols[i] = trim(tag and n:sub(2) or n)
-				align_style = align_style ..
-					'    #t1 td:nth-of-type(' .. i .. ') {text-align: ' .. align[tag or '<'] ..  ';' ..
-					((i==1 or i==4) and ' font-weight: bold;' or '') .. '}\n'
+                align_style = align_style ..
+                    '    #t1 td:nth-of-type(' .. i .. ') {text-align: ' .. align[tag or '<'] ..  ';' ..
+                    ((i==1 or i==4) and ' font-weight: bold;' or '') .. '}\n'
             end
-
-			
-			w([[<!DOCTYPE html>
-<html>
+         
+            w([[<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DCMoto_MemMap</title>
   <style>
     :target {background-color:lightgray;}
     table {
@@ -682,61 +680,92 @@ local function newHtmlWriter(file, mem)
       width:    100%;
       height:   100vh;
     }
-	#loading {
-	  position: fixed;
-	  display: flex;
-	  justify-content: center;
-	  align-items: center;
-	  width: 100%;
-	  height: 100%;
-	  top: 0;
-	  left: 0;
-	  opacity: 0.7;
-	  background-color: #000;
-	  z-index: 99;
-	}
-	#closeButton {
-	  foreground-color: black;
-	  background-color: white;
-	  z-index: 100;
-	}
-	#TOP,#BOTTOM               {text-decoration: none;}
-	#TOP:hover,#BOTTOM:hover   {background-color: yellow;}
-	x#TOP:target,x#BOTTOM:target {background-color: unset;}
-]], align_style, MAP and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
+    #memmap a {
+      cursor:   crosshair;
+    }
+    #loading {
+      position: fixed;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0.7;
+      background-color: #000;
+      z-index: 99;
+      cursor: wait;
+    }
+    #closeButton {
+      color: black;
+      background-color: white;
+      z-index: 100;
+      display: block;
+      padding: 0.6em;
+      font-size: 2em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #TOP, #BOTTOM             {text-decoration: none;}
+    #TOP:hover, #BOTTOM:hover {background-color: yellow;}
+    .c0 {background-color:#111;}
+    .c1 {background-color:#e11;}
+    .c2 {background-color:#1e1;}
+    .c3 {background-color:#ee1;}
+    .c4 {background-color:#11e;}
+    .c5 {background-color:#e1e;}
+    .c6 {background-color:#1ee;}
+    .c7 {background-color:#eee;}
+    .mm {table-layout: fixed;}
+    .mm tr:hover {background-color:initial;}
+    .mm a {text-decoration:none; display: block; height:100%; width:100%;}
+    .mm td {padding:0; border: 1px solid #ddd; width: ]],100/MAPCOL,'%; height: ',100/MAPCOL,'vh;}\n',
+    align_style, MAP and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
   </style>
+</head>
 <body>
-  <script type="text/javascript">
+  <script>
     function on(event, color) {
-	    document.addEventListener(event,function(event) {
-		    if(event.target.tagName==="A") {
-                var id  = event.target.getAttribute("href").substring(1);
-				var elt = document.getElementById(id);
-				if(elt!==null) {
-					document.getElementById(id).style.background = color;
-				}
-			}
-		});
-	}
-	on('mouseover', 'yellow');
-	on('mouseout',  null);
-	function hideLoading() {
-	    var loading = document.getElementById("loading");
-		loading.style.display = "none";
-		document.body.removeChild(loading);
-	}
+        document.addEventListener(event,function(event) {
+            if(event.target.tagName==="A") {
+                const id  = event.target.getAttribute("href").substring(1);
+                const elt = document.getElementById(id);
+                if(elt!==null) {
+                    document.getElementById(id).style.background = color;
+                }
+            }
+        });
+    }
+    on('mouseover', 'yellow');
+    on('mouseout',  null);
+    function hideLoading() {
+        const loading = document.getElementById("loading");
+    if(loading!==null) {
+            loading.style.display = "none";
+            document.body.removeChild(loading);
+    }
+  }
   </script>
   <div id="loading">
-	<button id="closeButton" onclick="hideLoading()" title="click to close">
-		<h1>Please wait while loading...</h1>
-	</button>
-  </div>]])
-            w(MAP and '<div id="main">\n' or '',
-              {'  <h1>Analysis of %s between $%04X and $%04X</h1>\n', TRACE, MINADR, MAXADR},
-			   '  <a href="#BOTTOM" id="TOP">&darr;&darr;goto bottom&darr;&darr;</a>\n',
-			   '  <div><p/></div>\n',
-               '  <code>\n',
-               '  <table id="t1">\n')
+    <button id="closeButton" onclick="hideLoading()" title="click to close" class="h1">
+      &nbsp;
+    </button>
+  </div>
+  <script>
+    function progress(percent) {
+      var txt = "Please wait while loading...";
+      if(percent>0) txt = txt + '<br>(' + percent + '%)';
+      document.getElementById('closeButton').innerHTML = txt;
+    }
+    progress(0);
+    document.getElementById('loading').style.display = 'flex';
+  </script>]])
+            w(MAP and '  <div id="main">\n' or '',
+              '  <h1>Analysis of ',TRACE,' between $',hex(MINADR),' and $',hex(MAXADR),'</h1>\n',
+              '  <a href="#BOTTOM" id="TOP">&darr;&darr;goto bottom&darr;&darr;</a>\n',
+              '  <div><p></p></div>\n',
+              '  <table id="t1" style="font-family: monospace;">\n')
             if self.ncols>0 then self:_row("th", cols) end
             return self
         end,
@@ -748,14 +777,14 @@ local function newHtmlWriter(file, mem)
 end
 
 ------------------------------------------------------------------------------
--- detecte les points chauds
+-- detecte les points chauds (endroits où l'on passe le plus de temps)
 ------------------------------------------------------------------------------
 
 local function findHotspots(mem)
     local spots,hot = {}
     local function newHot(i) 
         return {
-            x = 0, t = 0, a = string.format('%04X',i),
+            x = 0, t = 0, a = hex(i),
             touches = function(self,m)
                 return math.abs(m.x - self.x)<=1
             end,
@@ -802,7 +831,7 @@ local mem = {
     end,
     -- positionne le compteur programme courrant
     pc = function(self, pc)
-        self.PC = string.format('%04X',pc)
+        self.PC = hex(pc)
         return self
     end,
     -- assigne un code asm au PC courrant
@@ -853,7 +882,7 @@ local mem = {
         local n,curr=0,0
         local function u(space)
             if n>0 then
-				if space<0 then writer:row{} end
+                if space<0 then writer:row{} end
                 writer:row{{'%d byte%s untouched', n, n>1 and 's' or ''}}
                 if space>0 then writer:row{} end
                 n = 0
@@ -866,7 +895,7 @@ local mem = {
                 if mask ~= curr or (m.asm and m.r~=NOADDR) then writer:row{} end curr = mask
                 u(1)
                 if mask~=4 or m.asm then
-                    writer:row{{'%04X', i}, m.r, m.w, m.x==0 and '-' or m.x,m.asm or ''}
+                    writer:row{hex(i), m.r, m.w, m.x==0 and '-' or m.x,m.asm or ''}
                 end
             else
                 n, curr = n + 1, 0
@@ -1051,13 +1080,13 @@ local function read_trace(filename)
     DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:r(a):w(a) else nomem[sig] = true end end)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
-	
-	local REL_BRANCH = {}
-	for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2C','2D','2E','2F',
-		'1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'} do
-		for i=0,255 do REL_BRANCH[string.format("%s%02X", hexa, i)] = true end
-	end
-	
+    
+    local REL_BRANCH = {}
+    for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2C','2D','2E','2F',
+        '1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'} do
+        for i=0,255 do REL_BRANCH[sprintf("%s%02X", hexa, i)] = true end
+    end
+    
     for s in f:lines() do
         -- print(s) io.stdout:flush()
         if 50000==num then num=0; out('%6.02f%%\r', 100*f:seek()/size) end
@@ -1070,9 +1099,9 @@ local function read_trace(filename)
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
             mem:pc(curr_pc):x(hexa,1)
             sig = 
-				-- pc .. '.' .. hexa
-				-- hexa if REL_BRANCH[sig] then sig = pc .. ':' .. hexa end
-				REL_BRANCH[hexa] and pc..':'..hexa or hexa
+                -- pc .. '.' .. hexa
+                -- hexa if REL_BRANCH[sig] then sig = pc .. ':' .. hexa end
+                REL_BRANCH[hexa] and pc..':'..hexa or hexa
             if nomem[sig] then 
                 mem:a(nomem[sig])
             else
@@ -1080,9 +1109,9 @@ local function read_trace(filename)
                 local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
                 -- on ne connait le code asm vraiment qu'à la fin
                 local asm, cycles = 
-                    args=='' and opcode or string.format("%-5s %s", opcode, args),
+                    args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
-                asm = string.format("%-5s %s%s%s", cycles, asm, EQUATES:t(args:match('%$(%x%x%x%x)')), EQUATES:t(pc))
+                asm = sprintf("%-5s %s%s%s", cycles, asm, EQUATES:t(args:match('%$(%x%x%x%x)')), EQUATES:t(pc))
                 if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
             end
@@ -1097,9 +1126,9 @@ end
 ------------------------------------------------------------------------------
 repeat
     -- attente de l'arrivée d'un fichier de trace
-	wait_for_file(TRACE)
-	-- lecture fichier de trace
-	read_trace(TRACE)
+    wait_for_file(TRACE)
+    -- lecture fichier de trace
+    read_trace(TRACE)
     -- écriture résultat TSV & html
     mem:save(newParallelWriter( 
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
