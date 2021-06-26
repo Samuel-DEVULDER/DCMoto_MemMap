@@ -577,10 +577,14 @@ local function newHtmlWriter(file, mem)
         file=file,
         close = function(self) 
             local f = self.file
-            w('</table>')
-            w('</code><h1>End of analysis</h1>')
+            w('</table>\n',
+              '</code>\n',
+			  '<div><p/></div>\n',
+			  '<a href="#TOP" id="BOTTOM">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
+			  '<h1>End of analysis</h1>\n')
             if MAP then 
-                w('</div><div id="memmap">\n')
+                w('</div>\n',
+				  '<div id="memmap">\n')
                 memmap(mem) 
                 w('</div>')
             end
@@ -696,6 +700,9 @@ local function newHtmlWriter(file, mem)
 	  background-color: white;
 	  z-index: 100;
 	}
+	#TOP,#BOTTOM               {text-decoration: none;}
+	#TOP:hover,#BOTTOM:hover   {background-color: yellow;}
+	x#TOP:target,x#BOTTOM:target {background-color: unset;}
 ]], align_style, MAP and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
   </style>
 <body>
@@ -703,8 +710,11 @@ local function newHtmlWriter(file, mem)
     function on(event, color) {
 	    document.addEventListener(event,function(event) {
 		    if(event.target.tagName==="A") {
-                var id = event.target.getAttribute("href").substring(1);
-                document.getElementById(id).style.background = color;
+                var id  = event.target.getAttribute("href").substring(1);
+				var elt = document.getElementById(id);
+				if(elt!==null) {
+					document.getElementById(id).style.background = color;
+				}
 			}
 		});
 	}
@@ -723,6 +733,8 @@ local function newHtmlWriter(file, mem)
   </div>]])
             w(MAP and '<div id="main">\n' or '',
               {'  <h1>Analysis of %s between $%04X and $%04X</h1>\n', TRACE, MINADR, MAXADR},
+			   '  <a href="#BOTTOM" id="TOP">&darr;&darr;goto bottom&darr;&darr;</a>\n',
+			   '  <div><p/></div>\n',
                '  <code>\n',
                '  <table id="t1">\n')
             if self.ncols>0 then self:_row("th", cols) end
@@ -839,10 +851,11 @@ local mem = {
         writer:header{"Addr   ", "RdFrom ", "WrFrom ", "> ExeCnt", "<Asm code"}
 
         local n,curr=0,0
-        local function u()
+        local function u(space)
             if n>0 then
+				if space<0 then writer:row{} end
                 writer:row{{'%d byte%s untouched', n, n>1 and 's' or ''}}
-                writer:row{}
+                if space>0 then writer:row{} end
                 n = 0
              end
         end
@@ -851,7 +864,7 @@ local mem = {
             if m then
                 local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
                 if mask ~= curr or (m.asm and m.r~=NOADDR) then writer:row{} end curr = mask
-                u()
+                u(1)
                 if mask~=4 or m.asm then
                     writer:row{{'%04X', i}, m.r, m.w, m.x==0 and '-' or m.x,m.asm or ''}
                 end
@@ -859,7 +872,7 @@ local mem = {
                 n, curr = n + 1, 0
             end
         end
-        if n>0 then writer:row{} u() else writer:row{} end
+        u(-1)
         
         -- hotspot
         local spots,total,count,first = findHotspots(self),0,0,true
@@ -867,6 +880,7 @@ local mem = {
         for i,s in ipairs(spots) do 
             if first then   
                 first = false
+                writer:row{}
                 writer:row{{'Hot spots (runtime: ~%.2fs)', total/1000000}}
                 writer:row{}
             end
@@ -874,7 +888,6 @@ local mem = {
             count = count + s.t
             if i>=3 and count >= .8 * total then break end
         end
-        if not first then writer:row{} end
         return writer
     end
 }
@@ -1039,8 +1052,11 @@ local function read_trace(filename)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
 	
-	local REL_BRANCH = set{'16','17','20','21','22','23','24','25','27','28','29','2C','2D','2E','2F',
-		'1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'}
+	local REL_BRANCH = {}
+	for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2C','2D','2E','2F',
+		'1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'} do
+		for i=0,255 do REL_BRANCH[string.format("%s%02X", hexa, i)] = true end
+	end
 	
     for s in f:lines() do
         -- print(s) io.stdout:flush()
