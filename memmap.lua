@@ -2,8 +2,10 @@
 -- memmap.lua : Outil d'analye de traces DCMoto par S. Devulder.
 --
 -- Usage:
---     lua.exe memmap.lua [-reset] [-loop] [-from=XXXX] [-to=XXXX]
+--     lua.exe memmap.lua [-reset] [-loop]
 --                        [-html [-map[=NBCOLS]]] 
+--                        [-equates] [-mach=(TO|MO)]
+--                        [-from=XXXX] [-to=XXXX]
 --
 -- Le programme attends que le fichier dcmoto_trace.txt apparaisse dans
 -- le repertoire courant. Ensuite il l'analyse, et produit un fichier
@@ -54,13 +56,15 @@
 local NOADDR = '----'              -- marqueur d'absence
 local TRACE  = 'dcmoto_trace.txt'  -- fichier trace
 local RESULT = 'memmap'            -- racine des fichiers résultats
-local HTML   = false               -- produit une analyse html?
-local LOOP   = false               -- reboucle ?
-local RESET  = false               -- ignore les analyses précédentes ?
-local MAP    = false               -- ajoute une version graphique de la map
-local MAPCOL = 128                 -- nb de colonnes de la table map
-local MINADR = 0x0000              -- adresse de départ
-local MAXADR = 0xFFFF              -- adresse de fin
+
+local OPT_LOOP   = false               -- reboucle ?
+local OPT_RESET  = false               -- ignore les analyses précédentes ?
+local OPT_MIN    = 0x0000              -- adresse de départ
+local OPT_MAX    = 0xFFFF              -- adresse de fin
+local OPT_MAP    = false               -- ajoute une version graphique de la map
+local OPT_HTML   = false               -- produit une analyse html?
+local OPT_COLS   = 128                 -- nb de colonnes de la table map
+local OPT_EQU    = false               -- utilise les equates
 
 -- local BRAKET = {' .oO(',')'}
 -- local BRAKET = {' (',')'}
@@ -68,13 +72,14 @@ local MAXADR = 0xFFFF              -- adresse de fin
 local BRAKET = {' <-',''}
 
 for i,v in ipairs(arg) do local t
-    if v=='-loop'  then LOOP  = true end
-    if v=='-html'  then HTML  = true end
-    if v=='-reset' then RESET = true end
-    if v=='-map'   then MAP   = true end
-    t=v:match('%-from=(%x+)') if t then MINADR = tonumber(t,16) end
-    t=v:match('%-to=(%x+)')   if t then MAXADR = tonumber(t,16) end
-    t=v:match('%-map=(%d+)')  if t then MAP,MAPCOL = true,tonumber(t) end
+    if v=='-loop'    then OPT_LOOP  = true end
+    if v=='-html'    then OPT_HTML  = true end
+    if v=='-reset'   then OPT_RESET = true end
+    if v=='-map'     then OPT_MAP   = true end
+	if v=='-equates' then OPT_EQU   = true end
+    t=v:match('%-from=(%x+)') if t then OPT_MIN = tonumber(t,16) end
+    t=v:match('%-to=(%x+)')   if t then OPT_MAX = tonumber(t,16) end
+    t=v:match('%-map=(%d+)')  if t then OPT_MAP,OPT_COLS = true,tonumber(t) end
 end
 
 ------------------------------------------------------------------------------
@@ -158,7 +163,7 @@ local EQUATES = {
         return self
     end,
     t = function(self,addr)
-        return self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2] or ''
+        return OPT_EQU and self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2] or ''
     end
 } EQUATES
 :d('FFFE','VEC.RESET',
@@ -169,6 +174,7 @@ local EQUATES = {
    'FFF4','VEC.SWI2',
    'FFF2','VEC.SWI3',
    'FFF0','VEC.UNK')
+
 :m('TO.')
 -- TO8 monitor
 :d('EC0C','EXTRA',
@@ -197,17 +203,17 @@ local EQUATES = {
    'E803','PUTC')
 -- PAGE 0
 -- Redir moniteur TO
-:d('6000','*GETLP',
-   '6002','*LPIN',
-   '6004','*GETP',
-   '6006','*GACH',
-   '6008','*PUTC',
-   '600A','*GETC',
-   '600C','*DRAW',
-   '600E','*PLOT',
-   '6010','*RSCONT',
-   '6012','*GETP',
-   '6014','*GETS',
+:d('6000','REDIR.GETLP',
+   '6002','REDIR.LPIN',
+   '6004','REDIR.GETP',
+   '6006','REDIR.GACH',
+   '6008','REDIR.PUTC',
+   '600A','REDIR.GETC',
+   '600C','REDIR.DRAW',
+   '600E','REDIR.PLOT',
+   '6010','REDIR.RSCONT',
+   '6012','REDIR.GETP',
+   '6014','REDIR.GETS',
    nil)
 -- Registres moniteur
 :d('6016','SAVPAL',
@@ -454,7 +460,7 @@ local function newTSVWriter(file, tablen)
     }
 end
 
--- Writer HTML (quelle horreur!)
+-- Writer OPT_HTML (quelle horreur!)
 local function newHtmlWriter(file, mem)
 	HEADING = "h1"
     -- evite les fichier nil
@@ -475,9 +481,9 @@ local function newHtmlWriter(file, mem)
         :gsub(' ','&nbsp;')
     end
     -- récup des adresses utiles
-    local valid = {} for i=MINADR,MAXADR do valid[hex(i)] = true end
+    local valid = {} for i=OPT_MIN,OPT_MAX do valid[hex(i)] = true end
     local rev   = {}
-    for i=MAXADR,MINADR,-1 do 
+    for i=OPT_MAX,OPT_MIN,-1 do 
         local m = mem[i] 
         i = hex(i)
         if m and m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
@@ -563,18 +569,18 @@ local function newHtmlWriter(file, mem)
 		}
 
         -- affine le min/max pour réduire la taille de la carte
-        local min,max = MINADR,MAXADR
-        for i=min,MAXADR    do if mem[i] then min=i break end end
-        for i=MAXADR,min,-1 do if mem[i] then max=i break end end
+        local min,max = OPT_MIN,OPT_MAX
+        for i=min,OPT_MAX    do if mem[i] then min=i break end end
+        for i=OPT_MAX,min,-1 do if mem[i] then max=i break end end
         
         w('  <',HEADING,'>Memory map between <code>$', hex(min), '</code> and <code>$', hex(max),'</code></',HEADING,'>\n')
         w('  <table class="mm">\n')
         local last_asm, last_asm_addr ='',''
-		min,max = math.floor(min/MAPCOL),math.floor(max/MAPCOL)
+		min,max = math.floor(min/OPT_COLS),math.floor(max/OPT_COLS)
         for j=min,max do
             w('    <tr>')
-            for i=0,MAPCOL-1 do 
-              local m,a = mem[MAPCOL*j+i],hex(MAPCOL*j+i)
+            for i=0,OPT_COLS-1 do 
+              local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
               if m then
                   local title, RWX, anchor = describe(a, last_asm, last_asm_addr) 
                   if m.asm then last_asm,last_asm_addr = m.asm, a end
@@ -599,7 +605,7 @@ local function newHtmlWriter(file, mem)
               '<div><p></p></div>\n',
               '<a href="#TOP" id="BOTTOM" accesskey="t" title="M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
               '<',HEADING,'>End of analysis</',HEADING,'>\n')
-            if MAP then 
+            if OPT_MAP then 
                 w('</div>\n',
                   -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
                   '<div id="memmap">\n')
@@ -624,8 +630,8 @@ local function newHtmlWriter(file, mem)
 				if adr then
 					t = t .. ' id="'..adr..'"' 
 					adr = tonumber(adr:match('^%x%x%x%x'),16)
-					if adr>=MINADR and adr<=MAXADR then 
-						progress((adr-MINADR)/((MAXADR-MINADR)*(MAP and 2 or 1))) 
+					if adr>=OPT_MIN and adr<=OPT_MAX then 
+						progress((adr-OPT_MIN)/((OPT_MAX-OPT_MIN)*(OPT_MAP and 2 or 1))) 
 					end
 				end 
 			end
@@ -668,7 +674,7 @@ local function newHtmlWriter(file, mem)
         header = function(self, columns)
             self.ncols = #columns
             
-            local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},MAP and "    #t1 {width: 100%}\n" or ''
+            local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},OPT_MAP and "    #t1 {width: 100%}\n" or ''
             for i,n in ipairs(columns) do
                 local tag = n:match('^([<=>])')
                 cols[i] = trim(tag and n:sub(2) or n)
@@ -770,10 +776,10 @@ local function newHtmlWriter(file, mem)
 	.mm {table-layout: fixed; width: 100%;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/MAPCOL,'%; height: ',100/MAPCOL,'vh;}\n',
+    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'%; height: ',100/OPT_COLS,'vh;}\n',
     
 	align_style, 
-	MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
+	OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
   </style>
 </head>
 <body>
@@ -801,7 +807,6 @@ local function newHtmlWriter(file, mem)
   </script>
   <div id="loadingPage">
     <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
-      <!-- -- &nbsp; -->
     </button>
   </div>
   <script>
@@ -816,8 +821,8 @@ local function newHtmlWriter(file, mem)
     progress(0);
     document.getElementById('loadingPage').style.display = 'flex';
   </script>]])
-            w(MAP and '  <div id="main">\n' or '',
-              '  <',HEADING,'>Analysis of <code>',TRACE,'</code> between <code>$',hex(MINADR),'</code> and <code>$',hex(MAXADR),'</code></',HEADING,'>\n',
+            w(OPT_MAP and '  <div id="main">\n' or '',
+              '  <',HEADING,'>Analysis of <code>',TRACE,'</code> between <code>$',hex(OPT_MIN),'</code> and <code>$',hex(OPT_MAX),'</code></',HEADING,'>\n',
               '  <a href="#BOTTOM" id="TOP" accesskey="b" title="M-b">&darr;&darr;goto bottom&darr;&darr;</a>\n',
               '  <div><p></p></div>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
@@ -858,7 +863,7 @@ local function findHotspots(mem)
             end
         } 
     end
-    for i=MINADR,MAXADR do
+    for i=OPT_MIN,OPT_MAX do
         local m = mem[i] 
         if not m then
             if hot then hot = hot:push(spots) end
@@ -943,7 +948,7 @@ local mem = {
                 n = 0
              end
         end
-        for i=MINADR,MAXADR do
+        for i=OPT_MIN,OPT_MAX do
             local m=self[i]
             if m then
                 local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
@@ -1085,7 +1090,7 @@ local DCMOTO_RESERVED = {
 nil}
 
 -- lecture ancien fichier si pas reset
-if not RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
+if not OPT_RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
 
 -- attente d'un fichier
 local function wait_for_file(filename)
@@ -1187,8 +1192,8 @@ repeat
     -- écriture résultat TSV & html
     mem:save(newParallelWriter( 
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
-        HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
+        OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
     )):close()
     -- effacement fichier trace consomé
-    if LOOP then assert(os.remove(TRACE)) end
-until not LOOP
+    if OPT_LOOP then assert(os.remove(TRACE)) end
+until not OPT_LOOP
