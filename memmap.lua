@@ -456,6 +456,7 @@ end
 
 -- Writer HTML (quelle horreur!)
 local function newHtmlWriter(file, mem)
+	HEADING = "h1"
     -- evite les fichier nil
     file=file or {write=function() end, close=function() end}
     -- aide pour imprimer
@@ -482,6 +483,14 @@ local function newHtmlWriter(file, mem)
         if m and m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
         if m and m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
     end
+	-- sort le code html pour la progression
+	local prog_next = .01
+	local function progress(ratio)
+		if ratio >= prog_next then
+			prog_next = prog_next + .01
+			w(sprintf('\n<script>progress(%d);</script>\n\n', math.floor(100*ratio)))
+		end
+	end
     -- descrit le contenu d'une adresse
     local function describe(addr, opt_asm, opt_asm_addr)
         local function code(where)
@@ -558,10 +567,11 @@ local function newHtmlWriter(file, mem)
         for i=min,MAXADR    do if mem[i] then min=i break end end
         for i=MAXADR,min,-1 do if mem[i] then max=i break end end
         
-        w('  <h1>Memory map between $', hex(min), ' and $', hex(max),'</h1>\n')
+        w('  <',HEADING,'>Memory map between <code>$', hex(min), '</code> and <code>$', hex(max),'</code></',HEADING,'>\n')
         w('  <table class="mm">\n')
         local last_asm, last_asm_addr ='',''
-        for j=math.floor(min/MAPCOL),math.floor(max/MAPCOL) do
+		min,max = math.floor(min/MAPCOL),math.floor(max/MAPCOL)
+        for j=min,max do
             w('    <tr>')
             for i=0,MAPCOL-1 do 
               local m,a = mem[MAPCOL*j+i],hex(MAPCOL*j+i)
@@ -577,6 +587,7 @@ local function newHtmlWriter(file, mem)
               end
             end
             w('</tr>\n')
+			progress(.5 + .5*(j-min)/(max-min))
         end
         w('  </table>\n')
     end
@@ -587,7 +598,7 @@ local function newHtmlWriter(file, mem)
             w('</table>\n',
               '<div><p></p></div>\n',
               '<a href="#TOP" id="BOTTOM" accesskey="t" title="M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
-              '<h1>End of analysis</h1>\n')
+              '<',HEADING,'>End of analysis</',HEADING,'>\n')
             if MAP then 
                 w('</div>\n',
                   -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
@@ -596,7 +607,7 @@ local function newHtmlWriter(file, mem)
                 w('</div>')
             end
             w('<script>',
-              'window.addEventListener("load", hideLoading);',
+              'window.addEventListener("load", hideLoadingPage);',
               '</script>\n')
             w('</body></html>\n')
             w()
@@ -608,7 +619,17 @@ local function newHtmlWriter(file, mem)
                 cols[i] = type(n)=='table' and sprintf(unpack(n)) or tostring(n)
             end
             local last = #cols
-            if last>1 and cols[1]:match("^%x%x%x%x$") then t = t .. ' id="'..cols[1]..'"' end t = t .. '>'
+            if last>1 then
+				local adr = cols[1]:match("^%x%x%x%x$") 
+				if adr then
+					t = t .. ' id="'..adr..'"' 
+					adr = tonumber(adr:match('^%x%x%x%x'),16)
+					if adr>=MINADR and adr<=MAXADR then 
+						progress((adr-MINADR)/((MAXADR-MINADR)*(MAP and 2 or 1))) 
+					end
+				end 
+			end
+			t = t .. '>'
             for i,n in ipairs(cols) do 
                 t = t .. '<' .. tag .. 
                     (i==last and i~=self.ncols and ' colspan="'..(self.ncols - i + 1)..'"' or '') ..
@@ -641,18 +662,21 @@ local function newHtmlWriter(file, mem)
                 end
                 t = t .. '</' .. tag .. '>'
             end
-            w('    <tr', t , '</tr>\n')
+            w('    <tr', t , '</tr>')
+			w('\n')
         end,
         header = function(self, columns)
             self.ncols = #columns
             
-            local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},''
+            local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},MAP and "    #t1 {width: 100%}\n" or ''
             for i,n in ipairs(columns) do
                 local tag = n:match('^([<=>])')
                 cols[i] = trim(tag and n:sub(2) or n)
                 align_style = align_style ..
-                    '    #t1 td:nth-of-type(' .. i .. ') {text-align: ' .. align[tag or '<'] ..  ';' ..
-                    ((i==1 or i==4) and ' font-weight: bold;' or '') .. '}\n'
+                    '    #t1 td:nth-of-type(' .. i .. ') {' ..
+					'text-align: ' .. align[tag or '<'] ..  ';' ..
+                    ((i==1 or i==4) and ' font-weight: bold;' or '') ..
+					'}\n'
             end
          
             w([[<!DOCTYPE html>
@@ -662,14 +686,14 @@ local function newHtmlWriter(file, mem)
   <title>DCMoto_MemMap</title>
   <style>
     :target {background-color:lightgray;}
+	
     table {
       border-collapse: collapse;
       border-top: 1px solid #ddd;
       border-bottom: 1px solid #ddd;
-      width: 100%;
     }
     th, td {
-      padding-left: 8px;
+      padding-left:  8px;
       padding-right: 8px;
       border-left: 1px solid #ddd;
       border-right: 1px solid #ddd;
@@ -681,20 +705,23 @@ local function newHtmlWriter(file, mem)
     tr:hover {
       background-color:lightgray;
     }
-    #main {
+    
+	#main {
       overflow: auto;
       width:    auto;
       height:   100vh;
     }
-    #memmap {
+    
+	#memmap {
       overflow: auto;
       width:    100%;
       height:   100vh;
     }
     #memmap a {
-      cursor:   crosshair;
+      cursor:   default;
     }
-    #loading {
+	
+    #loadingPage {
       position: fixed;
       display: none;
       justify-content: center;
@@ -703,12 +730,12 @@ local function newHtmlWriter(file, mem)
       height: 100%;
       top: 0;
       left: 0;
-      opacity: 0.7;
+      opacity: 0.6;
       background-color: #000;
       z-index: 99;
       cursor: wait;
     }
-    #closeButton {
+    #loadingProgress {
       color: black;
       background-color: white;
       z-index: 100;
@@ -716,11 +743,13 @@ local function newHtmlWriter(file, mem)
       padding: 0.6em;
       font-size: 2em;
       font-weight: bold;
-      cursor: pointer;
+      cursor: progress;
     }
+	
     #TOP, #BOTTOM             {text-decoration: none;}
     #TOP:hover, #BOTTOM:hover {background-color: yellow;}
-    .c0 {background-color:#111;}
+    
+	.c0 {background-color:#111;}
     .c1 {background-color:#e11;}
     .c2 {background-color:#1e1;}
     .c3 {background-color:#ee1;}
@@ -728,11 +757,23 @@ local function newHtmlWriter(file, mem)
     .c5 {background-color:#e1e;}
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
-    .mm {table-layout: fixed;}
+	
+	td.c0:hover {background-color:white;}
+    td.c1:hover {background-color:black;}
+    td.c2:hover {background-color:black;}
+    td.c3:hover {background-color:black;}
+    td.c4:hover {background-color:black;}
+    td.c5:hover {background-color:black;}
+    td.c6:hover {background-color:black;}
+    td.c7:hover {background-color:black;}
+    
+	.mm {table-layout: fixed; width: 100%;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-    .mm td {padding:0; border: 1px solid #ddd; width: ]],100/MAPCOL,'%; height: ',100/MAPCOL,'vh;}\n',
-    align_style, MAP and '    body {overflow: hidden; margin: 0; display:flex;}\n',[[
+    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/MAPCOL,'%; height: ',100/MAPCOL,'vh;}\n',
+    
+	align_style, 
+	MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
   </style>
 </head>
 <body>
@@ -750,30 +791,33 @@ local function newHtmlWriter(file, mem)
     }
     on('mouseover', 'yellow');
     on('mouseout',  null);
-    function hideLoading() {
-        const loading = document.getElementById("loading");
-    if(loading!==null) {
+    function hideLoadingPage() {
+        const loading = document.getElementById("loadingPage");
+        if(loading !== null) {
             loading.style.display = "none";
             document.body.removeChild(loading);
+        }
     }
-  }
   </script>
-  <div id="loading">
-    <button id="closeButton" onclick="hideLoading()" title="click to close" class="h1">
-      &nbsp;
+  <div id="loadingPage">
+    <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
+      <!-- -- &nbsp; -->
     </button>
   </div>
   <script>
     function progress(percent) {
-      var txt = "Please wait while loading...";
-      if(percent>0) txt = txt + '<br>(' + percent + '%)';
-      document.getElementById('closeButton').innerHTML = txt;
+	  const button = document.getElementById('loadingProgress')
+	  if(button !== null) {
+        let txt = "Please wait while loading...";
+        if(percent>=0) txt += '<br>(' + percent + '%)';
+	    button.innerHTML = txt;
+	  }
     }
     progress(0);
-    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('loadingPage').style.display = 'flex';
   </script>]])
             w(MAP and '  <div id="main">\n' or '',
-              '  <h1>Analysis of ',TRACE,' between $',hex(MINADR),' and $',hex(MAXADR),'</h1>\n',
+              '  <',HEADING,'>Analysis of <code>',TRACE,'</code> between <code>$',hex(MINADR),'</code> and <code>$',hex(MAXADR),'</code></',HEADING,'>\n',
               '  <a href="#BOTTOM" id="TOP" accesskey="b" title="M-b">&darr;&darr;goto bottom&darr;&darr;</a>\n',
               '  <div><p></p></div>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
