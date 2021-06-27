@@ -3,9 +3,9 @@
 --
 -- Usage:
 --     lua.exe memmap.lua [-reset] [-loop]
---                        [-html [-map[=NBCOLS]]] 
---                        [-equates] [-mach=(TO|MO)]
 --                        [-from=XXXX] [-to=XXXX]
+--                        [-equates] [-mach=(mo|to|??)]
+--                        [-html [-map[=NBCOLS]]]
 --
 -- Le programme attends que le fichier dcmoto_trace.txt apparaisse dans
 -- le repertoire courant. Ensuite il l'analyse, et produit un fichier
@@ -16,7 +16,7 @@
 -- Les fichiers résultat affichent les adresses contenues entre les
 -- valeurs indiquées par les options '-from=XXXX' et '-to=XXXX'. Les
 -- valeurs sont en hexadécimal. Par défaut l'analyse se fait sur les 64ko
--- adressables. 
+-- adressables.
 --
 -- Par défault l'outil cumule les valeurs des analyses précédentes, mais
 -- si l'option '-reset' est présente, il ignore les analyses précédentes
@@ -24,6 +24,15 @@
 --
 -- Si l'option '-loop' est présente, le programme efface la trace et
 -- reboucle en attente d'une nouvelle trace.
+--
+-- L'option '-equates' ajoute une annotation concernant un equate thomson
+-- reconnu dans les adresses.
+--
+-- L'option '-mach=TO' ou '-mach=MO' selectionne un type de machine. La
+-- zone analysée correspond alors à la seule RAM utilisateur du type de
+-- machine choisie. Les "equates" sont aussi restreints aux seuls equates
+-- correspondant à la machine choisie. L'option '-mach=??' essaye de 
+-- deviner le type de machine.
 --
 -- Le fichier memmap.csv liste les adresses mémoires trouvées dans les
 -- trace. Chaque ligne est de la forme:
@@ -36,7 +45,7 @@
 -- NNNN est une adresse mémoire en hexadécimal. RRRR est l'adresse
 -- (hexadécimal) de la dernière instruction cpu qui a lu cette adresse.
 -- WWWW est l'adresse de la dernière instruction cpu qui l'a modifié.
--- Si aucune instruction n'a lu (ou écrit) cette adresse alors un "----"
+-- Si aucune instruction n'a lu (ou écrit à) cette adresse alors un "----"
 -- est présent.
 --
 -- NUM peut être "-" ou un nombre décimal. Le "-" indique que l'adresse
@@ -50,12 +59,16 @@
 --
 --      NUM bytes untouched.
 --
+-- $Version$ $Date$
 ------------------------------------------------------------------------------
 
-
-local NOADDR = '----'              -- marqueur d'absence
-local TRACE  = 'dcmoto_trace.txt'  -- fichier trace
-local RESULT = 'memmap'            -- racine des fichiers résultats
+local NOADDR = '----'                  -- marqueur d'absence
+local TRACE  = 'dcmoto_trace.txt'      -- fichier trace
+local RESULT = 'memmap'                -- racine des fichiers résultats
+local BRAKET = {' <-',''}              -- pour décorer les equates
+-- local BRAKET = {' .oO(',')'}
+-- local BRAKET = {' (',')'}
+-- local BRAKET = {'<<',''}
 
 local OPT_LOOP   = false               -- reboucle ?
 local OPT_RESET  = false               -- ignore les analyses précédentes ?
@@ -65,23 +78,10 @@ local OPT_MAP    = false               -- ajoute une version graphique de la map
 local OPT_HTML   = false               -- produit une analyse html?
 local OPT_COLS   = 128                 -- nb de colonnes de la table map
 local OPT_EQU    = false               -- utilise les equates
+local OPT_MACH   = nil                 -- type de machine
 
--- local BRAKET = {' .oO(',')'}
--- local BRAKET = {' (',')'}
--- local BRAKET = {'<<',''}
-local BRAKET = {' <-',''}
-
-for i,v in ipairs(arg) do local t
-    if v=='-loop'    then OPT_LOOP  = true end
-    if v=='-html'    then OPT_HTML  = true end
-    if v=='-reset'   then OPT_RESET = true end
-    if v=='-map'     then OPT_MAP   = true end
-	if v=='-equates' then OPT_EQU   = true end
-    t=v:match('%-from=(%x+)') if t then OPT_MIN = tonumber(t,16) end
-    t=v:match('%-to=(%x+)')   if t then OPT_MAX = tonumber(t,16) end
-    t=v:match('%-map=(%d+)')  if t then OPT_MAP,OPT_COLS = true,tonumber(t) end
-end
-
+------------------------------------------------------------------------------
+-- utilitaires
 ------------------------------------------------------------------------------
 
 local unpack = unpack or table.unpack
@@ -140,6 +140,46 @@ local memoize = {
     end
 }
 
+-- affiche l'usage
+local function usage()
+    local f = assert(io.open(arg[0],'r'))
+    for l in f:lines() do
+        l = trim(l)
+        if l==nil or l=='' then break end
+        l = l:match('^%-%- (.*)$') or l:match('^%-%-(%s?)$')
+        if l then io.stdout:write(l .. '\n') end
+    end
+    f:close()
+    os.exit(5)
+end
+
+------------------------------------------------------------------------------
+-- Analyse la ligne de commande
+------------------------------------------------------------------------------
+
+local function machTO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'TO.',0x4000,0xDFFF,true end
+local function machMO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'MO.',0x2000,0x9FFF,true end
+
+for i,v in ipairs(arg) do local t
+    v = v:lower()
+    if v=='-h'
+    or v=='?'
+    or v=='--help'   then usage()
+    elseif v=='-loop'    then OPT_LOOP  = true
+    elseif v=='-html'    then OPT_HTML  = true
+    elseif v=='-reset'   then OPT_RESET = true
+    elseif v=='-map'     then OPT_MAP   = true
+    elseif v=='-equates' then OPT_EQU   = true
+    elseif v=='-mach=??' then OPT_MACH,OPT_EQU = '?',true
+    elseif v=='-mach=to' then machTO()
+    elseif v=='-mach=mo' then machMO()
+    else t=v:match('%-from=(%x+)') if t then OPT_MIN = tonumber(t,16)
+    else t=v:match('%-to=(%x+)')   if t then OPT_MAX = tonumber(t,16)
+    else t=v:match('%-map=(%d+)')  if t then OPT_MAP,OPT_COLS = true,tonumber(t)
+    else io.stdout:write('Unknown option: ' .. v); os.exit(21)
+    end end end end
+end
+
 ------------------------------------------------------------------------------
 -- Quelques adresses bien connues
 ------------------------------------------------------------------------------
@@ -150,245 +190,406 @@ local EQUATES = {
         self._mach = mach or ''
         return self
     end,
+	-- sets a page prefix to adress
     _page = '',
     p = function(self,page)
         self._page = page or ''
         return self
     end,
-    d = function(self,addr,name, ...) 
-        if addr then
-            self[self._page .. addr] = self._mach .. name
+	-- define adresses
+    d = function(self,addr,name, ...)
+        if addr and (OPT_MACH or self._mach)==self._mach then
+            self[self._page .. addr] = (OPT_MACH==nil and self._mach or '') .. name
             self:d(...)
         end
         return self
     end,
+	-- define adresses in sequence
+	s = function(self, addr, name, ...)
+		if addr then
+			if name then self:d(addr,name) end
+			self:s(hex(add16(tonumber(addr,16),1)), ...)
+		end
+		return self
+	end,
+	-- get text
     t = function(self,addr)
         return OPT_EQU and self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2] or ''
-    end
-} EQUATES
-:d('FFFE','VEC.RESET',
-   'FFFC','VEC.NMI',
-   'FFFA','VEC.SWI',
-   'FFF8','VEC.IRQ',
-   'FFF6','VEC.FIRQ',
-   'FFF4','VEC.SWI2',
-   'FFF2','VEC.SWI3',
-   'FFF0','VEC.UNK')
+    end,
+	-- init equates for video ram
+	iniVRAM = function(self, base)
+		for i=0,8191 do local j,t
+		  i,j,t = math.floor(i/40),i%40,'VRAM'
+		  if i>0 then t = t..'.L'..i end
+		  if j>0 then t = t..'+'..j end
+		  self:d(hex(base+i*40+j),t)
+		end
+		return self
+	end,
+	-- init TO equates
+	iniTO = function(self) self
+		:m('TO.')
+		:iniVRAM(0x4000)
+        -- TO9 monitor
+        :d('EC0C','EXTRA',
+           'EC09','PEIN',
+           'EC06','GEPE',
+           'EC03','COMS',
+           'EC00','SETP',
+           nil)
+        -- TO7 monitor
+        :d('E833','CHPL',
+           'E830','KBIN',
+           'E82D','MENU',
+           'E82A','DKCO',
+           'E827','JOYS',
+           'E824','GETS',
+           'E821','GETP',
+           'E81E','NOTE',
+           'E81B','LPIN',
+           'E818','GETL',
+           'E815','K7CO',
+           'E812','RSCO',
+           'E80F','PLOT',
+           'E80C','DRAW',
+           'E809','KTST',
+           'E806','GETC',
+           'E803','PUTC')
+        -- Redir moniteur TO
+        :d('6000','REDIR.GETLP',
+           '6002','REDIR.LPIN',
+           '6004','REDIR.GETP',
+           '6006','REDIR.GACH',
+           '6008','REDIR.PUTC',
+           '600A','REDIR.GETC',
+           '600C','REDIR.DRAW',
+           '600E','REDIR.PLOT',
+           '6010','REDIR.RSCONT',
+           '6012','REDIR.GETP',
+           '6014','REDIR.GETS',
+           nil)
+        -- Registres moniteur
+        :d('6016','SAVPAL',
+           '6019','STATUS',
+           '601A','TABPT',
+           '601B','RANG',
+           '601C','TOPTAB',
+           '601D','TOPRAN',
+           '601E','BOTTAB',
+           '601F','BOTRAN',
+           '6020','COLN',
+           '6021','IRQPT',
+           '6023','FIRQPT',
+           '6025','COPBUF',
+           '6027','TIMEPT',
+           '6029','K7OPC',
+           '602A','K7STA',
+           '602B','RSOPC',
+           '602C','RSSTA',
+           '602D','USERAF',
+           '602F','SWI1',
+           '6031','TEMPO',
+           '6033','DUREE',
+           '6035','TIMBRE',
+           '6036','OCTAVE',
+           '6038','FORME',
+           '6039','ATRANG',
+           '603A','ATSCR',
+           '603B','COLOUR',
+           '603C','TELETL',
+           '603D','PLOTX',
+           '603F','PLOTY',
+           '6041','CHDRAW',
+           '6042','CURSFL',
+           '6043','COPCHR',
+           '6044','BAUDS',
+           '6046','NOMBRE',
+           '6047','GRCODE',
+           '6048','DKOPC',
+           '6049','DKDRV',
+           '604A','DKTRK',
+           '604C','DKSEC',
+           '604D','DKNUM',
+           '604E','DKSTA',
+           '604F','DKBUF',
+           '6051','TRAK0',
+           '6053','TRAK1',
+           '6055','TEMP1',
+           '6057','TEMP2',
+           '6058','ROTAT',
+           '6059','SEQCE',
+           '605A','SCRPT',
+           '605C','SAVCOL',
+           '605D','ASCII',
+           '605E','RDCLV',
+           '605F','SCRMOD',
+           '6060','STADR',
+           '6062','ENDDR',
+           '6064','TCRSAV',
+           '6065','TCTSAV',
+           '6067','WRCLV',
+           '6068','SAVATR',
+           '606A','US1',
+           '606B','COMPT',
+           '606C','TEMP',
+           '606E','SAVEST',
+           '6070','ACCENT',
+           '6071','SS2GET',
+           '6072','SS3GET',
+           '6073','BUZZ',
+           '6074','CONFIG',
+           '6065','EFCMPT',
+           '6076','BLOCZ',
+           '6078','SCROLS',
+           '6079','CUFCLV',
+           '607B','SIZCLV',
+           '607C','ACCES',
+           '607D','PERIPH',
+           '607E','PERIF1',
+           '607F','RUNFLG',
+           '6080','DKFLG',
+           '6081','CPYE7E7', --'IDSAUT',
+           '6086','CURSFLG',
+           '6087','TEMP2',
+           '6088','RESETP',
+           '608B','STACK',
+           '60CD','PTCLAV',
+           '60CF','PTGENE',
+           '60D1','APPLIC',
+           '60D2','DECALG',
+           '60D3','LPBUFF',
+           '60FE','TSTRST',
+           nil)
+        -- registres minidos
+        :d('60E5','DKERR',
+           '60E7','DKNAM',
+           '60E9','DKCAT',
+           '60EB','DKTYP',
+           '60EC','DKFLG',
+           '60ED','DKFAT',
+           '60F0','DKMOD',
+           '60F3','DKFIN',
+           '60F5','DKSCT',
+           '60F6','BKBLK',
+           '60F7','DKTDS',
+           '60F9','DKIFA',
+           '60FA','DKPSB',
+           '60FB','DKPBC',
+           nil)
+        -- minidos
+        :d('E000','DKROMID',
+		   'E001','DKFATSZ',
+		   'E002','DKSECSZ',
+		   'E003','DKCKSUM',
+		   'E004','DKCON',
+           'E007','DKBOOT',
+           'E00A','DKFMT',
+           'E00D','LECFA',
+           'E010','RECFI',
+           'E013','RECUP',
+           'E016','ECRSE',
+           'E019','ALLOD',
+           'E01C','ALLOB',
+           'E01F','MAJCL',
+           'E022','FINTR',
+		   'E025','QDDSYS',
+           nil)
+        -- 6846 système
+        :d('E7C0','CSR',
+           -- port C
+           'E7C1','CRC',
+           'E7C2','DDRC',
+           'E7C3','PRC',
+           -- timer
+           'E7C5','TCR',
+           'E7C6','TMSB',
+           'E7C7','TLSB',
+           nil)
+        -- 6021 système
+        :d('E7C8','PRA',
+           'E7C9','PRB',
+           'E7CA','CRA',
+           'E7CB','CRB',
+           nil)
+        -- 6021 musique & jeux
+        :d('E7CC','PRA1',
+           'E7CD','PRA2',
+           'E7CE','CRA1',
+           'E7CF','CRA2',
+           nil)
+        -- i/o palette IGV9369
+        :d('E7DA','PALDAT',
+           'E7DB','PALDAT/IDX',
+           nil)
+        -- gate array affichage
+        :d('E7DC','LGAMOD',
+           'E7DD','LGATOU',
+           nil)
+        -- 6850 système (clavier TO9)
+        :d('E7DE','SCR/SSDR',
+           'E7DF','STDR/SRDR',
+           nil)
+        -- gate array système
+        :d('E7E4','LGASYS2',
+           'E7E5','LGARAM',
+           'E7E6','LGAROM',
+           'E7E7','LGASYS1',
+           nil)
+	end,
+	-- init MO equates
+	iniMO = function(self) self
+		:m('MO.')
+        :iniVRAM(0x0000)
+        -- http://pulko.mandy.pagesperso-orange.fr/shinra/mo5_memmap.shtml
+        :d('2000','TERMIN',
+           '2019','STATUS',
+           '201A','TABPT',
+           '201B','RANG',
+           '201C','COLN',
+           '201D','TOPTAB,',
+           '201E','TOPRAN',
+           '201F','BOTTAB',
+           '2020','BOTRAN',
+           '2021','SCRPT',
+           '2023','STADR',
+           '2025','ENDDR',
+           '2027','BLOCZ',
+           '2029','FORME',
+           '202A','ATRANG',	
+           '202B','COLOUR',
+           '202C','PAGFLG',
+           '202D','SCROLS',
+           '202E','CURSFL',
+           '202F','COPCHR',
+           '2030','EFCMPT',
+           '2031','ITCMPT',
+           '2032','PLOTX',
+           '2034','PLOTY',
+           '2036','CHDRAW',
+           '2037','KEY',
+           '2038','CMPTKB',
+           '203A','TEMPO',
+           '203C','DUREE',
+           '203D','WAVE',
+           '203E','OCTAVE',
+           '2040','K7DATA',
+           '2041','K7LENG',
+           '2042','PROPC',
+           '2043','PRSTA',
+           '2044','TEMP',
+           '2046','SAVEST',
+           '2048','DKOPC',	
+           '2049','DKDRV',
+           '204A','DKTRK',
+		   '204B','DKTRK+1',
+           '204C','DKSEC',
+           '204D','DKNUM',
+           '204E','DKSTA',
+		   '204F','DKBUF',
+           '2051','DKTMP',
+           '2059','SEQUCE',
+           '205A','US1',
+           '205B','ACCENT',
+           '205C','SS2GET',
+           '205D','SS3GET',
+           '205E','SWIPT',
+           '2061','TIMEPT',
+           '2063','SEMIRQ',
+           '2064','IRQPT',
+           '2067','FIRQPT',
+           '206A','SIMUL',
+           '206D','CHRPTR',
+           '2070','USERAF',
+           '2073','GENPTR',
+           '2076','LATCLV',
+           '2077','GRCODE',
+           '2078','DECALG',
+           '207F','DEFDST',
+           '2080','DKFLG',
+           '2082','SERDAT',
+           '2081','SYS.STK.LO',
+		   '20CC','SYS.STK.HI',
+           '20CD','LPBUFF',
+           '20FE','FSTRST',
+           '2113','BASDEB',
+           '2115','BASFIN',
+           '2117','BASVAR',
+           '2119','BASTAB',
+           '2199','LDTYPE',
+           '219B','LDBIN',
+           '219C','LDADDR',
+           '23FA','FILENAME',
+		   nil)
+        -- minidos
+        :d('A000','DKROMID',
+		   'A001','DKFATSZ',
+		   'A002','DKSECSZ',
+		   'A003','DKCKSUM',
+		   'A004','DKCON',
+           'A007','DKBOOT',
+           'A00A','DKFMT',
+           'A00D','LECFA',
+           'A010','RECFI',
+           'A013','RECUP',
+           'A016','ECRSE',
+           'A019','ALLOD',
+           'A01C','ALLOB',
+           'A01F','MAJCL',
+           'A022','FINTR',
+		   'A025','QDDSYS',
+           nil)
+        -- PIA système
+        :d('E7C0','PRA',
+           'E7C1','PRB',
+           'E7C2','CRA',
+           'E7C3','CRB',
+           nil)
+        :d('E7CB','MEMCTR',
+           nil)
+        -- 6021 musique & jeux
+        :d('A7CC','PRA1',
+           'A7CD','PRA2',
+           'A7CE','CRA1',
+           'A7CF','CRA2',
+           nil)
+        -- i/o palette IGV9369
+        :d('A7DA','PALDAT',
+           'A7DB','PALDAT/IDX',
+           nil)
+        -- gate array système
+        :d('A7E4','LGASYS2',
+           'A7E5','LGARAM',
+           'A7E6','LGAROM',
+           'A7E7','LGASYS1',
+           nil)
+		-- Basic
+		:d('CE2C','PUTS',
+		   'D83E','PUTD',
+           'E076','SETNAME',
+		   'E079','SETEXT',
+		   'E088','FILETYPE',
+		   'E0B9','PROTEC',
+		   'E12B','SAVEBAS',
+		   'E167','SAVEBIN',
+           'E2B3','LOADFILE',
+		   nil)
+    end,
+	ini = function(self)
+		for k,v in pairs(self) do if k:match('%x%x%x%x$') then self[k] = nil end end
+		self
+		:d('FFFE','VEC.RESET',
+		   'FFFC','VEC.NMI',
+		   'FFFA','VEC.SWI',
+		   'FFF8','VEC.IRQ',
+		   'FFF6','VEC.FIRQ',
+		   'FFF4','VEC.SWI2',
+		   'FFF2','VEC.SWI3',
+		   'FFF0','VEC.MACH')
+		if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='MO.' then self:iniMO() end
+		if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='TO.' then self:iniTO() end
+	end,
+nil} EQUATES:ini()
 
-:m('TO.')
--- TO8 monitor
-:d('EC0C','EXTRA',
-   'EC09','PEIN',
-   'EC06','GEPE',
-   'EC03','COMS',
-   'EC00','SETP',
-   nil)
--- TOx monitor
-:d('E833','CHPL',
-   'E830','KBIN',
-   'E82D','MENU',
-   'E82A','DKCO',
-   'E827','JOYS',
-   'E824','GETS',
-   'E821','GETP',
-   'E81E','NOTE',
-   'E81B','LPIN',
-   'E818','GETL',
-   'E815','K7CO',
-   'E812','RSCO',
-   'E80F','PLOT',
-   'E80C','DRAW',
-   'E809','KTST',
-   'E806','GETC',
-   'E803','PUTC')
--- PAGE 0
--- Redir moniteur TO
-:d('6000','REDIR.GETLP',
-   '6002','REDIR.LPIN',
-   '6004','REDIR.GETP',
-   '6006','REDIR.GACH',
-   '6008','REDIR.PUTC',
-   '600A','REDIR.GETC',
-   '600C','REDIR.DRAW',
-   '600E','REDIR.PLOT',
-   '6010','REDIR.RSCONT',
-   '6012','REDIR.GETP',
-   '6014','REDIR.GETS',
-   nil)
--- Registres moniteur
-:d('6016','SAVPAL',
-   '6019','STATUS',
-   '601A','TABPT',
-   '601B','RANG',
-   '601C','TOPTAB',
-   '601D','TOPRAN',
-   '601E','BOTTAB',
-   '601F','BOTRAN',
-   '6020','COLN',
-   '6021','IRQPT',
-   '6023','FIRQPT',
-   '6025','COPBUF',
-   '6027','TIMEPT',
-   '6029','K7OPC',
-   '602A','K7STA',
-   '602B','RSOPC',
-   '602C','RSSTA',
-   '602D','USERAF',
-   '602F','SWI1',
-   '6031','TEMPO',
-   '6033','DUREE',
-   '6035','TIMBRE',
-   '6036','OCTAVE',
-   '6038','FORME',
-   '6039','ATRANG',
-   '603A','ATSCR',
-   '603B','COLOUR',
-   '603C','TELETL',
-   '603D','PLOTX',
-   '603F','PLOTY',
-   '6041','CHDRAW',
-   '6042','CURSFL',
-   '6043','COPCHR',
-   '6044','BAUDS',
-   '6046','NOMBRE',
-   '6047','GRCODE',
-   '6048','DKOPC',
-   '6049','DKDRV',
-   '604A','DKTRK',
-   '604C','DKSEC',
-   '604D','DKNUM',
-   '604E','DKSTA',
-   '604F','DKBUF',
-   '6051','TRAK0',
-   '6053','TRAK1',
-   '6055','TEMP1',
-   '6057','TEMP2',
-   '6058','ROTAT',
-   '6059','SEQCE',
-   '605A','SCRPT',
-   '605C','SAVCOL',
-   '605D','ASCII',
-   '605E','RDCLV',
-   '605F','SCRMOD',
-   '6060','STADR',
-   '6062','ENDDR',
-   '6064','TCRSAV',
-   '6065','TCTSAV',
-   '6067','WRCLV',
-   '6068','SAVATR',
-   '606A','US1',
-   '606B','COMPT',
-   '606C','TEMP',
-   '606E','SAVEST',
-   '6070','ACCENT',
-   '6071','SS2GET',
-   '6072','SS3GET',
-   '6073','BUZZ',
-   '6074','CONFIG',
-   '6065','EFCMPT',
-   '6076','BLOCZ',
-   '6078','SCROLS',
-   '6079','CUFCLV',
-   '607B','SIZCLV',
-   '607C','ACCES',
-   '607D','PERIPH',
-   '607E','PERIF1',
-   '607F','RUNFLG',
-   '6080','DKFLG',
-   '6081','CPYE7E7', --'IDSAUT',
-   '6086','CURSFLG',
-   '6087','TEMP2',
-   '6088','RESETP',
-   '608B','STACK',
-   '60CD','PTCLAV',
-   '60CF','PTGENE',
-   '60D1','APPLIC',
-   '60D2','DECALG',
-   '60D3','LPBUFF',
-   '60FE','TSTRST',
-   nil)
--- registres minidos
--- :m('TO.dos.')
-:d('60E5','DKERR',
-   '60E7','DKNAM',
-   '60E9','DKCAT',
-   '60EB','DKTYP',
-   '60EC','DKFLG',
-   '60ED','DKFAT',
-   '60F0','DKMOD',
-   '60F3','DKFIN',
-   '60F5','DKSCT',
-   '60F6','BKBLK',
-   '60F7','DKTDS',
-   '60F9','DKIFA',
-   '60FA','DKPSB',
-   '60FB','DKPBC',
-   nil) 
--- minidos
-:d('E004','DKCON',
-   'E007','DKBOOT',
-   'E00A','DKFMT',
-   'E00D','LECFA',
-   'E010','RECFI',
-   'E013','RECUP',
-   'E016','ECRSE',
-   'E019','ALLOD',
-   'E01B','ALLOB',
-   'E01F','MAJCL',
-   'E022','FINTR',
-   nil)
--- 6846 système
--- :m('TO.mc6846.')
-:d('E7C0','CSR',
-   -- port C
-   'E7C1','CRC',
-   'E7C2','DDRC',
-   'E7C3','PRC',
-   -- timer
-   'E7C5','TCR',
-   'E7C6','TMSB',
-   'E7C7','TLSB',
-   nil)
--- 6021 système
--- :m('TO.pia6021.')
-:d('E7C8','PRA',
-   'E7C9','PRB',
-   'E7CA','CRA',
-   'E7CB','CRB',
-   nil)
--- 6021 musique & jeux
-:d('E7CC','PRA1',
-   'E7CD','PRA2',
-   'E7CE','CRA1',
-   'E7CF','CRA2',
-   nil)
--- i/o palette
--- :m('TO.IGV9369.')
-:d('E7DA','PALDAT',
-   'E7DB','PALDAT/IDX',
-   nil)
--- gate array affichage
--- :m('TO.FGG06')
-:d('E7DC','LGAMOD',
-   'E7DD','LGATOU',
-   nil)
--- 6850 système (clavier TO9)
--- :m('TO.mc6850')
-:d('E7DE','SCR/SSDR',
-   'E7DF','STDR/SRDR',
-   nil)
--- gate array systeme (crayon optique)
--- :m('TO.GateArray')
-:d('E7E4','LGASYS2',
-   'E7E5','LGARAM',
-   'E7E6','LGAROM',
-   'E7E7','LGASYS1',
-   nil)
-for i=0,math.floor(8192/40) do 
-    EQUATES:m('TO.'):d(hex(0x4000+i*40),sprintf('VRAM+40*%d',i))
-    -- EQUATES:m('MO.').d(hex(0x0000+i*40),sprintf('VLIN.%03d',i))
-end
-   
 ------------------------------------------------------------------------------
 -- différent formateurs de résultat
 ------------------------------------------------------------------------------
@@ -417,10 +618,10 @@ local function newTSVWriter(file, tablen)
     end
     return {
         file=file or {write=function() end, close=function() end},
-        close = function(self) 
+        close = function(self)
             self.file:write(self.hsep..'\n')
             self.file:write("End of file\n")
-            self.file:close() 
+            self.file:close()
         end,
         header = function(self, columns)
             self.ncols = #columns
@@ -446,7 +647,7 @@ local function newTSVWriter(file, tablen)
                 t = t .. '\t'
                 if type(n)=='table' then n = sprintf(unpack(n)) else n = tostring(n) end
                 if n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
-                if self.align[i]=='>' then 
+                if self.align[i]=='>' then
                     t = t .. string.rep(' ', self.clen[i] - n:len() - 1) .. n
                 elseif self.align[i]=='=' then
                     t = t .. string.rep(' ',math.floor((self.clen[i] - n:len())/2)) .. n
@@ -462,7 +663,7 @@ end
 
 -- Writer OPT_HTML (quelle horreur!)
 local function newHtmlWriter(file, mem)
-	HEADING = "h1"
+    HEADING = "h1"
     -- evite les fichier nil
     file=file or {write=function() end, close=function() end}
     -- aide pour imprimer
@@ -483,20 +684,20 @@ local function newHtmlWriter(file, mem)
     -- récup des adresses utiles
     local valid = {} for i=OPT_MIN,OPT_MAX do valid[hex(i)] = true end
     local rev   = {}
-    for i=OPT_MAX,OPT_MIN,-1 do 
-        local m = mem[i] 
+    for i=OPT_MAX,OPT_MIN,-1 do
+        local m = mem[i]
         i = hex(i)
         if m and m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
         if m and m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
     end
-	-- sort le code html pour la progression
-	local prog_next = .01
-	local function progress(ratio)
-		if ratio >= prog_next then
-			prog_next = prog_next + .01
-			w(sprintf('\n<script>progress(%d);</script>\n\n', math.floor(100*ratio)))
-		end
-	end
+    -- sort le code html pour la progression
+    local prog_next = .01
+    local function progress(ratio)
+        if ratio >= prog_next then
+            prog_next = prog_next + .01
+            w(sprintf('\n<script>progress(%d);</script>\n\n', math.floor(100*ratio)))
+        end
+    end
     -- descrit le contenu d'une adresse
     local function describe(addr, opt_asm, opt_asm_addr)
         local function code(where)
@@ -507,7 +708,7 @@ local function newHtmlWriter(file, mem)
             else
                 return ''
             end
-        end         
+        end
         local m = mem[tonumber(addr,16)]
         if m then
             opt_asm      = m.x>0 and (m.asm or opt_asm)
@@ -517,8 +718,8 @@ local function newHtmlWriter(file, mem)
                            (m.w==NOADDR and '-' or 'W')
             --
             local anchor = addr
-            if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr 
-            elseif RWX=='-RW' and m.r==m.w then anchor = m.r 
+            if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
+            elseif RWX=='-RW' and m.r==m.w then anchor = m.r
             elseif RWX=='-R-'              then anchor = m.r
             elseif RWX=='--W'              then anchor = m.w end
             --
@@ -541,8 +742,8 @@ local function newHtmlWriter(file, mem)
         if from == anchor then anchor = addr end -- no loop back
         return '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
     end
-    
-    
+
+
     local function memmap(mem)
         -- encodage des couleurs de cases
         local color = {
@@ -555,9 +756,9 @@ local function newHtmlWriter(file, mem)
             ['XR-'] = 6,
             ['XRW'] = 0,
         }
-		
-		-- encodage si JS n'est pas supporté par le browser (Lynx, Links)
-		local short = {
+
+        -- encodage si JS n'est pas supporté par le browser (Lynx, Links)
+        local short = {
             ['---'] = '-',
             ['--W'] = 'W',
             ['-R-'] = 'R',
@@ -566,23 +767,23 @@ local function newHtmlWriter(file, mem)
             ['X-W'] = 'Z',
             ['XR-'] = 'Y',
             ['XRW'] = '#',
-		}
+        }
 
         -- affine le min/max pour réduire la taille de la carte
         local min,max = OPT_MIN,OPT_MAX
         for i=min,OPT_MAX    do if mem[i] then min=i break end end
         for i=OPT_MAX,min,-1 do if mem[i] then max=i break end end
-        
+
         w('  <',HEADING,'>Memory map between <code>$', hex(min), '</code> and <code>$', hex(max),'</code></',HEADING,'>\n')
         w('  <table class="mm">\n')
         local last_asm, last_asm_addr ='',''
-		min,max = math.floor(min/OPT_COLS),math.floor(max/OPT_COLS)
+        min,max = math.floor(min/OPT_COLS),math.floor(max/OPT_COLS)
         for j=min,max do
             w('    <tr>')
-            for i=0,OPT_COLS-1 do 
+            for i=0,OPT_COLS-1 do
               local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
               if m then
-                  local title, RWX, anchor = describe(a, last_asm, last_asm_addr) 
+                  local title, RWX, anchor = describe(a, last_asm, last_asm_addr)
                   if m.asm then last_asm,last_asm_addr = m.asm, a end
                   w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
                     '<a href="#',anchor,'">',
@@ -593,23 +794,23 @@ local function newHtmlWriter(file, mem)
               end
             end
             w('</tr>\n')
-			progress(.5 + .5*(j-min)/(max-min))
+            progress(.5 + .5*(j-min)/(max-min))
         end
         w('  </table>\n')
     end
     return {
         file=file,
-        close = function(self) 
+        close = function(self)
             local f = self.file
             w('</table>\n',
               '<div><p></p></div>\n',
               '<a href="#TOP" id="BOTTOM" accesskey="t" title="M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
               '<',HEADING,'>End of analysis</',HEADING,'>\n')
-            if OPT_MAP then 
+            if OPT_MAP then
                 w('</div>\n',
                   -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
                   '<div id="memmap">\n')
-                memmap(mem) 
+                memmap(mem)
                 w('</div>')
             end
             w('<script>',
@@ -617,34 +818,34 @@ local function newHtmlWriter(file, mem)
               '</script>\n')
             w('</body></html>\n')
             w()
-            f:close() 
+            f:close()
         end,
         _row = function(self, tag, columns)
             local t, cols = '', {' '}
-            for i,n in ipairs(columns) do 
+            for i,n in ipairs(columns) do
                 cols[i] = type(n)=='table' and sprintf(unpack(n)) or tostring(n)
             end
             local last = #cols
             if last>1 then
-				local adr = cols[1]:match("^%x%x%x%x$") 
-				if adr then
-					t = t .. ' id="'..adr..'"' 
-					adr = tonumber(adr:match('^%x%x%x%x'),16)
-					if adr>=OPT_MIN and adr<=OPT_MAX then 
-						progress((adr-OPT_MIN)/((OPT_MAX-OPT_MIN)*(OPT_MAP and 2 or 1))) 
-					end
-				end 
-			end
-			t = t .. '>'
-            for i,n in ipairs(cols) do 
-                t = t .. '<' .. tag .. 
+                local adr = cols[1]:match("^%x%x%x%x$")
+                if adr then
+                    t = t .. ' id="'..adr..'"'
+                    adr = tonumber(adr:match('^%x%x%x%x'),16)
+                    if adr>=OPT_MIN and adr<=OPT_MAX then
+                        progress((adr-OPT_MIN)/((OPT_MAX-OPT_MIN)*(OPT_MAP and 2 or 1)))
+                    end
+                end
+            end
+            t = t .. '>'
+            for i,n in ipairs(cols) do
+                t = t .. '<' .. tag ..
                     (i==last and i~=self.ncols and ' colspan="'..(self.ncols - i + 1)..'"' or '') ..
                     '>'
                 if i==1 then
                     t = t .. esc(n)
                 elseif i==2 or i==3 then
                     t = t .. (valid[n] and ahref(cols[1], n,n) or esc(n))
-                elseif i==4 then 
+                elseif i==4 then
                     t = t .. esc(n)
                 elseif i==5 then
                     local back = rev[cols[1]]
@@ -657,7 +858,7 @@ local function newHtmlWriter(file, mem)
                     else
                         -- sauts divers
                         local before,addr,after = n:match('^(.*%$)(%x%x%x%x)(.*)$')
-                        if addr and mem[tonumber(addr,16)] then 
+                        if addr and mem[tonumber(addr,16)] then
                             n = esc(before) .. ahref(cols[1], addr,addr) .. esc(after)
                         else
                             n = esc(n)
@@ -669,22 +870,22 @@ local function newHtmlWriter(file, mem)
                 t = t .. '</' .. tag .. '>'
             end
             w('    <tr', t , '</tr>')
-			w('\n')
+            w('\n')
         end,
         header = function(self, columns)
             self.ncols = #columns
-            
+
             local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},OPT_MAP and "    #t1 {width: 100%}\n" or ''
             for i,n in ipairs(columns) do
                 local tag = n:match('^([<=>])')
                 cols[i] = trim(tag and n:sub(2) or n)
                 align_style = align_style ..
                     '    #t1 td:nth-of-type(' .. i .. ') {' ..
-					'text-align: ' .. align[tag or '<'] ..  ';' ..
+                    'text-align: ' .. align[tag or '<'] ..  ';' ..
                     ((i==1 or i==4) and ' font-weight: bold;' or '') ..
-					'}\n'
+                    '}\n'
             end
-         
+
             w([[<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -692,7 +893,7 @@ local function newHtmlWriter(file, mem)
   <title>DCMoto_MemMap</title>
   <style>
     :target {background-color:lightgray;}
-	
+
     table {
       border-collapse: collapse;
       border-top: 1px solid #ddd;
@@ -711,14 +912,14 @@ local function newHtmlWriter(file, mem)
     tr:hover {
       background-color:lightgray;
     }
-    
-	#main {
+
+    #main {
       overflow: auto;
       width:    auto;
       height:   100vh;
     }
-    
-	#memmap {
+
+    #memmap {
       overflow: auto;
       width:    100%;
       height:   100vh;
@@ -726,7 +927,7 @@ local function newHtmlWriter(file, mem)
     #memmap a {
       cursor:   default;
     }
-	
+
     #loadingPage {
       position: fixed;
       display: none;
@@ -751,11 +952,11 @@ local function newHtmlWriter(file, mem)
       font-weight: bold;
       cursor: progress;
     }
-	
+
     #TOP, #BOTTOM             {text-decoration: none;}
     #TOP:hover, #BOTTOM:hover {background-color: yellow;}
-    
-	.c0 {background-color:#111;}
+
+    .c0 {background-color:#111;}
     .c1 {background-color:#e11;}
     .c2 {background-color:#1e1;}
     .c3 {background-color:#ee1;}
@@ -763,8 +964,8 @@ local function newHtmlWriter(file, mem)
     .c5 {background-color:#e1e;}
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
-	
-	td.c0:hover {background-color:white;}
+
+    td.c0:hover {background-color:white;}
     td.c1:hover {background-color:black;}
     td.c2:hover {background-color:black;}
     td.c3:hover {background-color:black;}
@@ -772,14 +973,14 @@ local function newHtmlWriter(file, mem)
     td.c5:hover {background-color:black;}
     td.c6:hover {background-color:black;}
     td.c7:hover {background-color:black;}
-    
-	.mm {table-layout: fixed; width: 100%;}
+
+    .mm {table-layout: fixed; width: 100%;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
     .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'%; height: ',100/OPT_COLS,'vh;}\n',
-    
-	align_style, 
-	OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
+
+    align_style,
+    OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
   </style>
 </head>
 <body>
@@ -811,12 +1012,12 @@ local function newHtmlWriter(file, mem)
   </div>
   <script>
     function progress(percent) {
-	  const button = document.getElementById('loadingProgress')
-	  if(button !== null) {
+      const button = document.getElementById('loadingProgress')
+      if(button !== null) {
         let txt = "Please wait while loading...";
         if(percent>=0) txt += '<br>(' + percent + '%)';
-	    button.innerHTML = txt;
-	  }
+        button.innerHTML = txt;
+      }
     }
     progress(0);
     document.getElementById('loadingPage').style.display = 'flex';
@@ -842,7 +1043,7 @@ end
 
 local function findHotspots(mem)
     local spots,hot = {}
-    local function newHot(i) 
+    local function newHot(i)
         return {
             x = 0, t = 0, a = hex(i),
             touches = function(self,m)
@@ -856,15 +1057,15 @@ local function findHotspots(mem)
                 end
                 return self
             end,
-            push = function (self, spots) 
+            push = function (self, spots)
                 -- print(self.a, self.x, self.t)
                 table.insert(spots, self)
                 return nil
             end
-        } 
+        }
     end
     for i=OPT_MIN,OPT_MAX do
-        local m = mem[i] 
+        local m = mem[i]
         if not m then
             if hot then hot = hot:push(spots) end
         elseif hot and hot:touches(m) then
@@ -936,7 +1137,7 @@ local mem = {
     -- écrit un fichier en utilisant le writer fourni
     save = function(self, writer)
         writer = writer or newParallelWriter()
-        
+
         writer:header{"Addr   ", "RdFrom ", "WrFrom ", "> ExeCnt", "<Asm code"}
 
         local n,curr=0,0
@@ -962,12 +1163,12 @@ local mem = {
             end
         end
         u(-1)
-        
+
         -- hotspot
         local spots,total,count,first = findHotspots(self),0,0,true
         for i,s in ipairs(spots) do total = total + s.t end
-        for i,s in ipairs(spots) do 
-            if first then   
+        for i,s in ipairs(spots) do
+            if first then
                 first = false
                 writer:row{}
                 writer:row{{'Hot spots (runtime: ~%.2fs)', total/1000000}}
@@ -988,13 +1189,13 @@ local mem = {
 -- décode une adresse dans les arguments "args" d'une instruction
 function getaddr(args, regs)
     local a,x
-    
+
     -- immediate --> retour nil
     if args:sub(1,1)=='#' then return end
 
     -- traite les indirect comme un extended (c'est pas parfait, mais bon)
     if args:sub(1,1)=='[' then args = args:sub(2,-2) end
-        
+
     -- retrouve un registre dans la liste des valeurs de registres
     local function reg(x)
         return tonumber(
@@ -1002,7 +1203,7 @@ function getaddr(args, regs)
             x=='B' and regs:match('D=..(%x%x)') or
             regs:match(x..'=(%x+)'),16)
     end
-    
+
     -- extension de signe
     local function sex(a) return a>=128 and a-256 or a end
 
@@ -1107,6 +1308,7 @@ local function wait_for_file(filename)
 end
 
 -- ouverture et analyse du fichier de trace
+local dp_stat = {}
 local function read_trace(filename)
     local num,f = 0, assert(io.open(filename,'r'))
     local size = f:seek('end') f:seek('set')
@@ -1116,7 +1318,7 @@ local function read_trace(filename)
     local jmp = nil -- pour tracer d'où l'on vient en cas de saut
     local function maybe_indirect()
         if args:sub(1,1)=='[' then
-            local a = getaddr(args,regs) 
+            local a = getaddr(args,regs)
             if a then mem:r(a,2) end
         end
     end
@@ -1140,16 +1342,23 @@ local function read_trace(filename)
     DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:r(a):w(a) else nomem[sig] = true end end)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
-    
+
     local REL_BRANCH = {}
     for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2C','2D','2E','2F',
         '1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'} do
         for i=0,255 do REL_BRANCH[sprintf("%s%02X", hexa, i)] = true end
     end
-    
+
     for s in f:lines() do
         -- print(s) io.stdout:flush()
         if 50000==num then num=0; out('%6.02f%%\r', 100*f:seek()/size) end
+		
+		-- collecte les valeurs de DP si le type de machine est inconnu
+		if OPT_MACH=='?' and s:match("^[EF]%x%x%x ") then 
+			local dp = s:match('DP=(%x%x)')
+			dp_stat[dp] = (dp_stat[dp] or 0) + 1
+		end
+		
         num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
          -- print(pc, hexa, opcode, args)
@@ -1158,17 +1367,17 @@ local function read_trace(filename)
             curr_pc = tonumber(pc,16)
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
             mem:pc(curr_pc):x(hexa,1)
-            sig = 
+            sig =
                 -- pc .. '.' .. hexa
                 -- hexa if REL_BRANCH[sig] then sig = pc .. ':' .. hexa end
                 REL_BRANCH[hexa] and pc..':'..hexa or hexa
-            if nomem[sig] then 
+            if nomem[sig] then
                 mem:a(nomem[sig])
             else
                 regs = s:sub(61,106)
                 local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
                 -- on ne connait le code asm vraiment qu'à la fin
-                local asm, cycles = 
+                local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
                 asm = sprintf("%-5s %s%s%s", cycles, asm, EQUATES:t(args:match('%$(%x%x%x%x)')), EQUATES:t(pc))
@@ -1189,8 +1398,15 @@ repeat
     wait_for_file(TRACE)
     -- lecture fichier de trace
     read_trace(TRACE)
+	-- essaye de déterminer le type de machine
+	if OPT_MACH=='?' then
+		local DP_TO = (dp_stat['60'] or 0) + (dp_stat['E7'] or 0) 
+		local DP_MO = (dp_stat['20'] or 0) + (dp_stat['A7'] or 0) 
+		if DP_TO > DP_MO*2 then machTO(); EQUATES:ini() end
+		if DP_MO > DP_TO*2 then machMO(); EQUATES:ini() end
+	end
     -- écriture résultat TSV & html
-    mem:save(newParallelWriter( 
+    mem:save(newParallelWriter(
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
         OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
     )):close()
