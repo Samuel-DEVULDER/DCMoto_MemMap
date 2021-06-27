@@ -540,6 +540,18 @@ local function newHtmlWriter(file, mem)
             ['XR-'] = 6,
             ['XRW'] = 0,
         }
+		
+		-- encodage si JS n'est pas supporté par le browser (Lynx, Links)
+		local short = {
+            ['---'] = '-',
+            ['--W'] = 'W',
+            ['-R-'] = 'R',
+            ['-RW'] = 'M',
+            ['X--'] = 'X',
+            ['X-W'] = 'Z',
+            ['XR-'] = 'Y',
+            ['XRW'] = '#',
+		}
 
         -- affine le min/max pour réduire la taille de la carte
         local min,max = MINADR,MAXADR
@@ -548,7 +560,6 @@ local function newHtmlWriter(file, mem)
         
         w('  <h1>Memory map between $', hex(min), ' and $', hex(max),'</h1>\n')
         w('  <table class="mm">\n')
-        
         local last_asm, last_asm_addr ='',''
         for j=math.floor(min/MAPCOL),math.floor(max/MAPCOL) do
             w('    <tr>')
@@ -558,11 +569,11 @@ local function newHtmlWriter(file, mem)
                   local title, RWX, anchor = describe(a, last_asm, last_asm_addr) 
                   if m.asm then last_asm,last_asm_addr = m.asm, a end
                   w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
-                    '<a href="#',anchor,'"></a>',
-                    '<noscript>',RWX,'</noscript>',
-                    '</td>')
+                    '<a href="#',anchor,'">',
+                    '<noscript>',short[RWX],'</noscript>',
+                    '</a></td>')
               else
-                w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>---</noscript></td>')
+                w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>',short['---'],'</noscript></td>')
               end
             end
             w('</tr>\n')
@@ -575,7 +586,7 @@ local function newHtmlWriter(file, mem)
             local f = self.file
             w('</table>\n',
               '<div><p></p></div>\n',
-              '<a href="#TOP" id="BOTTOM">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
+              '<a href="#TOP" id="BOTTOM" accesskey="t" title="M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
               '<h1>End of analysis</h1>\n')
             if MAP then 
                 w('</div>\n',
@@ -612,7 +623,7 @@ local function newHtmlWriter(file, mem)
                     local back = rev[cols[1]]
                     if back then
                         local before,arg,after = n:match('^(%S+%s+%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
-                        if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.+)$') end
+                        if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.*)$') end
                         if not arg then before,arg,after = '',n,'' end
                         -- if arg:sub(1,1)=='$' then before,arg = before..'$',arg:sub(2) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
@@ -763,7 +774,7 @@ local function newHtmlWriter(file, mem)
   </script>]])
             w(MAP and '  <div id="main">\n' or '',
               '  <h1>Analysis of ',TRACE,' between $',hex(MINADR),' and $',hex(MAXADR),'</h1>\n',
-              '  <a href="#BOTTOM" id="TOP">&darr;&darr;goto bottom&darr;&darr;</a>\n',
+              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="M-b">&darr;&darr;goto bottom&darr;&darr;</a>\n',
               '  <div><p></p></div>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
             if self.ncols>0 then self:_row("th", cols) end
