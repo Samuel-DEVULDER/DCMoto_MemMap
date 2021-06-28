@@ -213,8 +213,11 @@ local EQUATES = {
 		return self
 	end,
 	-- get text
-    t = function(self,addr)
-        return OPT_EQU and self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2] or ''
+    t = function(self,addr,add2)
+        return OPT_EQU 
+		and (self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2]
+		or   self[add2 or ''] and BRAKET[1]..self[add2]..BRAKET[2]
+		or   '')
     end,
 	-- init equates for video ram
 	iniVRAM = function(self, base)
@@ -682,13 +685,18 @@ local function newHtmlWriter(file, mem)
         :gsub(' ','&nbsp;')
     end
     -- récup des adresses utiles
-    local valid = {} for i=OPT_MIN,OPT_MAX do valid[hex(i)] = true end
+    local valid = {} for i=OPT_MIN,OPT_MAX do 
+		local m = mem[i]
+		if m and (m.asm or m.x==0) then valid[hex(i)] = true end
+	end
     local rev   = {}
     for i=OPT_MAX,OPT_MIN,-1 do
         local m = mem[i]
-        i = hex(i)
-        if m and m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
-        if m and m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
+		if m and not m.s then
+			i = hex(i)
+			if m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
+			if m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
+		end
     end
     -- sort le code html pour la progression
     local prog_next = .01
@@ -699,7 +707,7 @@ local function newHtmlWriter(file, mem)
         end
     end
     -- descrit le contenu d'une adresse
-    local function describe(addr, opt_asm, opt_asm_addr)
+    local function describe(addr, opt_asm, opt_asm_addr, opt_from)
         local function code(where)
             if where~=NOADDR then
                 local i = tonumber(where,16)
@@ -715,13 +723,16 @@ local function newHtmlWriter(file, mem)
             opt_asm_addr = m.x>0 and (m.asm and addr or opt_asm_addr)
             local RWX    = (m.x==0      and '-' or 'X')..
                            (m.r==NOADDR and '-' or 'R')..
-                           (m.w==NOADDR and '-' or 'W')
+                           (m.w==NOADDR and '-' or 'W')..
+						   (m.s and 'S' or '')
             --
             local anchor = addr
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
-            elseif RWX=='-RW' and m.r==m.w then anchor = m.r
-            elseif RWX=='-R-'              then anchor = m.r
-            elseif RWX=='--W'              then anchor = m.w end
+            elseif RWX=='-RW' and m.r==m.w      then anchor = m.r
+            elseif RWX=='-R-' and m.r~=opt_from then anchor = m.r
+            elseif RWX=='--W' and m.w~=opt_from then anchor = m.w
+			elseif RWX=='-RW' and m.r==opt_from then anchor = m.w 
+			elseif RWX=='-RW' and m.w==opt_from then anchor = m.r end
             --
             local equate = EQUATES:t(addr)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
@@ -738,11 +749,11 @@ local function newHtmlWriter(file, mem)
     -- affiche le code html pour un hyperlien sur "addr" avec le texte
     -- "txt" (le tout pour l'adresse "from")
     local function ahref(from, addr, txt)
-        local title, RWX, anchor = describe(addr)
-        if from == anchor then anchor = addr end -- no loop back
-        return '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
+        local title, RWX, anchor = describe(addr,nil,nil,from)
+        -- if from == anchor then anchor = addr end -- no loop back XXXX
+        return valid[anchor] and '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
+		                     or esc(txt)
     end
-
 
     local function memmap(mem)
         -- encodage des couleurs de cases
@@ -755,18 +766,34 @@ local function newHtmlWriter(file, mem)
             ['X-W'] = 5,
             ['XR-'] = 6,
             ['XRW'] = 0,
+            ['---S'] = 0,
+            ['--WS'] = 0,
+            ['-R-S'] = 0,
+            ['-RWS'] = 0,
+            ['X--S'] = 0,
+            ['X-WS'] = 0,
+            ['XR-S'] = 0,
+            ['XRWS'] = 0
         }
 
         -- encodage si JS n'est pas supporté par le browser (Lynx, Links)
         local short = {
-            ['---'] = '-',
-            ['--W'] = 'W',
-            ['-R-'] = 'R',
-            ['-RW'] = 'M',
-            ['X--'] = 'X',
-            ['X-W'] = 'Z',
-            ['XR-'] = 'Y',
-            ['XRW'] = '#',
+            ['---' ] = '-',
+            ['--W' ] = 'W',
+            ['-R-' ] = 'R',
+            ['-RW' ] = 'M',
+            ['X--' ] = 'X',
+            ['X-W' ] = 'Z',
+            ['XR-' ] = 'Y',
+            ['XRW' ] = '#',
+            ['---S'] = 'S',
+            ['--WS'] = 'S',
+            ['-R-S'] = 'S',
+            ['-RWS'] = 'S',
+            ['X--S'] = 'S',
+            ['X-WS'] = 'S',
+            ['XR-S'] = 'S',
+            ['XRWS'] = 'S'
         }
 
         -- affine le min/max pour réduire la taille de la carte
@@ -804,7 +831,7 @@ local function newHtmlWriter(file, mem)
             local f = self.file
             w('</table>\n',
               '<div><p></p></div>\n',
-              '<a href="#TOP" id="BOTTOM" accesskey="t" title="M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
+              '<a href="#TOP" id="BOTTOM" accesskey="t" title="KBD : M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
               '<',HEADING,'>End of analysis</',HEADING,'>\n')
             if OPT_MAP then
                 w('</div>\n',
@@ -844,26 +871,24 @@ local function newHtmlWriter(file, mem)
                 if i==1 then
                     t = t .. esc(n)
                 elseif i==2 or i==3 then
-                    t = t .. (valid[n] and ahref(cols[1], n,n) or esc(n))
+                    t = t .. ahref(cols[1],n,n)
                 elseif i==4 then
                     t = t .. esc(n)
                 elseif i==5 then
                     local back = rev[cols[1]]
-                    if back then
+					if back then
                         local before,arg,after = n:match('^(%S+%s+%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
                         if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.*)$') end
-                        if not arg then before,arg,after = '',n,'' end
-                        -- if arg:sub(1,1)=='$' then before,arg = before..'$',arg:sub(2) end
+                        if not arg then error(n) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
                     else
                         -- sauts divers
                         local before,addr,after = n:match('^(.*%$)(%x%x%x%x)(.*)$')
-                        if addr and mem[tonumber(addr,16)] then
+                        if addr then
                             n = esc(before) .. ahref(cols[1], addr,addr) .. esc(after)
                         else
                             n = esc(n)
                         end
-                        -- if addr then n = n .. EQUATES:t(addr) end
                     end
                     t = t .. n
                 end
@@ -937,7 +962,7 @@ local function newHtmlWriter(file, mem)
       height: 100%;
       top: 0;
       left: 0;
-      opacity: 0.6;
+      opacity: 0.8;
       background-color: #000;
       z-index: 99;
       cursor: wait;
@@ -965,20 +990,21 @@ local function newHtmlWriter(file, mem)
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
 
-    td.c0:hover {background-color:white;}
-    td.c1:hover {background-color:black;}
-    td.c2:hover {background-color:black;}
-    td.c3:hover {background-color:black;}
-    td.c4:hover {background-color:black;}
-    td.c5:hover {background-color:black;}
-    td.c6:hover {background-color:black;}
-    td.c7:hover {background-color:black;}
+    td.c0:hover,active {background-color:white;}
+    td.c1:hover,active {background-color:black;}
+    td.c2:hover,active {background-color:black;}
+    td.c3:hover,active {background-color:black;}
+    td.c4:hover,active {background-color:black;}
+    td.c5:hover,active {background-color:black;}
+    td.c6:hover,active {background-color:black;}
+    td.c7:hover,active {background-color:black;}
+
+	#t1 a:active {background-color:yellow;}
 
     .mm {table-layout: fixed; width: 100%;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
     .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'%; height: ',100/OPT_COLS,'vh;}\n',
-
     align_style,
     OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
   </style>
@@ -1024,7 +1050,7 @@ local function newHtmlWriter(file, mem)
   </script>]])
             w(OPT_MAP and '  <div id="main">\n' or '',
               '  <',HEADING,'>Analysis of <code>',TRACE,'</code> between <code>$',hex(OPT_MIN),'</code> and <code>$',hex(OPT_MAX),'</code></',HEADING,'>\n',
-              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="M-b">&darr;&darr;goto bottom&darr;&darr;</a>\n',
+              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="KBD : M-b">&darr;&darr;goto bottom&darr;&darr;</a>\n',
               '  <div><p></p></div>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
             if self.ncols>0 then self:_row("th", cols) end
@@ -1087,7 +1113,7 @@ local mem = {
     -- accesseur privé à une case mémoire
     _get = function(self, i)
         local t = self[i % 65536]
-        if not t then t={r=NOADDR,w=NOADDR,x=0,asm=nil} self[i] = t end
+        if not t then t={r=NOADDR,w=NOADDR,x=0,s=nil,asm=nil} self[i] = t end
         return t
     end,
     -- positionne le compteur programme courrant
@@ -1109,24 +1135,30 @@ local mem = {
         return self
     end,
     -- marque "addr" comme lue depuis le compteur programme courant
-    r = function(self, addr, len)
-        for i=0,(len or 1)-1 do self:_get(addr+i).r = self.PC end
+    r = function(self, addr, len, stack)
+        for i=0,(len or 1)-1 do local m = self:_get(addr+i)
+			m.r, m.s = self.PC, stack
+		end
         return self
     end,
     -- marque "addr" comme écrite depuis le compteur programme courant
-    w = function(self, addr, len)
-        for i=0,(len or 1)-1 do self:_get(addr+i).w = self.PC end
+    w = function(self, addr, len, stack)
+        for i=0,(len or 1)-1 do local m = self:_get(addr+i)
+			m.w, m.s = self.PC, stack 
+		end
         return self
     end,
+	_stkop = '***STACK***',
     -- charge un fichier TAB Separated Value (CSV avec des tab)
     loadTSV = function(self, f)
         if f then
             for s in f:lines() do
                 local pc,r,w,x,a = s:match('(%x+)%s+([01])%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
                 if pc then
+					local stkop = a==self._stkop; a = _stkop and ''or a
                     if x~='-'    then self:pc(pc):x('12',x):a(a) end
-                    if r~=NOADDR then self:pc(r):r(pc)   end
-                    if w~=NOADDR then self:pc(w):r(pc)   end
+                    if r~=NOADDR then self:pc(r):r(pc,stkop)     end
+                    if w~=NOADDR then self:pc(w):r(pc,stkop)     end
                 end
             end
         else
@@ -1156,7 +1188,7 @@ local mem = {
                 if mask ~= curr or (m.asm and m.r~=NOADDR) then writer:row{} end curr = mask
                 u(1)
                 if mask~=4 or m.asm then
-                    writer:row{hex(i), m.r, m.w, m.x==0 and '-' or m.x,m.asm or ''}
+                    writer:row{hex(i), m.r, m.w, m.x==0 and '-' or m.x,m.asm or (m.s and self._stkop) or ''}
                 end
             else
                 n, curr = n + 1, 0
@@ -1230,20 +1262,22 @@ end
 -- lues (dir>0) ou écrits (dir<0) en fonction des arguments de
 -- l'opération de pile
 local function stack(ptr, dir, args)
+	local usePC = args:match('PC')
+	local stkop = usePC or args:match('DP')
     ptr = tonumber(ptr,16)
     local function mk(len)
-        if dir>0 then mem:r(ptr, len) else mem:w(add16(ptr,-len), len) end
+        if dir>0 then mem:r(ptr, len, stkop) else mem:w(add16(ptr,-len), len, stkop) end
         ptr = add16(ptr,dir*len)
     end
-    if args:match('A')  then mk(1) end
-    if args:match('B')  then mk(1) end
-    if args:match('CC') then mk(1) end
-    if args:match('DP') then mk(1) end
-    if args:match('X')  then mk(2) end
-    if args:match('Y')  then mk(2) end
-    if args:match('S')  then mk(2) end
+    if usePC            then mk(2) end
     if args:match('U')  then mk(2) end
-    if args:match('PC') then mk(2) end
+    if args:match('S')  then mk(2) end
+    if args:match('Y')  then mk(2) end
+    if args:match('X')  then mk(2) end
+    if args:match('DP') then mk(1) end
+    if args:match('CC') then mk(1) end
+    if args:match('B')  then mk(1) end
+    if args:match('A')  then mk(1) end
     return ptr
 end
 -- lecture depuis la pile "reg"
@@ -1380,7 +1414,12 @@ local function read_trace(filename)
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
-                asm = sprintf("%-5s %s%s%s", cycles, asm, EQUATES:t(args:match('%$(%x%x%x%x)')), EQUATES:t(pc))
+				local equate = EQUATES:t(args:match('%$(%x%x%x%x)'), pc)
+				if equate~='' then 
+					local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+					asm = asm:gsub(equate_ptn, '')
+				end
+                asm = sprintf("%-5s%s%s", cycles, asm, equate)
                 if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
             end
