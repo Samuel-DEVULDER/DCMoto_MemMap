@@ -681,7 +681,7 @@ local function newHtmlWriter(file, mem)
         return txt
         -- :gsub("<<","&laquo;")
         :gsub('['..[['"<>&]]..']', {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
-        :gsub("&lt;%-", "&larr;")
+        :gsub("&lt;%-", "&larr;") --:gsub("%-&gt;", "&rarr;")
         :gsub(' ','&nbsp;')
     end
     -- récup des adresses utiles
@@ -800,8 +800,9 @@ local function newHtmlWriter(file, mem)
         local min,max = OPT_MIN,OPT_MAX
         for i=min,OPT_MAX    do if mem[i] then min=i break end end
         for i=OPT_MAX,min,-1 do if mem[i] then max=i break end end
-
-        w('  <',HEADING,'>Memory map between <code>$', hex(min), '</code> and <code>$', hex(max),'</code></',HEADING,'>\n')
+        min,max = math.floor(min/OPT_COLS)*OPT_COLS,math.floor(max/OPT_COLS)*OPT_COLS+OPT_COLS-1
+        
+        w('  <',HEADING,'>Memory map: <code>$', hex(min), '</code> &rarr; <code>$', hex(max),'</code></',HEADING,'>\n')
         w('  <table class="mm">\n')
         local last_asm, last_asm_addr ='',''
         min,max = math.floor(min/OPT_COLS),math.floor(max/OPT_COLS)
@@ -830,8 +831,8 @@ local function newHtmlWriter(file, mem)
         close = function(self)
             local f = self.file
             w('</table>\n',
-              '<div><p></p></div>\n',
-              '<a href="#TOP" id="BOTTOM" accesskey="t" title="KBD : M-t">&uarr;&uarr;goto top&uarr;&uarr;</a>\n',
+              '<p></p>\n',
+              '<a href="#TOP" id="BOTTOM" accesskey="t" title="Short cut : [Meta]-t">&uarr;&uarr; TOP &uarr;&uarr;</a>\n',
               '<',HEADING,'>End of analysis</',HEADING,'>\n')
             if OPT_MAP then
                 w('</div>\n',
@@ -925,8 +926,8 @@ local function newHtmlWriter(file, mem)
       border-bottom: 1px solid #ddd;
     }
     th, td {
-      padding-left:  8px;
-      padding-right: 8px;
+      padding-left:  4px;
+      padding-right: 4px;
       border-left: 1px solid #ddd;
       border-right: 1px solid #ddd;
     }
@@ -945,8 +946,10 @@ local function newHtmlWriter(file, mem)
     }
 
     #memmap {
+	  flex-grow: 1;
+	  display: flex;
+	  flex-flow: column;
       overflow: auto;
-      width:    100%;
       height:   100vh;
     }
     #memmap a {
@@ -958,7 +961,7 @@ local function newHtmlWriter(file, mem)
       display: none; justify-content: center; align-items: center;
     }
     #loadingGray {
-	  z-index: 99;
+      z-index: 99;
       position: fixed; top: 0; left:0; width:100%; height: 100%;
       opacity: 0.5; background-color: black;
       cursor: wait;
@@ -970,7 +973,10 @@ local function newHtmlWriter(file, mem)
       font-size: 2em;
       font-weight: bold;
       cursor: progress;
+      color: black;
+      background-color: #fefefe;
     }
+    #loadingProgress:hover {background-color: #fefefe;}
 
     #TOP, #BOTTOM             {text-decoration: none;}
     #TOP:hover, #BOTTOM:hover {background-color: yellow;}
@@ -984,23 +990,38 @@ local function newHtmlWriter(file, mem)
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
 
-    td.c0:hover,active {background-color:white;}
-    td.c1:hover,active {background-color:black;}
-    td.c2:hover,active {background-color:black;}
-    td.c3:hover,active {background-color:black;}
-    td.c4:hover,active {background-color:black;}
-    td.c5:hover,active {background-color:black;}
-    td.c6:hover,active {background-color:black;}
-    td.c7:hover,active {background-color:black;}
+    td.c0:hover {background-color:white;}
+    td.c1:hover {background-color:black;}
+    td.c2:hover {background-color:black;}
+    td.c3:hover {background-color:black;}
+    td.c4:hover {background-color:black;}
+    td.c5:hover {background-color:black;}
+    td.c6:hover {background-color:black;}
+    td.c7:hover {background-color:black;}
 
     #t1 a:active {background-color:yellow;}
 
-    .mm {table-layout: fixed; width: 100%;}
+    .mm {table-layout: fixed;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
     .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'%; height: ',100/OPT_COLS,'vh;}\n',
     align_style,
-    OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex;}\n' or '',[[
+    OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex; flex-flow:row;}\n' or '',[[
+    
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1c1c1e;
+        color: #fefefe;
+      }
+      a  {
+        color: #6fb9ee; 
+      }
+      th, tr:hover, :target {color: black;background-color:#777;}
+      #t1 a:active {background-color:#b70;}
+      #loadingProgress {
+        background-color: lightgray;
+      }
+    }  
   </style>
 </head>
 <body>
@@ -1011,12 +1032,19 @@ local function newHtmlWriter(file, mem)
                 const id  = event.target.getAttribute("href").substring(1);
                 const elt = document.getElementById(id);
                 if(elt!==null) {
-                    document.getElementById(id).style.background = color;
+                    const style = document.getElementById(id).style;
+                    if(color!==null) {
+                        style.background = color;
+                        style.color = "black";
+                    } else {
+                        style.background =  null;
+                        style.color = null;
+                    }
                 }
             }
         });
     }
-    on('mouseover', 'yellow');
+    on('mouseover', window.matchMedia('(prefers-color-scheme: dark)').matches ? '#b70' : 'yellow');
     on('mouseout',  null);
     function hideLoadingPage() {
         const loading = document.getElementById("loadingPage");
@@ -1043,9 +1071,23 @@ local function newHtmlWriter(file, mem)
     progress(0);
     document.getElementById('loadingPage').style.display = 'flex';
   </script>]])
+            local MACH = {
+                ['']='All TO/MO',
+                ['??']='Not yet decided.',
+                ['MO.']='MO5/MO6',
+                ['TO.']='TO7(-70)/TO8/TO9(+)'
+            }
             w(OPT_MAP and '  <div id="main">\n' or '',
-              '  <',HEADING,'>Analysis of <code>',TRACE,'</code> between <code>$',hex(OPT_MIN),'</code> and <code>$',hex(OPT_MAX),'</code></',HEADING,'>\n',
-              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="KBD : M-b">&darr;&darr;goto bottom&darr;&darr;</a>\n',
+              '  <',HEADING,'>Analysis of <code>',TRACE,'</code></',HEADING,'>\n',
+              '  <table>\n',
+			  '  <p></p>\n',
+              '  <tr><th style="text-align: right">Date:</th><td>', os.date(), '</td></tr>\n',
+              '  <tr><th style="text-align: right">Machine:</th><td>', MACH[OPT_MACH or ''],'</td></tr>\n',
+              '  <tr><th style="text-align: right">From:</th><td><code>$', hex(OPT_MIN), '</code></td></tr>\n',
+              '  <tr><th style="text-align: right">To:</th><td><code>$', hex(OPT_MAX), '</code></td></tr>\n',
+              '  </table>\n',
+              '  <div><p></p></div>\n',
+              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Short cut : [Meta]-b">&darr;&darr; BOTTOM &darr;&darr;</a>\n',
               '  <div><p></p></div>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
             if self.ncols>0 then self:_row("th", cols) end
