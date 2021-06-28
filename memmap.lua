@@ -190,13 +190,13 @@ local EQUATES = {
         self._mach = mach or ''
         return self
     end,
-	-- sets a page prefix to adress
+    -- sets a page prefix to adress
     _page = '',
     p = function(self,page)
         self._page = page or ''
         return self
     end,
-	-- define adresses
+    -- define adresses
     d = function(self,addr,name, ...)
         if addr and (OPT_MACH or self._mach)==self._mach then
             self[self._page .. addr] = (OPT_MACH==nil and self._mach or '') .. name
@@ -204,35 +204,35 @@ local EQUATES = {
         end
         return self
     end,
-	-- define adresses in sequence
-	s = function(self, addr, name, ...)
-		if addr then
-			if name then self:d(addr,name) end
-			self:s(hex(add16(tonumber(addr,16),1)), ...)
-		end
-		return self
-	end,
-	-- get text
+    -- define adresses in sequence
+    s = function(self, addr, name, ...)
+        if addr then
+            if name then self:d(addr,name) end
+            self:s(hex(add16(tonumber(addr,16),1)), ...)
+        end
+        return self
+    end,
+    -- get text
     t = function(self,addr,add2)
         return OPT_EQU 
-		and (self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2]
-		or   self[add2 or ''] and BRAKET[1]..self[add2]..BRAKET[2]
-		or   '')
+        and (self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2]
+        or   self[add2 or ''] and BRAKET[1]..self[add2]..BRAKET[2]
+        or   '')
     end,
-	-- init equates for video ram
-	iniVRAM = function(self, base)
-		for i=0,8191 do local j,t
-		  i,j,t = math.floor(i/40),i%40,'VRAM'
-		  if i>0 then t = t..'.L'..i end
-		  if j>0 then t = t..'+'..j end
-		  self:d(hex(base+i*40+j),t)
-		end
-		return self
-	end,
-	-- init TO equates
-	iniTO = function(self) self
-		:m('TO.')
-		:iniVRAM(0x4000)
+    -- init equates for video ram
+    iniVRAM = function(self, base)
+        for i=0,8191 do local j,t
+          i,j,t = math.floor(i/40),i%40,'VRAM'
+          if i>0 then t = t..'.L'..i end
+          if j>0 then t = t..'+'..j end
+          self:d(hex(base+i*40+j),t)
+        end
+        return self
+    end,
+    -- init TO equates
+    iniTO = function(self) self
+        :m('TO.')
+        :iniVRAM(0x4000)
         -- TO9 monitor
         :d('EC0C','EXTRA',
            'EC09','PEIN',
@@ -381,10 +381,10 @@ local EQUATES = {
            nil)
         -- minidos
         :d('E000','DKROMID',
-		   'E001','DKFATSZ',
-		   'E002','DKSECSZ',
-		   'E003','DKCKSUM',
-		   'E004','DKCON',
+           'E001','DKFATSZ',
+           'E002','DKSECSZ',
+           'E003','DKCKSUM',
+           'E004','DKCON',
            'E007','DKBOOT',
            'E00A','DKFMT',
            'E00D','LECFA',
@@ -395,7 +395,7 @@ local EQUATES = {
            'E01C','ALLOB',
            'E01F','MAJCL',
            'E022','FINTR',
-		   'E025','QDDSYS',
+           'E025','QDDSYS',
            nil)
         -- 6846 système
         :d('E7C0','CSR',
@@ -438,10 +438,10 @@ local EQUATES = {
            'E7E6','LGAROM',
            'E7E7','LGASYS1',
            nil)
-	end,
-	-- init MO equates
-	iniMO = function(self) self
-		:m('MO.')
+    end,
+    -- init MO equates
+    iniMO = function(self) self
+        :m('MO.')
         :iniVRAM(0x0000)
         -- http://pulko.mandy.pagesperso-orange.fr/shinra/mo5_memmap.shtml
         :d('2000','TERMIN',
@@ -458,7 +458,7 @@ local EQUATES = {
            '2025','ENDDR',
            '2027','BLOCZ',
            '2029','FORME',
-           '202A','ATRANG',	
+           '202A','ATRANG', 
            '202B','COLOUR',
            '202C','PAGFLG',
            '202D','SCROLS',
@@ -481,14 +481,14 @@ local EQUATES = {
            '2043','PRSTA',
            '2044','TEMP',
            '2046','SAVEST',
-           '2048','DKOPC',	
+           '2048','DKOPC',  
            '2049','DKDRV',
            '204A','DKTRK',
-		   '204B','DKTRK+1',
+           '204B','DKTRK+1',
            '204C','DKSEC',
            '204D','DKNUM',
            '204E','DKSTA',
-		   '204F','DKBUF',
+           '204F','DKBUF',
            '2051','DKTMP',
            '2059','SEQUCE',
            '205A','US1',
@@ -511,7 +511,7 @@ local EQUATES = {
            '2080','DKFLG',
            '2082','SERDAT',
            '2081','SYS.STK.LO',
-		   '20CC','SYS.STK.HI',
+           '20CC','SYS.STK.HI',
            '20CD','LPBUFF',
            '20FE','FSTRST',
            '2113','BASDEB',
@@ -522,13 +522,13 @@ local EQUATES = {
            '219B','LDBIN',
            '219C','LDADDR',
            '23FA','FILENAME',
-		   nil)
+           nil)
         -- minidos
         :d('A000','DKROMID',
-		   'A001','DKFATSZ',
-		   'A002','DKSECSZ',
-		   'A003','DKCKSUM',
-		   'A004','DKCON',
+           'A001','DKFATSZ',
+           'A002','DKSECSZ',
+           'A003','DKCKSUM',
+           'A004','DKCON',
            'A007','DKBOOT',
            'A00A','DKFMT',
            'A00D','LECFA',
@@ -539,7 +539,7 @@ local EQUATES = {
            'A01C','ALLOB',
            'A01F','MAJCL',
            'A022','FINTR',
-		   'A025','QDDSYS',
+           'A025','QDDSYS',
            nil)
         -- PIA système
         :d('E7C0','PRA',
@@ -565,32 +565,32 @@ local EQUATES = {
            'A7E6','LGAROM',
            'A7E7','LGASYS1',
            nil)
-		-- Basic
-		:d('CE2C','PUTS',
-		   'D83E','PUTD',
+        -- Basic
+        :d('CE2C','PUTS',
+           'D83E','PUTD',
            'E076','SETNAME',
-		   'E079','SETEXT',
-		   'E088','FILETYPE',
-		   'E0B9','PROTEC',
-		   'E12B','SAVEBAS',
-		   'E167','SAVEBIN',
+           'E079','SETEXT',
+           'E088','FILETYPE',
+           'E0B9','PROTEC',
+           'E12B','SAVEBAS',
+           'E167','SAVEBIN',
            'E2B3','LOADFILE',
-		   nil)
+           nil)
     end,
-	ini = function(self)
-		for k,v in pairs(self) do if k:match('%x%x%x%x$') then self[k] = nil end end
-		self
-		:d('FFFE','VEC.RESET',
-		   'FFFC','VEC.NMI',
-		   'FFFA','VEC.SWI',
-		   'FFF8','VEC.IRQ',
-		   'FFF6','VEC.FIRQ',
-		   'FFF4','VEC.SWI2',
-		   'FFF2','VEC.SWI3',
-		   'FFF0','VEC.MACH')
-		if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='MO.' then self:iniMO() end
-		if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='TO.' then self:iniTO() end
-	end,
+    ini = function(self)
+        for k,v in pairs(self) do if k:match('%x%x%x%x$') then self[k] = nil end end
+        self
+        :d('FFFE','VEC.RESET',
+           'FFFC','VEC.NMI',
+           'FFFA','VEC.SWI',
+           'FFF8','VEC.IRQ',
+           'FFF6','VEC.FIRQ',
+           'FFF4','VEC.SWI2',
+           'FFF2','VEC.SWI3',
+           'FFF0','VEC.MACH')
+        if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='MO.' then self:iniMO() end
+        if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='TO.' then self:iniTO() end
+    end,
 nil} EQUATES:ini()
 
 ------------------------------------------------------------------------------
@@ -686,17 +686,17 @@ local function newHtmlWriter(file, mem)
     end
     -- récup des adresses utiles
     local valid = {} for i=OPT_MIN,OPT_MAX do 
-		local m = mem[i]
-		if m and (m.asm or m.x==0) then valid[hex(i)] = true end
-	end
+        local m = mem[i]
+        if m and (m.asm or m.x==0) then valid[hex(i)] = true end
+    end
     local rev   = {}
     for i=OPT_MAX,OPT_MIN,-1 do
         local m = mem[i]
-		if m and not m.s then
-			i = hex(i)
-			if m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
-			if m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
-		end
+        if m and not m.s then
+            i = hex(i)
+            if m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
+            if m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
+        end
     end
     -- sort le code html pour la progression
     local prog_next = .01
@@ -724,15 +724,15 @@ local function newHtmlWriter(file, mem)
             local RWX    = (m.x==0      and '-' or 'X')..
                            (m.r==NOADDR and '-' or 'R')..
                            (m.w==NOADDR and '-' or 'W')..
-						   (m.s and 'S' or '')
+                           (m.s and 'S' or '')
             --
             local anchor = addr
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
             elseif RWX=='-RW' and m.r==m.w      then anchor = m.r
             elseif RWX=='-R-' and m.r~=opt_from then anchor = m.r
             elseif RWX=='--W' and m.w~=opt_from then anchor = m.w
-			elseif RWX=='-RW' and m.r==opt_from then anchor = m.w 
-			elseif RWX=='-RW' and m.w==opt_from then anchor = m.r end
+            elseif RWX=='-RW' and m.r==opt_from then anchor = m.w 
+            elseif RWX=='-RW' and m.w==opt_from then anchor = m.r end
             --
             local equate = EQUATES:t(addr)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
@@ -752,20 +752,20 @@ local function newHtmlWriter(file, mem)
         local title, RWX, anchor = describe(addr,nil,nil,from)
         -- if from == anchor then anchor = addr end -- no loop back XXXX
         return valid[anchor] and '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
-		                     or esc(txt)
+                             or esc(txt)
     end
 
     local function memmap(mem)
         -- encodage des couleurs de cases
         local color = {
-            ['---'] = 7,
-            ['--W'] = 1,
-            ['-R-'] = 2,
-            ['-RW'] = 3,
-            ['X--'] = 4,
-            ['X-W'] = 5,
-            ['XR-'] = 6,
-            ['XRW'] = 0,
+            ['---' ] = 7,
+            ['--W' ] = 1,
+            ['-R-' ] = 2,
+            ['-RW' ] = 3,
+            ['X--' ] = 4,
+            ['X-W' ] = 5,
+            ['XR-' ] = 6,
+            ['XRW' ] = 0,
             ['---S'] = 0,
             ['--WS'] = 0,
             ['-R-S'] = 0,
@@ -876,7 +876,7 @@ local function newHtmlWriter(file, mem)
                     t = t .. esc(n)
                 elseif i==5 then
                     local back = rev[cols[1]]
-					if back then
+                    if back then
                         local before,arg,after = n:match('^(%S+%s+%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
                         if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.*)$') end
                         if not arg then error(n) end
@@ -954,22 +954,16 @@ local function newHtmlWriter(file, mem)
     }
 
     #loadingPage {
-      position: fixed;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      opacity: 0.8;
-      background-color: #000;
-      z-index: 99;
+      position: fixed; top: 0; left:0; width:100%; height: 100%;
+      display: none; justify-content: center; align-items: center;
+    }
+    #loadingGray {
+	  z-index: 99;
+      position: fixed; top: 0; left:0; width:100%; height: 100%;
+      opacity: 0.5; background-color: black;
       cursor: wait;
     }
     #loadingProgress {
-      color: black;
-      background-color: white;
       z-index: 100;
       display: block;
       padding: 0.6em;
@@ -999,7 +993,7 @@ local function newHtmlWriter(file, mem)
     td.c6:hover,active {background-color:black;}
     td.c7:hover,active {background-color:black;}
 
-	#t1 a:active {background-color:yellow;}
+    #t1 a:active {background-color:yellow;}
 
     .mm {table-layout: fixed; width: 100%;}
     .mm tr:hover {background-color:initial;}
@@ -1033,6 +1027,7 @@ local function newHtmlWriter(file, mem)
     }
   </script>
   <div id="loadingPage">
+    <div id="loadingGray"></div>
     <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
     </button>
   </div>
@@ -1137,25 +1132,25 @@ local mem = {
     -- marque "addr" comme lue depuis le compteur programme courant
     r = function(self, addr, len, stack)
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
-			m.r, m.s = self.PC, stack
-		end
+            m.r, m.s = self.PC, stack
+        end
         return self
     end,
     -- marque "addr" comme écrite depuis le compteur programme courant
     w = function(self, addr, len, stack)
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
-			m.w, m.s = self.PC, stack 
-		end
+            m.w, m.s = self.PC, stack 
+        end
         return self
     end,
-	_stkop = '***STACK***',
+    _stkop = '***STACK***',
     -- charge un fichier TAB Separated Value (CSV avec des tab)
     loadTSV = function(self, f)
         if f then
             for s in f:lines() do
                 local pc,r,w,x,a = s:match('(%x+)%s+([01])%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
                 if pc then
-					local stkop = a==self._stkop; a = _stkop and ''or a
+                    local stkop = a==self._stkop; a = _stkop and ''or a
                     if x~='-'    then self:pc(pc):x('12',x):a(a) end
                     if r~=NOADDR then self:pc(r):r(pc,stkop)     end
                     if w~=NOADDR then self:pc(w):r(pc,stkop)     end
@@ -1262,8 +1257,8 @@ end
 -- lues (dir>0) ou écrits (dir<0) en fonction des arguments de
 -- l'opération de pile
 local function stack(ptr, dir, args)
-	local usePC = args:match('PC')
-	local stkop = usePC or args:match('DP')
+    local usePC = args:match('PC')
+    local stkop = usePC or args:match('DP')
     ptr = tonumber(ptr,16)
     local function mk(len)
         if dir>0 then mem:r(ptr, len, stkop) else mem:w(add16(ptr,-len), len, stkop) end
@@ -1386,13 +1381,13 @@ local function read_trace(filename)
     for s in f:lines() do
         -- print(s) io.stdout:flush()
         if 50000==num then num=0; out('%6.02f%%\r', 100*f:seek()/size) end
-		
-		-- collecte les valeurs de DP si le type de machine est inconnu
-		if OPT_MACH=='?' and s:match("^[EF]%x%x%x ") then 
-			local dp = s:match('DP=(%x%x)')
-			dp_stat[dp] = (dp_stat[dp] or 0) + 1
-		end
-		
+        
+        -- collecte les valeurs de DP si le type de machine est inconnu
+        if OPT_MACH=='?' and s:match("^[EF]%x%x%x ") then 
+            local dp = s:match('DP=(%x%x)')
+            dp_stat[dp] = (dp_stat[dp] or 0) + 1
+        end
+        
         num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
          -- print(pc, hexa, opcode, args)
@@ -1414,11 +1409,11 @@ local function read_trace(filename)
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
-				local equate = EQUATES:t(args:match('%$(%x%x%x%x)'), pc)
-				if equate~='' then 
-					local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
-					asm = asm:gsub(equate_ptn, '')
-				end
+                local equate = EQUATES:t(args:match('%$(%x%x%x%x)'), pc)
+                if equate~='' then 
+                    local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+                    asm = asm:gsub(equate_ptn, '')
+                end
                 asm = sprintf("%-5s%s%s", cycles, asm, equate)
                 if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
@@ -1437,13 +1432,13 @@ repeat
     wait_for_file(TRACE)
     -- lecture fichier de trace
     read_trace(TRACE)
-	-- essaye de déterminer le type de machine
-	if OPT_MACH=='?' then
-		local DP_TO = (dp_stat['60'] or 0) + (dp_stat['E7'] or 0) 
-		local DP_MO = (dp_stat['20'] or 0) + (dp_stat['A7'] or 0) 
-		if DP_TO > DP_MO*2 then machTO(); EQUATES:ini() end
-		if DP_MO > DP_TO*2 then machMO(); EQUATES:ini() end
-	end
+    -- essaye de déterminer le type de machine
+    if OPT_MACH=='?' then
+        local DP_TO = (dp_stat['60'] or 0) + (dp_stat['E7'] or 0) 
+        local DP_MO = (dp_stat['20'] or 0) + (dp_stat['A7'] or 0) 
+        if DP_TO > DP_MO*2 then machTO(); EQUATES:ini() end
+        if DP_MO > DP_TO*2 then machMO(); EQUATES:ini() end
+    end
     -- écriture résultat TSV & html
     mem:save(newParallelWriter(
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
