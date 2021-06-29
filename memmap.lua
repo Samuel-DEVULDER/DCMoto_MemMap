@@ -927,7 +927,7 @@ local function newHtmlWriter(file, mem)
                     local back = rev[cols[1]]
                     if back then
                         local before,arg,after = n:match('^([%d/()]+%s*%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
-                        if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.*)$') end
+                        if not arg then before,arg,after = n:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
                         if not arg then error(n) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
                     else
@@ -1504,7 +1504,7 @@ local function read_trace(filename)
                 local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
                 -- on ne connait le code asm vraiment qu'à la fin
                 local asm, cycles =
-                    args=='' and opcode or sprintf("%-5s %s", opcode, args),
+                    args=='' and opcode or sprintf("%-4s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
                 local equate = EQUATES:t(args:match('%$(%x%x%x%x)'), pc)
                 if equate~='' then 
