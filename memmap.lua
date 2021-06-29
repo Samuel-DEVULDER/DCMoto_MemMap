@@ -1082,15 +1082,15 @@ local function newHtmlWriter(file, mem)
             }
             w(OPT_MAP and '  <div id="main">\n' or '',
               '  <',HEADING,'>Analysis of <code>',TRACE,'</code></',HEADING,'>\n',
-              '  <table>\n',
               '  <p></p>\n',
+              '  <table>\n',
               '  <tr><th style="text-align: right">Machine:</th><td>', MACH[OPT_MACH or ''],'</td></tr>\n',
               '  <tr><th style="text-align: right">Range:</th><td><code>$', hex(OPT_MIN), '</code> &rarr; <code>$', hex(OPT_MAX), '</code></td></tr>\n',
               '  <tr><th style="text-align: right">Date:</th><td>', os.date('%Y-%m-%d %H:%M:%S'), '</td></tr>\n',
               '  </table>\n',
-              '  <div><p></p></div>\n',
+              '  <p></p>\n',
               '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Short cut : [Meta]-b">&darr;&darr; BOTTOM &darr;&darr;</a>\n',
-              '  <div><p></p></div>\n',
+              '  <p></p>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
             if self.ncols>0 then self:_row("th", cols) end
             return self
