@@ -75,7 +75,7 @@ local BRAKET = {' <-',''}              -- pour décorer les equates
 
 local MACH_XX     = '?'                -- deviner la machine
 local MACH_TO     = "TO."              -- TO7 etc.
-local MACH_MO     = "MO."			   -- MO5 etc.
+local MACH_MO     = "MO."              -- MO5 etc.
 
 local OPT_LOOP    = false              -- reboucle ?
 local OPT_RESET   = false              -- ignore les analyses précédentes ?
@@ -107,23 +107,28 @@ end
 
 -- affiche un truc si le niveau de détail est suffisant
 local function verbose(level, fmt, ...)
-	if level <= OPT_VERBOSE then out(fmt, ...) end
+    if level <= OPT_VERBOSE then out(fmt, ...) end
+end
+
+-- un simple verbose de niveau 1
+local function log(fmt, ...)
+    verbose(1, fmt .. '\n', ...)
 end
 
 -- profiling
 local profile = {clk=nil, lvl = 2,
-	_ = function(self, msg)
-		if self.lvl<=OPT_VERBOSE then
-			if self.clk then
-				local time = os.clock() - self.clk; self.clk = nil
-				verbose(self.lvl, 'done (%.3gs)\n', time)
-			else
-				msg = msg or 'Running ' .. debug.getinfo(2, "n").name .. '()'
-				verbose(self.lvl, "%s...", msg)
-				self.clk = os.clock()
-			end
-		end
-	end
+    _ = function(self, msg)
+        if self.lvl<=OPT_VERBOSE then
+            if self.clk then
+                local time = os.clock() - self.clk; self.clk = nil
+                verbose(self.lvl, 'done (%.3gs)\n', time)
+            else
+                msg = msg or 'Running ' .. debug.getinfo(2, "n").name .. '()'
+                verbose(self.lvl, "%s...", msg)
+                self.clk = os.clock()
+            end
+        end
+    end
 }
 
 -- set
@@ -172,11 +177,11 @@ local memoize = {
 -- affiche l'usage
 local function usage(errcode, short)
     local f = assert(io.open(arg[0],'r'))
-	local empty = 0
+    local empty = 0
     for l in f:lines() do
         l = trim(l); if l==nil or l=='' then break end
         l = l:match('^%-%- (.*)$') or l:match('^%-%-(%s?)$')
-		if l=='' then empty = empty + 1; if empty==2 then break end end
+        if l=='' then empty = empty + 1; if empty==2 then break end end
         if l then io.stdout:write(l .. '\n') end
     end
     f:close()
@@ -188,12 +193,12 @@ end
 ------------------------------------------------------------------------------
 
 local function machTO() 
-	OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = MACH_TO,OPT_MIN or 0x6100,OPT_MAX or 0xDFFF,true 
-	verbose(1,"Set machine to %s\n", OPT_MACH) 
+    OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = MACH_TO,OPT_MIN or 0x6100,OPT_MAX or 0xDFFF,true 
+    log("Set machine to %s", OPT_MACH) 
 end
 local function machMO() 
-	OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = MACH_MO,OPT_MIN or 0x2100,OPT_MAX or 0x9FFF,true 
-	verbose(1,"Set machine to %s\n", OPT_MACH) 
+    OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = MACH_MO,OPT_MIN or 0x2100,OPT_MAX or 0x9FFF,true 
+    log("Set machine to %s", OPT_MACH) 
 end
 
 for i,v in ipairs(arg) do local t
@@ -206,14 +211,14 @@ for i,v in ipairs(arg) do local t
     elseif v=='-reset'   then OPT_RESET   = true
     elseif v=='-map'     then OPT_MAP     = true
     elseif v=='-equates' then OPT_EQU     = true
-	elseif v=='-verbose' then OPT_VERBOSE = 1
+    elseif v=='-verbose' then OPT_VERBOSE = 1
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
     else t=v:match('%-from=(%x+)')     if t then OPT_MIN     = tonumber(t,16)
     else t=v:match('%-to=(%x+)')       if t then OPT_MAX     = tonumber(t,16)
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
-	else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
+    else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
     end end end end end
 end
@@ -626,9 +631,9 @@ local EQUATES = {
            'FFF4','VEC.SWI2',
            'FFF2','VEC.SWI3',
            'FFF0','VEC.MACH')
-		local setMO = set{MACH_XX, MACH_MO}
-		local setTO = set{MACH_XX, MACH_TO}
-	    if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
+        local setMO = set{MACH_XX, MACH_MO}
+        local setTO = set{MACH_XX, MACH_TO}
+        if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
         if setTO[OPT_MACH or MACH_XX] then self:iniTO() end
     end,
 nil} EQUATES:ini()
@@ -639,6 +644,7 @@ nil} EQUATES:ini()
 
 -- Writer Parallèle
 local function newParallelWriter(...)
+    log('Created Parallel writer.')
     return {
         writers = {...},
         close = function(self)
@@ -659,6 +665,7 @@ local function newTSVWriter(file, tablen)
     local function align(n)
         return tablen*math.floor((n + tablen -1)/tablen)
     end
+    log('Created CSV writer (tab=%d).', tablen)
     return {
         file=file or {write=function() end, close=function() end},
         close = function(self)
@@ -706,6 +713,7 @@ end
 
 -- Writer OPT_HTML (quelle horreur!)
 local function newHtmlWriter(file, mem)
+    log('Created HTML writer.')
     HEADING = "h1"
     -- evite les fichier nil
     file=file or {write=function() end, close=function() end}
@@ -1144,6 +1152,8 @@ end
 ------------------------------------------------------------------------------
 
 local function findHotspots(mem)
+    log('Finding hot spots.')
+    profile:_()
     local spots,hot = {}
     local function newHot(i)
         return {
@@ -1178,6 +1188,7 @@ local function findHotspots(mem)
         end
     end
     table.sort(spots, function(a,b) return a.t > b.t end)
+    profile:_()
     return spots
 end
 
@@ -1228,7 +1239,7 @@ local mem = {
     -- charge un fichier TAB Separated Value (CSV avec des tab)
     loadTSV = function(self, f)
         if f then
-			profile:_()
+            profile:_()
             for s in f:lines() do
                 local pc,r,w,x,a = s:match('(%x+)%s+([01])%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
                 if pc then
@@ -1238,7 +1249,7 @@ local mem = {
                     if w~=NOADDR then self:pc(w):r(pc,stkop)     end
                 end
             end
-			profile:_()
+            profile:_()
         else
             f = {close=function() end}
         end
@@ -1247,7 +1258,7 @@ local mem = {
     -- écrit un fichier en utilisant le writer fourni
     save = function(self, writer)
         writer = writer or newParallelWriter()
-		profile:_()
+        profile:_()
 
         writer:header{"Addr   ", "RdFrom ", "WrFrom ", "> ExeCnt", "<Asm code"}
 
@@ -1274,6 +1285,7 @@ local mem = {
             end
         end
         u(-1)
+        profile:_()
 
         -- hotspot
         local spots,total,count,first = findHotspots(self),0,0,true
@@ -1289,7 +1301,6 @@ local mem = {
             count = count + s.t
             if i>=3 and count >= .8 * total then break end
         end
-		profile:_()
         return writer
     end
 }
@@ -1410,7 +1421,7 @@ if not OPT_RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
 -- attente d'un fichier
 local function wait_for_file(filename)
     out('Waiting for %s...', filename)
-	profile:_()
+    profile:_()
     while not os.rename(filename,filename) do
         if os.getenv('COMSPEC') then -- windows
             os.execute('ping -n 1 127.0.0.1 >NUL')
@@ -1419,7 +1430,7 @@ local function wait_for_file(filename)
             repeat until os.clock()>=t
         end
     end
-	profile:_()
+    profile:_()
     out('\r                                                 \r')
 end
 
@@ -1428,7 +1439,7 @@ local function read_trace(filename)
     local num,f = 0, assert(io.open(filename,'r'))
     local size = f:seek('end') f:seek('set')
 
-	verbose(1, 'Analyzing %.3g Mb of trace.\n', size/1024/1024)
+    verbose(1, 'Analyzing %.3g Mb of trace.\n', size/1024/1024)
 
     local pc,hexa,opcode,args,regs,sig,jmp,curr_pc
     local nomem = {} -- cache des codes hexa ne touchant pas la mémoire (pour aller plus vite)
@@ -1466,13 +1477,13 @@ local function read_trace(filename)
         for i=0,255 do REL_BRANCH[sprintf("%s%02X", hexa, i)] = true end
     end
 
-	profile:_()
+    profile:_()
     for s in f:lines() do
         -- print(s) io.stdout:flush()
         if 50000==num then num = 0
-			local txt = sprintf('%6.02f%%', 100*f:seek()/size)
-			out('%s%s', txt, string.rep('\b', txt:len()))
-		end
+            local txt = sprintf('%6.02f%%', 100*f:seek()/size)
+            out('%s%s', txt, string.rep('\b', txt:len()))
+        end
 
         num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
@@ -1508,28 +1519,28 @@ local function read_trace(filename)
     end
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
-	profile:_()
+    profile:_()
 end
 
 -- essaye de deviner le type de machine en analysant la valeur de DP dans
 -- la trace
 local _guess_MACH = {MO=0,TO=0}
 local function guess_MACH(TRACE)
-	local THR = 100000
-	verbose(1, 'Trying to determine machine.\n', TRACE) 
-	profile:_()
-	local f = assert(io.open(TRACE,'r'))
-	for l in f:lines() do
-		if     l:match('DP=[2A]') then _guess_MACH.MO = _guess_MACH.MO + 1 
-		elseif l:match('DP=[6E]') then _guess_MACH.TO = _guess_MACH.TO + 1 end
-		if _guess_MACH.MO + _guess_MACH.TO > THR then break end
-	end
-	f:close()
+    local THR = 100000
+    verbose(1, 'Trying to determine machine.\n', TRACE) 
     profile:_()
-	if _guess_MACH.MO + _guess_MACH.TO > THR then
-		if _guess_MACH.MO > 2*_guess_MACH.TO then machMO(); EQUATES:ini() end
-		if _guess_MACH.TO > 2*_guess_MACH.MO then machTO(); EQUATES:ini() end
-	end
+    local f = assert(io.open(TRACE,'r'))
+    for l in f:lines() do
+        if     l:match('DP=[2A]') then _guess_MACH.MO = _guess_MACH.MO + 1 
+        elseif l:match('DP=[6E]') then _guess_MACH.TO = _guess_MACH.TO + 1 end
+        if _guess_MACH.MO + _guess_MACH.TO > THR then break end
+    end
+    f:close()
+    profile:_()
+    if _guess_MACH.MO + _guess_MACH.TO > THR then
+        if _guess_MACH.MO > 2*_guess_MACH.TO then machMO(); EQUATES:ini() end
+        if _guess_MACH.TO > 2*_guess_MACH.MO then machTO(); EQUATES:ini() end
+    end
 end
 
 ------------------------------------------------------------------------------
@@ -1538,12 +1549,12 @@ end
 repeat
     -- attente de l'arrivée d'un fichier de trace
     wait_for_file(TRACE)
-	
+    
     -- essaye de déterminer le type de machine
-    if OPT_MACH==MACH_XX then guess_MACH(TRACE) end	
-	local _MIN,_MAX = OPT_MIN,OPT_MAX
-	OPT_MIN = OPT_MIN or 0x0000
-	OPT_MAX = OPT_MAX or 0xFFFF
+    if OPT_MACH==MACH_XX then guess_MACH(TRACE) end 
+    local _MIN,_MAX = OPT_MIN,OPT_MAX
+    OPT_MIN = OPT_MIN or 0x0000
+    OPT_MAX = OPT_MAX or 0xFFFF
 
     -- lecture fichier de trace
     read_trace(TRACE)
@@ -1554,9 +1565,9 @@ repeat
         OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
     )):close()
     
-	-- effacement fichier trace consomé
-    if OPT_LOOP then assert(os.remove(TRACE)) end
-	
-	--  si le min/max n'est pas encore trouvé
-	OPT_MIN,OPT_MAX = _MIN,_MAX
+    -- effacement fichier trace consomé
+    if OPT_LOOP then verbose(1, 'Removing trace and looping'); assert(os.remove(TRACE)) end
+    
+    --  si le min/max n'est pas encore trouvé
+    OPT_MIN,OPT_MAX = _MIN,_MAX
 until not OPT_LOOP
