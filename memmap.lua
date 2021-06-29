@@ -70,6 +70,10 @@ local BRAKET = {' <-',''}              -- pour décorer les equates
 -- local BRAKET = {' (',')'}
 -- local BRAKET = {'<<',''}
 
+local MACH_XX   = '?'                  -- deviner la machine
+local MACH_TO   = "TO."                -- TO7 etc.
+local MACH_MO   = "MO."			       -- MO5 etc.
+
 local OPT_LOOP   = false               -- reboucle ?
 local OPT_RESET  = false               -- ignore les analyses précédentes ?
 local OPT_MIN    = nil                 -- adresse de départ
@@ -157,8 +161,8 @@ end
 -- Analyse la ligne de commande
 ------------------------------------------------------------------------------
 
-local function machTO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'TO.',OPT_MIN or 0x6100,OPT_MAX or 0xDFFF,true end
-local function machMO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'MO.',OPT_MIN or 0x2100,OPT_MAX or 0x9FFF,true end
+local function machTO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = MACH_TO,OPT_MIN or 0x6100,OPT_MAX or 0xDFFF,true end
+local function machMO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = MACH_MO,OPT_MIN or 0x2100,OPT_MAX or 0x9FFF,true end
 
 for i,v in ipairs(arg) do local t
     v = v:lower()
@@ -170,18 +174,15 @@ for i,v in ipairs(arg) do local t
     elseif v=='-reset'   then OPT_RESET = true
     elseif v=='-map'     then OPT_MAP   = true
     elseif v=='-equates' then OPT_EQU   = true
-    elseif v=='-mach=??' then OPT_MACH,OPT_EQU = '?',true
+    elseif v=='-mach=??' then OPT_MACH,OPT_EQU = MACH_XX,true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
     else t=v:match('%-from=(%x+)') if t then OPT_MIN = tonumber(t,16)
     else t=v:match('%-to=(%x+)')   if t then OPT_MAX = tonumber(t,16)
     else t=v:match('%-map=(%d+)')  if t then OPT_MAP,OPT_COLS = true,tonumber(t)
-    else io.stdout:write('Unknown option: ' .. v); os.exit(21)
+    else io.stdout:write('XXnown option: ' .. v); os.exit(21)
     end end end end
 end
-
-OPT_MIN = OPT_MIN or 0x0000
-OPT_MAX = OPT_MAX or 0xFFFF
 
 ------------------------------------------------------------------------------
 -- Quelques adresses bien connues
@@ -201,8 +202,8 @@ local EQUATES = {
     end,
     -- define adresses
     d = function(self,addr,name, ...)
-        if addr and (OPT_MACH or self._mach)==self._mach then
-            self[self._page .. addr] = (OPT_MACH==nil and self._mach or '') .. name
+        if addr then
+            self[self._page .. addr] = ((OPT_MACH==nil or OPT_MACH==MACH_XX) and self._mach or '') .. name
             self:d(...)
         end
         return self
@@ -234,7 +235,7 @@ local EQUATES = {
     end,
     -- init TO equates
     iniTO = function(self) self
-        :m('TO.')
+        :m(MACH_TO)
         :iniVRAM(0x4000)
         -- TO9 monitor
         :d('EC0C','EXTRA',
@@ -444,7 +445,7 @@ local EQUATES = {
     end,
     -- init MO equates
     iniMO = function(self) self
-        :m('MO.')
+        :m(MACH_MO)
         :iniVRAM(0x0000)
         -- http://pulko.mandy.pagesperso-orange.fr/shinra/mo5_memmap.shtml
         :d('2000','TERMIN',
@@ -581,7 +582,7 @@ local EQUATES = {
            nil)
     end,
     ini = function(self)
-        for k,v in pairs(self) do if k:match('%x%x%x%x$') then self[k] = nil end end
+        for k,v in pairs(self) do if k:match('^%x%x%x%x$') then self[k] = nil end end
         self
         :d('FFFE','VEC.RESET',
            'FFFC','VEC.NMI',
@@ -591,8 +592,10 @@ local EQUATES = {
            'FFF4','VEC.SWI2',
            'FFF2','VEC.SWI3',
            'FFF0','VEC.MACH')
-        if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='MO.' then self:iniMO() end
-        if OPT_MACH==nil or OPT_MACH=='?' or OPT_MACH=='TO.' then self:iniTO() end
+		local setMO = set{MACH_XX, MACH_MO}
+		local setTO = set{MACH_XX, MACH_TO}
+	    if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
+        if setTO[OPT_MACH or MACH_XX] then self:iniTO() end
     end,
 nil} EQUATES:ini()
 
@@ -929,8 +932,8 @@ local function newHtmlWriter(file, mem)
       border-bottom: 1px solid #ddd;
     }
     th, td {
-      padding-left:  4px;
-      padding-right: 4px;
+      padding-left:  8px;
+      padding-right: 8px;
       border-left: 1px solid #ddd;
       border-right: 1px solid #ddd;
     }
@@ -1056,13 +1059,6 @@ local function newHtmlWriter(file, mem)
             document.body.removeChild(loading);
         }
     }
-  </script>
-  <div id="loadingPage">
-    <div id="loadingGray"></div>
-    <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
-    </button>
-  </div>
-  <script>
     function progress(percent) {
       const button = document.getElementById('loadingProgress')
       if(button !== null) {
@@ -1071,14 +1067,21 @@ local function newHtmlWriter(file, mem)
         button.innerHTML = txt;
       }
     }
+  </script>
+  <div id="loadingPage">
+    <div id="loadingGray"></div>
+    <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
+    </button>
+  </div>
+  <script>
     progress(0);
     document.getElementById('loadingPage').style.display = 'flex';
   </script>]])
             local MACH = {
-                ['']='All TO/MO',
-                ['??']='Not yet decided.',
-                ['MO.']='MO5/MO6',
-                ['TO.']='TO7(-70)/TO8/TO9(+)'
+                ['']      = 'All TO/MO',
+                [MACH_XX] = 'Not decided yet',
+                [MACH_MO] = 'MO5/MO6',
+                [MACH_TO] = 'TO7(70)/TO8/TO9(+)'
             }
             w(OPT_MAP and '  <div id="main">\n' or '',
               '  <',HEADING,'>Analysis of <code>',TRACE,'</code></',HEADING,'>\n',
@@ -1381,7 +1384,6 @@ local function wait_for_file(filename)
 end
 
 -- ouverture et analyse du fichier de trace
-local dp_stat = {}
 local function read_trace(filename)
     local num,f = 0, assert(io.open(filename,'r'))
     local size = f:seek('end') f:seek('set')
@@ -1426,12 +1428,6 @@ local function read_trace(filename)
         -- print(s) io.stdout:flush()
         if 50000==num then num=0; out('%6.02f%%\r', 100*f:seek()/size) end
         
-        -- collecte les valeurs de DP si le type de machine est inconnu
-        if OPT_MACH=='?' and s:match("^[EF]%x%x%x ") then 
-            local dp = s:match('DP=(%x%x)')
-            dp_stat[dp] = (dp_stat[dp] or 0) + 1
-        end
-        
         num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
          -- print(pc, hexa, opcode, args)
@@ -1468,26 +1464,56 @@ local function read_trace(filename)
     out('                \r')
 end
 
+-- essaye de deviner le type de machine en analysant la valeur de DP dans
+-- la trace
+local _guess_MACH = {}
+for i=0,15 do local x = sprintf('%X',i)
+	_guess_MACH['2' .. i] = 0
+	_guess_MACH['6' .. i] = 0
+	_guess_MACH['A' .. i] = 0
+	_guess_MACH['E' .. i] = 0
+end
+local function guess_MACH(TRACE)
+	local f = assert(io.open(TRACE,'r'))
+	for l in f:lines() do
+		local DP = l:match('DP=([26AE]%x)')
+		if DP then _guess_MACH[DP] = _guess_MACH[DP] + 1 end
+	end
+	f:close()
+    
+	local DP_TO = (_guess_MACH['60'] or 0) + (_guess_MACH['E7'] or 0) 
+	local DP_MO = (_guess_MACH['20'] or 0) + (_guess_MACH['A7'] or 0) 
+	if DP_TO + DP_MO > 100 then
+		if DP_TO > DP_MO*2 then machTO(); EQUATES:ini() end
+		if DP_MO > DP_TO*2 then machMO(); EQUATES:ini() end
+	end
+end
+
 ------------------------------------------------------------------------------
 -- boucle principale (sortie par ctrl-c)
 ------------------------------------------------------------------------------
 repeat
     -- attente de l'arrivée d'un fichier de trace
     wait_for_file(TRACE)
+	
+    -- essaye de déterminer le type de machine
+    if OPT_MACH==MACH_XX then guess_MACH(TRACE) end	
+	local _MIN,_MAX = OPT_MIN,OPT_MAX
+	OPT_MIN = OPT_MIN or 0x0000
+	OPT_MAX = OPT_MAX or 0xFFFF
+
     -- lecture fichier de trace
     read_trace(TRACE)
-    -- essaye de déterminer le type de machine
-    if OPT_MACH=='?' then
-        local DP_TO = (dp_stat['60'] or 0) + (dp_stat['E7'] or 0) 
-        local DP_MO = (dp_stat['20'] or 0) + (dp_stat['A7'] or 0) 
-        if DP_TO > DP_MO*2 then machTO(); EQUATES:ini() end
-        if DP_MO > DP_TO*2 then machMO(); EQUATES:ini() end
-    end
+
     -- écriture résultat TSV & html
     mem:save(newParallelWriter(
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
         OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
     )):close()
-    -- effacement fichier trace consomé
+    
+	-- effacement fichier trace consomé
     if OPT_LOOP then assert(os.remove(TRACE)) end
+	
+	--  si le min/max n'est pas encore trouvé
+	OPT_MIN,OPT_MAX = _MIN,_MAX
 until not OPT_LOOP
