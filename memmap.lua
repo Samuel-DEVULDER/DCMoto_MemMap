@@ -749,7 +749,7 @@ local function newHtmlWriter(file, mem)
 
             return title, RWX, anchor
         else
-            return '$' .. addr  .. EQUATES:t(addr) .. ' : untouched', '---', addr
+            return '$' .. addr .. ' : untouched' .. EQUATES:t(addr), '---', addr
         end
     end
     -- affiche le code html pour un hyperlien sur "addr" avec le texte
@@ -884,7 +884,7 @@ local function newHtmlWriter(file, mem)
                 elseif i==5 then
                     local back = rev[cols[1]]
                     if back then
-                        local before,arg,after = n:match('^(%S+%s+%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
+                        local before,arg,after = n:match('^([%d/()]+%s*%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
                         if not arg then before,arg,after = n:match('^(%S+%s+)([%w_,]+)(.*)$') end
                         if not arg then error(n) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
