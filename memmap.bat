@@ -11,7 +11,7 @@ if "%~1"=="-FIXED_CTRL_C" (
 )
 
 echo Press ctrl-c to break
-%~dsp1\lua.exe %~dsp1\memmap.lua -loop -html -map
+%~dsp1\lua.exe %~dsp1\memmap.lua -loop -html -map -equates -mach=?? 
 if exist memmap.html (
 	echo Showing result in HTML...
 	start memmap.html
