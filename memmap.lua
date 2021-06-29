@@ -72,8 +72,8 @@ local BRAKET = {' <-',''}              -- pour décorer les equates
 
 local OPT_LOOP   = false               -- reboucle ?
 local OPT_RESET  = false               -- ignore les analyses précédentes ?
-local OPT_MIN    = 0x0000              -- adresse de départ
-local OPT_MAX    = 0xFFFF              -- adresse de fin
+local OPT_MIN    = nil                 -- adresse de départ
+local OPT_MAX    = nil                 -- adresse de fin
 local OPT_MAP    = false               -- ajoute une version graphique de la map
 local OPT_HTML   = false               -- produit une analyse html?
 local OPT_COLS   = 128                 -- nb de colonnes de la table map
@@ -157,8 +157,8 @@ end
 -- Analyse la ligne de commande
 ------------------------------------------------------------------------------
 
-local function machTO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'TO.',0x4000,0xDFFF,true end
-local function machMO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'MO.',0x2000,0x9FFF,true end
+local function machTO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'TO.',OPT_MIN or 0x6100,OPT_MAX or 0xDFFF,true end
+local function machMO() OPT_MACH,OPT_MIN,OPT_MAX,OPT_EQU = 'MO.',OPT_MIN or 0x2100,OPT_MAX or 0x9FFF,true end
 
 for i,v in ipairs(arg) do local t
     v = v:lower()
@@ -179,6 +179,9 @@ for i,v in ipairs(arg) do local t
     else io.stdout:write('Unknown option: ' .. v); os.exit(21)
     end end end end
 end
+
+OPT_MIN = OPT_MIN or 0x0000
+OPT_MAX = OPT_MAX or 0xFFFF
 
 ------------------------------------------------------------------------------
 -- Quelques adresses bien connues
@@ -736,7 +739,7 @@ local function newHtmlWriter(file, mem)
             --
             local equate = EQUATES:t(addr)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
-            local title  = '$' .. addr .. equate .. ' : ' .. RWX ..
+            local title  = '$' .. addr .. ' : ' .. RWX .. equate .. 
                            (opt_asm and '\n' .. opt_asm:gsub(equate_ptn,'') or '') ..
                            code(m.r):gsub(equate_ptn,'')
             if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
@@ -946,9 +949,9 @@ local function newHtmlWriter(file, mem)
     }
 
     #memmap {
-	  flex-grow: 1;
-	  display: flex;
-	  flex-flow: column;
+      flex-grow: 1;
+      display: flex;
+      flex-flow: column;
       overflow: auto;
       height:   100vh;
     }
@@ -1004,7 +1007,7 @@ local function newHtmlWriter(file, mem)
     .mm {table-layout: fixed;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'%; height: ',100/OPT_COLS,'vh;}\n',
+    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'vh; height: ',100/OPT_COLS,'vh;}\n',
     align_style,
     OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex; flex-flow:row;}\n' or '',[[
     
@@ -1080,11 +1083,10 @@ local function newHtmlWriter(file, mem)
             w(OPT_MAP and '  <div id="main">\n' or '',
               '  <',HEADING,'>Analysis of <code>',TRACE,'</code></',HEADING,'>\n',
               '  <table>\n',
-			  '  <p></p>\n',
-              '  <tr><th style="text-align: right">Date:</th><td>', os.date(), '</td></tr>\n',
+              '  <p></p>\n',
               '  <tr><th style="text-align: right">Machine:</th><td>', MACH[OPT_MACH or ''],'</td></tr>\n',
-              '  <tr><th style="text-align: right">From:</th><td><code>$', hex(OPT_MIN), '</code></td></tr>\n',
-              '  <tr><th style="text-align: right">To:</th><td><code>$', hex(OPT_MAX), '</code></td></tr>\n',
+              '  <tr><th style="text-align: right">Range:</th><td><code>$', hex(OPT_MIN), '</code> &rarr; <code>$', hex(OPT_MAX), '</code></td></tr>\n',
+              '  <tr><th style="text-align: right">Date:</th><td>', os.date('%Y-%m-%d %H:%M:%S'), '</td></tr>\n',
               '  </table>\n',
               '  <div><p></p></div>\n',
               '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Short cut : [Meta]-b">&darr;&darr; BOTTOM &darr;&darr;</a>\n',
