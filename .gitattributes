@@ -1,2 +1,1 @@
-./memmap.html* linguist-vendored
-./dcmoto_trace.txt* linguist-vendored
+*.html linguist-vendored
