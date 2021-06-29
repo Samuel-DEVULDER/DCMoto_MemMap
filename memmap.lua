@@ -1439,7 +1439,7 @@ local function read_trace(filename)
     local num,f = 0, assert(io.open(filename,'r'))
     local size = f:seek('end') f:seek('set')
 
-    verbose(1, 'Analyzing %.3g Mb of trace.\n', size/1024/1024)
+	local start_time = os.clock()
 
     local pc,hexa,opcode,args,regs,sig,jmp,curr_pc
     local nomem = {} -- cache des codes hexa ne touchant pas la mémoire (pour aller plus vite)
@@ -1520,6 +1520,9 @@ local function read_trace(filename)
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
     profile:_()
+	
+	local mb = size/1024/1024
+    log('Analyzed %.3g Mb of trace (%.3g Mb/s).', mb, mb / (os.clock() -start_time))
 end
 
 -- essaye de deviner le type de machine en analysant la valeur de DP dans
@@ -1527,7 +1530,7 @@ end
 local _guess_MACH = {MO=0,TO=0}
 local function guess_MACH(TRACE)
     local THR = 100000
-    verbose(1, 'Trying to determine machine.\n', TRACE) 
+    log('Trying to determine machine.')
     profile:_()
     local f = assert(io.open(TRACE,'r'))
     for l in f:lines() do
@@ -1566,7 +1569,7 @@ repeat
     )):close()
     
     -- effacement fichier trace consomé
-    if OPT_LOOP then verbose(1, 'Removing trace and looping'); assert(os.remove(TRACE)) end
+    if OPT_LOOP then log('Removing trace.'); assert(os.remove(TRACE)); log('Do it again...') end
     
     --  si le min/max n'est pas encore trouvé
     OPT_MIN,OPT_MAX = _MIN,_MAX
