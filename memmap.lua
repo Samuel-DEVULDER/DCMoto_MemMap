@@ -1151,12 +1151,13 @@ end
 -- detecte les points chauds (endroits où l'on passe le plus de temps)
 ------------------------------------------------------------------------------
 
+local REL_JMP = set{
+	'BCC','BCS','BEQ','BGE','BGT','BHI','BHS','BLE','BLO','BLS','BLT','BMI','BNE','BPL','BRA','BRN','BVC','BVS',
+	'LBCC','LBCS','LBEQ','LBGE','LBGT','LBHI','LBHS','LBLE','LBLO','LBLS','LBLT','LBMI','LBNE','LBPL','LBRA','LBRN','LBVC','LBVS'
+}
 local function findHotspots(mem)
     log('Finding hot spots.')
     profile:_()
-	local BRANCH = set{'JMP',
-			 'BCC','BCS','BEQ','BGE','BGT','BHI','BHS','BLE','BLO','BLS','BLT','BMI','BNE','BPL','BRA','BVC','BVS',
-			 'LBCC','LBCS','LBEQ','LBGE','LBGT','LBHI','LBHS','LBLE','LBLO','LBLS','LBLT','LBMI','LBNE','LBPL','LBRA','LBVC','LBVS'}
 	local spots,hot = {}
     local function newHot(i)
         return {
@@ -1170,7 +1171,7 @@ local function findHotspots(mem)
                     local cycles = tonumber(m.asm:match('%((%d+)')) or 0
                     self.t = self.t + m.x * cycles
 					local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
-					if addr and BRANCH[jmp] then self.j = addr end
+					if addr and (jmp=='JMP' or REL_JMP[jmp]) then self.j = addr end
                 end
                 return self
             end,
@@ -1197,6 +1198,7 @@ local function findHotspots(mem)
 	repeat
 		changed = false
 		for k,h in pairs(spots) do 
+			-- print(h.a, h.i)
 			local j = spots[h.j or '']
 			if j and j~=h then 
 				h.t, h.j = h.t + j.t, j.j
@@ -1492,11 +1494,7 @@ local function read_trace(filename)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
 
-    local REL_BRANCH,prev_hexa = {}
-    for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2A','2B','2C','2D','2E','2F',
-        '1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102A','102B','102C','102D','102E','102F'} do
-        for i=0,255 do REL_BRANCH[sprintf("%s%02X", hexa, i)] = true end
-    end
+    local prev_hexa
 
     profile:_()
     for s in f:lines() do
@@ -1512,14 +1510,14 @@ local function read_trace(filename)
         if prev_hexa~='3B' and opcode then
             -- print(pc,hex,opcode,args)
             -- curr_pc, sig = tonumber(pc,16), hexa
-			curr_pc = tonumber(pc,16)
+			curr_pc, sig = tonumber(pc,16), hexa
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
 				-- if pc~=jmp_skip then mem:pc(jmp):r(curr_pc) end
 				-- jmp,jmp_skip = nil 
 			-- end
             mem:pc(curr_pc):x(hexa,1)
-			-- if REL_BRANCH[hexa] then sig, jmp, jmp_skip = pc..':'..hexa, curr_pc, curr_pc + hexa:len()/2	 end
-            sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
+			if REL_JMP[opcode] then sig, jmp, mem[curr_pc].rel_jmp = pc..':'..hexa, curr_pc, args end
+            -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             if nomem[sig] then
                 mem:a(nomem[sig])
             else
@@ -1544,6 +1542,25 @@ local function read_trace(filename)
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
     profile:_()
+	
+	-- nettoyage des branchements conditionnels non pris
+	local last_bcc, last_arg
+	for i=0,65535 do
+		local m = mem[i]
+		if m and m.asm then
+			if m.r==last_bcc and i~=last_arg then
+				m.r = NOADDR
+			end
+			if m.rel_jmp then
+				last_bcc  = hex(i)
+				last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'))
+				m.rel_jmp = nil
+			else
+				last_bcc  = nil
+				last_arg  = nil
+			end
+		end
+	end
 	
 	local mb = size/1024/1024
     log('Analyzed %.3g Mb of trace (%.3g Mb/s).', mb, mb / (os.clock() -start_time))
@@ -1585,7 +1602,7 @@ repeat
 
     -- lecture fichier de trace
     read_trace(TRACE)
-
+	
     -- écriture résultat TSV & html
     mem:save(newParallelWriter(
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
