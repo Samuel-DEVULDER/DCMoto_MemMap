@@ -799,7 +799,15 @@ local function newHtmlWriter(file, mem)
     local function ahref(from, addr, txt)
         local title, RWX, anchor = describe(addr,nil,nil,from)
         -- if from == anchor then anchor = addr end -- no loop back XXXX
-        return valid[anchor] and '<a href="#' .. anchor .. '" title="' .. esc(title) .. '">' .. esc(txt) .. '</a>'
+		local function esc2(title)
+			local x = esc(title)
+			if mem[tonumber(from,16) or ''] and addr and addr~=from then
+				local arr = '&' .. (addr <= from and 'u' or 'd') .. 'arr;'
+				x = x:gsub(':', arr .. arr, 1)
+			end
+			return x
+		end
+        return valid[anchor] and '<a href="#' .. anchor .. '" title="' .. esc2(title) .. '">' .. esc(txt) .. '</a>'
                              or esc(txt)
     end
 
