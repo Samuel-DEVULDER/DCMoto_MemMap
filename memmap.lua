@@ -1198,11 +1198,10 @@ local function findHotspots(mem)
 	repeat
 		changed = false
 		for k,h in pairs(spots) do 
-			print(h.a, h.j)
-			local j = spots[h.j or '']
+			local j = spots[h and h.j or '']
 			if j and j~=h then 
+				spots[h.j] = nil
 				h.t, h.j = h.t + j.t, j.j
-				spots[k] = nil
 				changed = true
 			end
 		end	
