@@ -1154,10 +1154,13 @@ end
 local function findHotspots(mem)
     log('Finding hot spots.')
     profile:_()
-    local spots,hot = {}
+	local BRANCH = set{'JMP',
+			 'BCC','BCS','BEQ','BGE','BGT','BHI','BHS','BLE','BLO','BLS','BLT','BMI','BNE','BPL','BRA','BVC','BVS',
+			 'LBCC','LBCS','LBEQ','LBGE','LBGT','LBHI','LBHS','LBLE','LBLO','LBLS','LBLT','LBMI','LBNE','LBPL','LBRA','LBVC','LBVS'}
+	local spots,hot = {}
     local function newHot(i)
         return {
-            x = 0, t = 0, a = hex(i),
+            x = 0, t = 0, a = hex(i), j=nil,
             touches = function(self,m)
                 return math.abs(m.x - self.x)<=1
             end,
@@ -1166,12 +1169,14 @@ local function findHotspots(mem)
                 if m.asm then
                     local cycles = tonumber(m.asm:match('%((%d+)')) or 0
                     self.t = self.t + m.x * cycles
+					local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
+					if addr and BRANCH[jmp] then self.j = addr end
                 end
                 return self
             end,
             push = function (self, spots)
                 -- print(self.a, self.x, self.t)
-                table.insert(spots, self)
+                spots[self.a] = self
                 return nil
             end
         }
@@ -1187,9 +1192,25 @@ local function findHotspots(mem)
             if m.asm then hot = newHot(i):add(m) end
         end
     end
-    table.sort(spots, function(a,b) return a.t > b.t end)
+	-- recolle les bouts 
+	local changed
+	repeat
+		changed = false
+		for k,h in pairs(spots) do 
+			local j = spots[h.j or '']
+			if j and j~=h then 
+				h.t, h.j = h.t + j.t, j.j
+				spots[k] = nil
+				changed = true
+			end
+		end	
+	until not changed
+	-- cee une liste ordonnée
+	local ret = {}
+	for _,h in pairs(spots) do table.insert(ret, h) end
+    table.sort(ret, function(a,b) return a.t > b.t end)
     profile:_()
-    return spots
+    return ret
 end
 
 ------------------------------------------------------------------------------
@@ -1200,7 +1221,7 @@ local mem = {
     -- accesseur privé à une case mémoire
     _get = function(self, i)
         local t = self[i % 65536]
-        if not t then t={r=NOADDR,w=NOADDR,x=0,s=nil,asm=nil} self[i] = t end
+        if nil==t then t={r=NOADDR,w=NOADDR,x=0,s=nil,asm=nil} self[i] = t end
         return t
     end,
     -- positionne le compteur programme courrant
@@ -1241,10 +1262,10 @@ local mem = {
         if f then
             profile:_()
             for s in f:lines() do
-                local pc,r,w,x,a = s:match('(%x+)%s+([01])%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
+                local pc,r,w,x,a = s:match('(%x+)%s+([-%x]+)%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
                 if pc then
                     local stkop = a==self._stkop; a = _stkop and ''or a
-                    if x~='-'    then self:pc(pc):x('12',x):a(a) end
+                    if x~='-'    then self:pc(pc):x('12',tonumber(x)):a(a) end
                     if r~=NOADDR then self:pc(r):r(pc,stkop)     end
                     if w~=NOADDR then self:pc(w):r(pc,stkop)     end
                 end
@@ -1471,9 +1492,9 @@ local function read_trace(filename)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
 
-    local REL_BRANCH = {}
-    for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2C','2D','2E','2F',
-        '1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102C','102D','102E','102F'} do
+    local REL_BRANCH,prev_hexa = {}
+    for _,hexa in ipairs{'16','17','20','21','22','23','24','25','26','27','28','29','2A','2B','2C','2D','2E','2F',
+        '1017','1020','1021','1022','1023','1024','1025','1027','1028','1029','102A','102B','102C','102D','102E','102F'} do
         for i=0,255 do REL_BRANCH[sprintf("%s%02X", hexa, i)] = true end
     end
 
@@ -1488,15 +1509,17 @@ local function read_trace(filename)
         num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
          -- print(pc, hexa, opcode, args)
-        if opcode then
+        if prev_hexa~='3B' and opcode then
             -- print(pc,hex,opcode,args)
-            curr_pc = tonumber(pc,16)
+            -- curr_pc, sig = tonumber(pc,16), hexa
+			curr_pc = tonumber(pc,16)
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
+				-- if pc~=jmp_skip then mem:pc(jmp):r(curr_pc) end
+				-- jmp,jmp_skip = nil 
+			-- end
             mem:pc(curr_pc):x(hexa,1)
-            sig =
-                -- pc .. '.' .. hexa
-                -- hexa if REL_BRANCH[sig] then sig = pc .. ':' .. hexa end
-                REL_BRANCH[hexa] and pc..':'..hexa or hexa
+			-- if REL_BRANCH[hexa] then sig, jmp, jmp_skip = pc..':'..hexa, curr_pc, curr_pc + hexa:len()/2	 end
+            sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             if nomem[sig] then
                 mem:a(nomem[sig])
             else
@@ -1516,6 +1539,7 @@ local function read_trace(filename)
                 mem:pc(curr_pc):a(asm)
             end
         end
+		prev_hexa = hexa
     end
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
