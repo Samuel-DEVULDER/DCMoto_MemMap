@@ -630,7 +630,7 @@ local EQUATES = {
            'FFF6','VEC.FIRQ',
            'FFF4','VEC.SWI2',
            'FFF2','VEC.SWI3',
-           'FFF0','VEC.MACH')
+           'FFF0','VEC.RSVD')
         local setMO = set{MACH_XX, MACH_MO}
         local setTO = set{MACH_XX, MACH_TO}
         if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
@@ -1568,7 +1568,7 @@ local function read_trace(filename)
                 local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
                 -- on ne connait le code asm vraiment qu'à la fin
                 local asm, cycles =
-                    args=='' and opcode or sprintf("%-4s %s", opcode, args),
+                    args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
                 local equate = EQUATES:t(args:match('%$(%x%x%x%x)'), pc)
                 if equate~='' then 
