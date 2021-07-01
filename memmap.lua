@@ -851,37 +851,67 @@ local function newHtmlWriter(file, mem)
             ['XR-S'] = 'S',
             ['XRWS'] = 'S'
         }
-
-        -- affine le min/max pour réduire la taille de la carte
-        local min,max = OPT_MIN,OPT_MAX
-        for i=min,OPT_MAX    do if mem[i] then min=i break end end
-        for i=OPT_MAX,min,-1 do if mem[i] then max=i break end end
-        min,max = math.floor(min/OPT_COLS)*OPT_COLS,math.floor(max/OPT_COLS)*OPT_COLS+OPT_COLS-1
-        
-        w('  <',HEADING,'>Memory map: <code>$', hex(min), '</code> &rarr; <code>$', hex(max),'</code></',HEADING,'>\n')
-        w('  <table class="mm">\n')
-        local last_asm, last_asm_addr ='',''
-        min,max = math.floor(min/OPT_COLS),math.floor(max/OPT_COLS)
-        for j=min,max do
-            w('    <tr>')
-            for i=0,OPT_COLS-1 do
-              local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
-              if m then
-                  local title, RWX, anchor = describe(a, last_asm, last_asm_addr)
-                  if m.asm then last_asm,last_asm_addr = m.asm, a end
-                  w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
-                    '<a href="#',anchor,'">',
-                    '<noscript>',short[RWX],'</noscript>',
-                    '</a></td>')
-              else
-                w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>',short['---'],'</noscript></td>')
-              end
-            end
-            w('</tr>\n')
-            progress(.5 + .5*(j-min)/(max-min))
-        end
-        w('  </table>\n')
-    end
+		
+		-- pour avoir une table découpée en plusieurs bout (plus facile à lire et à charger)
+		local notEmpty = {}
+		local function isEmpty(i,j)
+			if j then
+				for k=i,j do if not isEmpty(k) then return false end end
+				return true
+			elseif nil~=notEmpty[i] then
+				return not notEmpty[i]
+			else 
+				local empty = true
+				for j=i*OPT_COLS,i*OPT_COLS+OPT_COLS-1 do
+					if mem[j] then empty=false; break; end
+				end
+				notEmpty[i] = not empty
+				return empty
+			end
+		end
+		-- affiche une table découpée. On saute par dessus "BLOC' elements vides
+		local BLOC,line,total_lines = 8, 0, 0
+		local function work(w, progress)			
+			local cur,top = math.floor(OPT_MIN/OPT_COLS),math.floor(OPT_MAX/OPT_COLS)
+			local last_asm, last_asm_addr ='',''
+			repeat
+				-- saute au dessus des lignes vides
+				while cur<=top and isEmpty(cur) do cur = cur + 1 end
+				if cur>top then break end
+				-- on trouve la fin
+				local nxt = cur
+				repeat nxt = nxt + 1 until isEmpty(nxt,nxt+BLOC) 
+				-- titre
+				w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),'</code></',HEADING,'>\n')
+				w('  <table class="mm">\n')
+				for j=cur,nxt-1 do
+					w('    <tr>')
+					for i=0,OPT_COLS-1 do
+					  local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
+					  if m then
+						  local title, RWX, anchor = describe(a, last_asm, last_asm_addr)
+						  if m.asm then last_asm,last_asm_addr = m.asm, a end
+						  w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
+							'<a href="#',anchor,'">',
+							'<noscript>',short[RWX],'</noscript>',
+							'</a></td>')
+					  else
+						w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>',short['---'],'</noscript></td>')
+					  end
+					end
+					w('</tr>\n')
+					progress()
+				end
+				w('  </table>\n')
+				-- table
+				cur = nxt
+			until cur>top
+		end
+		work(function() end, function() total_lines = total_lines+1 end)
+		work(w, function() line = line+1; progress(.5 + .5*line/total_lines) end)
+		w('  <p></p>\n')
+	end
+	
     return {
         file=file,
         close = function(self)
