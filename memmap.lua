@@ -781,7 +781,7 @@ local function newHtmlWriter(file, mem)
             elseif RWX=='--W' and m.w~=opt_from then anchor = m.w
             elseif RWX=='-RW' and m.r==opt_from then anchor = m.w 
             elseif RWX=='-RW' and m.w==opt_from then anchor = m.r end
-			anchor = valid[anchor] and anchor or addr
+            anchor = valid[anchor] and anchor or addr
             --
             local equate = EQUATES:t(addr)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
@@ -800,14 +800,14 @@ local function newHtmlWriter(file, mem)
     local function ahref(from, addr, txt)
         local title, RWX, anchor = describe(addr,nil,nil,from)
         -- if from == anchor then anchor = addr end -- no loop back XXXX
-		local function esc2(title)
-			local x = esc(title)
-			if mem[tonumber(from,16) or ''] and addr and addr~=from then
-				local arr = '&' .. (addr <= from and 'u' or 'd') .. 'arr;'
-				x = x:gsub(':', arr .. arr, 1)
-			end
-			return x
-		end
+        local function esc2(title)
+            local x = esc(title)
+            if mem[tonumber(from,16) or ''] and addr and addr~=from then
+                local arr = '&' .. (addr <= from and 'u' or 'd') .. 'arr;'
+                x = x:gsub(':', arr .. arr, 1)
+            end
+            return x
+        end
         return valid[anchor] and '<a href="#' .. anchor .. '" title="' .. esc2(title) .. '">' .. esc(txt) .. '</a>'
                              or esc(txt)
     end
@@ -852,68 +852,68 @@ local function newHtmlWriter(file, mem)
             ['XR-S'] = 'S',
             ['XRWS'] = 'S'
         }
-		
-		-- pour avoir une table découpée en plusieurs bout (plus facile à lire et à charger)
-		local notEmpty = {}
-		local function isEmpty(i,j)
-			if j then
-				for k=i,j do if not isEmpty(k) then return false end end
-				return true
-			elseif nil~=notEmpty[i] then
-				return not notEmpty[i]
-			else 
-				local empty = true
-				for j=i*OPT_COLS,i*OPT_COLS+OPT_COLS-1 do
-					if mem[j] then empty=false; break; end
-				end
-				notEmpty[i] = not empty
-				return empty
-			end
-		end
-		-- affiche une table découpée. On saute par dessus "BLOC' elements vides
-		local BLOC,line,total_lines = 8, 0, 0
-		local function work(w, progress)			
-			local cur,top = math.floor(OPT_MIN/OPT_COLS),math.floor(OPT_MAX/OPT_COLS)
-			local last_asm, last_asm_addr ='',''
-			repeat
-				-- saute au dessus des lignes vides
-				while cur<=top and isEmpty(cur) do cur = cur + 1 end
-				if cur>top then break end
-				-- on trouve la fin
-				local nxt = cur
-				repeat nxt = nxt + 1 until nxt>top or isEmpty(nxt,nxt+BLOC) 
-				-- titre
-				w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),
-				  '</code></',HEADING,'>\n')
-				w('  <table class="mm">\n')
-				for j=cur,nxt-1 do
-					w('    <tr>')
-					for i=0,OPT_COLS-1 do
-					  local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
-					  if m then
-						  local title, RWX, anchor = describe(a, last_asm, last_asm_addr)
-						  if m.asm then last_asm,last_asm_addr = m.asm, a end
-						  w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
-							'<a href="#',anchor,'">',
-							'<noscript>',short[RWX],'</noscript>',
-							'</a></td>')
-					  else
-						w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>',short['---'],'</noscript></td>')
-					  end
-					end
-					w('</tr>\n')
-					progress()
-				end
-				w('  </table>\n')
-				-- table
-				cur = nxt
-			until cur>top
-		end
-		work(function() end, function() total_lines = total_lines+1 end)
-		work(w, function() line = line+1; progress(.5 + .5*line/total_lines) end)
-		w('  <p></p>\n')
-	end
-	
+        
+        -- pour avoir une table découpée en plusieurs bout (plus facile à lire et à charger)
+        local notEmpty = {}
+        local function isEmpty(i,j)
+            if j then
+                for k=i,j do if not isEmpty(k) then return false end end
+                return true
+            elseif nil~=notEmpty[i] then
+                return not notEmpty[i]
+            else 
+                local empty = true
+                for j=i*OPT_COLS,i*OPT_COLS+OPT_COLS-1 do
+                    if mem[j] then empty=false; break; end
+                end
+                notEmpty[i] = not empty
+                return empty
+            end
+        end
+        -- affiche une table découpée. On saute par dessus "BLOC' elements vides
+        local BLOC,line,total_lines = 8, 0, 0
+        local function work(w, progress)            
+            local cur,top = math.floor(OPT_MIN/OPT_COLS),math.floor(OPT_MAX/OPT_COLS)
+            local last_asm, last_asm_addr ='',''
+            repeat
+                -- saute au dessus des lignes vides
+                while cur<=top and isEmpty(cur) do cur = cur + 1 end
+                if cur>top then break end
+                -- on trouve la fin
+                local nxt = cur
+                repeat nxt = nxt + 1 until nxt>top or isEmpty(nxt,nxt+BLOC) 
+                -- titre
+                w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),
+                  '</code></',HEADING,'>\n')
+                w('  <table class="mm">\n')
+                for j=cur,nxt-1 do
+                    w('    <tr>')
+                    for i=0,OPT_COLS-1 do
+                      local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
+                      if m then
+                          local title, RWX, anchor = describe(a, last_asm, last_asm_addr)
+                          if m.asm then last_asm,last_asm_addr = m.asm, a end
+                          w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
+                            '<a href="#',anchor,'">',
+                            '<noscript>',short[RWX],'</noscript>',
+                            '</a></td>')
+                      else
+                        w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>',short['---'],'</noscript></td>')
+                      end
+                    end
+                    w('</tr>\n')
+                    progress()
+                end
+                w('  </table>\n')
+                -- table
+                cur = nxt
+            until cur>top
+        end
+        work(function() end, function() total_lines = total_lines+1 end)
+        work(w, function() line = line+1; progress(.5 + .5*line/total_lines) end)
+        w('  <p></p>\n')
+    end
+    
     return {
         file=file,
         close = function(self)
@@ -921,7 +921,7 @@ local function newHtmlWriter(file, mem)
             w('</table>\n',
               '<p></p>\n',
               '<',HEADING,'>End of analysis',
-			  ' <a href="#TOP" id="BOTTOM" accesskey="t" title="Go to top of page.\nShort cut : [Meta]-t">(&uarr;)</a></',HEADING,'>\n')
+              ' <a href="#TOP" id="BOTTOM" accesskey="t" title="Go to top of page.\nShort cut : [Meta]-t">(&uarr;)</a></',HEADING,'>\n')
             if OPT_MAP then
                 w('</div>\n',
                   -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
@@ -942,7 +942,7 @@ local function newHtmlWriter(file, mem)
                 cols[i] = type(n)=='table' and sprintf(unpack(n)) or tostring(n)
             end
             local last = #cols
-			local ADDR = cols[1]
+            local ADDR = cols[1]
             if last>1 then
                 local adr = ADDR:match("^%x%x%x%x$")
                 if adr then
@@ -1032,11 +1032,11 @@ local function newHtmlWriter(file, mem)
       overflow: auto;
       width:    auto;
       height:   100vh;
-	  
-	  scroll-behavior: smooth;
-	  scroll-block: nearest;
-	  scroll-padding-top: 3em;
-	  scroll-padding-bottom: 4em;
+      
+      scroll-behavior: smooth;
+      scroll-block: nearest;
+      scroll-padding-top: 3em;
+      scroll-padding-bottom: 4em;
     }
 
     #memmap {
@@ -1107,12 +1107,16 @@ local function newHtmlWriter(file, mem)
         background-color: #1c1c1e;
         color: #fefefe;
       }
-	  :target          {background-color:#b70;}
+      :target          {background-color:#b70;}
       a                {color: #6fb9ee;}
       th, tr:hover     {background-color:#777;color: white;}
       #t1 a:active,#TOP:hover, #BOTTOM:hover {background-color:gold;}
       #loadingProgress {background-color: lightgray;}
     }  
+    
+    @media (prefers-reduced-motion: reduce) {
+      html {scroll-behavior: auto;}
+    }
   </style>
 </head>
 <body onhashchange="locationHashChanged()">
@@ -1152,14 +1156,14 @@ local function newHtmlWriter(file, mem)
         button.innerHTML = txt;
       }
     }
-	function locationHashChanged(event)  {
-		const location = document.location;
-		const elt = document.getElementById(location.hash.substring(1));
-		if(elt!==null) elt.scrollIntoView({
+    function locationHashChanged(event)  {
+        const location = document.location;
+        const elt = document.getElementById(location.hash.substring(1));
+        if(elt!==null) elt.scrollIntoView({
             behavior: 'smooth',
             block: 'nearest',
         });
-	}
+    }
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
@@ -1178,8 +1182,8 @@ local function newHtmlWriter(file, mem)
             }
             w(OPT_MAP and '  <div id="main">\n' or '',
               '  <',HEADING,'>Analysis of <code>',TRACE,'</code>',
-			  '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Go to bottom of page.\nShort cut : [Meta]-b">',
-			  '(&darr;)</a></',HEADING,'>\n',
+              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Go to bottom of page.\nShort cut : [Meta]-b">',
+              '(&darr;)</a></',HEADING,'>\n',
               '  <p></p>\n',
               '  <table>\n',
               '  <tr><th style="text-align: right">Machine:</th><td>', MACH[OPT_MACH or ''],'</td></tr>\n',
@@ -1203,13 +1207,13 @@ end
 ------------------------------------------------------------------------------
 
 local REL_JMP = set{
-	'BCC','BCS','BEQ','BGE','BGT','BHI','BHS','BLE','BLO','BLS','BLT','BMI','BNE','BPL','BRA','BRN','BVC','BVS',
-	'LBCC','LBCS','LBEQ','LBGE','LBGT','LBHI','LBHS','LBLE','LBLO','LBLS','LBLT','LBMI','LBNE','LBPL','LBRA','LBRN','LBVC','LBVS'
+    'BCC','BCS','BEQ','BGE','BGT','BHI','BHS','BLE','BLO','BLS','BLT','BMI','BNE','BPL','BRA','BRN','BVC','BVS',
+    'LBCC','LBCS','LBEQ','LBGE','LBGT','LBHI','LBHS','LBLE','LBLO','LBLS','LBLT','LBMI','LBNE','LBPL','LBRA','LBRN','LBVC','LBVS'
 }
 local function findHotspots(mem)
     log('Finding hot spots.')
     profile:_()
-	local spots,hot = {}
+    local spots,hot = {}
     local function newHot(i)
         return {
             x = 0, t = 0, a = hex(i), j=nil,
@@ -1221,8 +1225,8 @@ local function findHotspots(mem)
                 if m.asm then
                     local cycles = tonumber(m.asm:match('%((%d+)')) or 0
                     self.t = self.t + m.x * cycles
-					local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
-					if addr and (jmp=='JMP' or REL_JMP[jmp]) then self.j = addr end
+                    local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
+                    if addr and (jmp=='JMP' or REL_JMP[jmp]) then self.j = addr end
                 end
                 return self
             end,
@@ -1244,22 +1248,22 @@ local function findHotspots(mem)
             if m.asm then hot = newHot(i):add(m) end
         end
     end
-	-- recolle les bouts 
-	local changed
-	repeat
-		changed = false
-		for k,h in pairs(spots) do 
-			local j = spots[h and h.j or '']
-			if j and j~=h then 
-				spots[h.j] = nil
-				h.t, h.j = h.t + j.t, j.j
-				changed = true
-			end
-		end	
-	until not changed
-	-- cee une liste ordonnée
-	local ret = {}
-	for _,h in pairs(spots) do table.insert(ret, h) end
+    -- recolle les bouts 
+    local changed
+    repeat
+        changed = false
+        for k,h in pairs(spots) do 
+            local j = spots[h and h.j or '']
+            if j and j~=h then 
+                spots[h.j] = nil
+                h.t, h.j = h.t + j.t, j.j
+                changed = true
+            end
+        end 
+    until not changed
+    -- cee une liste ordonnée
+    local ret = {}
+    for _,h in pairs(spots) do table.insert(ret, h) end
     table.sort(ret, function(a,b) return a.t > b.t end)
     profile:_()
     return ret
@@ -1349,8 +1353,8 @@ local mem = {
             if m then
                 local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
                 if mask ~= curr 
-				or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
-				then writer:row{} end curr = mask
+                or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
+                then writer:row{} end curr = mask
                 u(1)
                 if mask~=4 or m.asm then
                     writer:row{hex(i), m.r, m.w, m.x==0 and '-' or m.x,m.asm or (m.s and self._stkop) or ''}
@@ -1420,9 +1424,9 @@ function getaddr(args, regs)
     a,x = args:match('^%$(%x%x%x%x),([XYUS])$') if a and x then return add16(reg(x),tonumber(a,16)) end
 
     -- PCR
-	x   = args:match('^%$(%x%x%x%x),PCR$')      if x then return tonumber(x,16) end
-	
-	-- inconnu
+    x   = args:match('^%$(%x%x%x%x),PCR$')      if x then return tonumber(x,16) end
+    
+    -- inconnu
     error(args)
 end
 -- getaddr = memoize:make(getaddr)
@@ -1517,7 +1521,7 @@ local function read_trace(filename)
     local num,f = 0, assert(io.open(filename,'r'))
     local size = f:seek('end') f:seek('set')
 
-	local start_time = os.clock()
+    local start_time = os.clock()
 
     local pc,hexa,opcode,args,regs,sig,jmp,curr_pc
     local nomem = {} -- cache des codes hexa ne touchant pas la mémoire (pour aller plus vite)
@@ -1565,13 +1569,13 @@ local function read_trace(filename)
         if prev_hexa~='3B' and opcode then
             -- print(pc,hex,opcode,args)
             -- curr_pc, sig = tonumber(pc,16), hexa
-			curr_pc, sig = tonumber(pc,16), hexa
+            curr_pc, sig = tonumber(pc,16), hexa
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
-				-- if pc~=jmp_skip then mem:pc(jmp):r(curr_pc) end
-				-- jmp,jmp_skip = nil 
-			-- end
+                -- if pc~=jmp_skip then mem:pc(jmp):r(curr_pc) end
+                -- jmp,jmp_skip = nil 
+            -- end
             mem:pc(curr_pc):x(hexa,1)
-			if REL_JMP[opcode] then sig, jmp, mem[curr_pc].rel_jmp = pc..':'..hexa, curr_pc, args end
+            if REL_JMP[opcode] then sig, jmp, mem[curr_pc].rel_jmp = pc..':'..hexa, curr_pc, args end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             if nomem[sig] then
                 mem:a(nomem[sig])
@@ -1592,32 +1596,32 @@ local function read_trace(filename)
                 mem:pc(curr_pc):a(asm)
             end
         end
-		prev_hexa = hexa
+        prev_hexa = hexa
     end
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
     profile:_()
-	
-	-- nettoyage des branchements conditionnels non pris
-	local last_bcc, last_arg
-	for i=0,65535 do
-		local m = mem[i]
-		if m and m.asm then
-			if m.r==last_bcc and i~=last_arg then
-				m.r = NOADDR
-			end
-			if m.rel_jmp then
-				last_bcc  = hex(i)
-				last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'),16)
-				-- m.rel_jmp = nil
-			else
-				last_bcc  = nil
-				last_arg  = nil
-			end
-		end
-	end
-	
-	local mb = size/1024/1024
+    
+    -- nettoyage des branchements conditionnels non pris
+    local last_bcc, last_arg
+    for i=0,65535 do
+        local m = mem[i]
+        if m and m.asm then
+            if m.r==last_bcc and i~=last_arg then
+                m.r = NOADDR
+            end
+            if m.rel_jmp then
+                last_bcc  = hex(i)
+                last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'),16)
+                -- m.rel_jmp = nil
+            else
+                last_bcc  = nil
+                last_arg  = nil
+            end
+        end
+    end
+    
+    local mb = size/1024/1024
     log('Analyzed %.3g Mb of trace (%.3g Mb/s).', mb, mb / (os.clock() -start_time))
 end
 
@@ -1657,7 +1661,7 @@ repeat
 
     -- lecture fichier de trace
     read_trace(TRACE)
-	
+    
     -- écriture résultat TSV & html
     mem:save(newParallelWriter(
         newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
