@@ -1107,14 +1107,11 @@ local function newHtmlWriter(file, mem)
         background-color: #1c1c1e;
         color: #fefefe;
       }
-      a  {
-        color: #6fb9ee; 
-      }
-      th, tr:hover, :target {color: black;background-color:#777;}
-      #t1 a:active {background-color:#b70;}
-      #loadingProgress {
-        background-color: lightgray;
-      }
+	  :target          {background-color:#b70;}
+      a                {color: #6fb9ee;}
+      th, tr:hover     {background-color:#777;color: white;}
+      #t1 a:active,#TOP:hover, #BOTTOM:hover {background-color:gold;}
+      #loadingProgress {background-color: lightgray;}
     }  
   </style>
 </head>
@@ -1138,7 +1135,7 @@ local function newHtmlWriter(file, mem)
             }
         });
     }
-    on('mouseover', window.matchMedia('(prefers-color-scheme: dark)').matches ? '#b70' : 'yellow');
+    on('mouseover', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'gold' : 'yellow');
     on('mouseout',  null);
     function hideLoadingPage() {
         const loading = document.getElementById("loadingPage");
