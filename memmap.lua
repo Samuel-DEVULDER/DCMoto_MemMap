@@ -1335,7 +1335,9 @@ local mem = {
             local m=self[i]
             if m then
                 local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
-                if mask ~= curr or (m.asm and m.r~=NOADDR) then writer:row{} end curr = mask
+                if mask ~= curr 
+				or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
+				then writer:row{} end curr = mask
                 u(1)
                 if mask~=4 or m.asm then
                     writer:row{hex(i), m.r, m.w, m.x==0 and '-' or m.x,m.asm or (m.s and self._stkop) or ''}
@@ -1591,7 +1593,7 @@ local function read_trace(filename)
 			if m.rel_jmp then
 				last_bcc  = hex(i)
 				last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'),16)
-				m.rel_jmp = nil
+				-- m.rel_jmp = nil
 			else
 				last_bcc  = nil
 				last_arg  = nil
