@@ -215,8 +215,8 @@ for i,v in ipairs(arg) do local t
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
-    else t=v:match('%-from=(%x+)')     if t then OPT_MIN     = tonumber(t+65536,16)%65536
-    else t=v:match('%-to=(%x+)')       if t then OPT_MAX     = tonumber(t+65536,16)%65536
+    else t=v:match('%-from=(-?%x+)')     if t then OPT_MIN     = tonumber(t+65536,16)%65536
+    else t=v:match('%-to=(-?%x+)')       if t then OPT_MAX     = tonumber(t+65536,16)%65536
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
     else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
