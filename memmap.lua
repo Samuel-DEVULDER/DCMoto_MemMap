@@ -181,7 +181,7 @@ local function usage(errcode, short)
     for l in f:lines() do
         l = trim(l); if l==nil or l=='' then break end
         l = l:match('^%-%- (.*)$') or l:match('^%-%-(%s?)$')
-        if l=='' then empty = empty + 1; if empty==2 then break end end
+        if short and l=='' then empty = empty + 1; if empty==2 then break end end
         if l then io.stdout:write(l .. '\n') end
     end
     f:close()
@@ -750,7 +750,7 @@ local function newHtmlWriter(file, mem)
     local prog_next = .01
     local function progress(ratio)
         if ratio >= prog_next then
-            prog_next = prog_next + .01
+            prog_next = ratio + .01
             w(sprintf('\n<script>progress(%d);</script>\n\n', math.floor(100*ratio)))
         end
     end
@@ -774,13 +774,14 @@ local function newHtmlWriter(file, mem)
                            (m.w==NOADDR and '-' or 'W')..
                            (m.s and 'S' or '')
             --
-            local anchor = addr
+            local anchor = ''
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
             elseif RWX=='-RW' and m.r==m.w      then anchor = m.r
             elseif RWX=='-R-' and m.r~=opt_from then anchor = m.r
             elseif RWX=='--W' and m.w~=opt_from then anchor = m.w
             elseif RWX=='-RW' and m.r==opt_from then anchor = m.w 
             elseif RWX=='-RW' and m.w==opt_from then anchor = m.r end
+			anchor = valid[anchor] and anchor or addr
             --
             local equate = EQUATES:t(addr)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
@@ -880,7 +881,7 @@ local function newHtmlWriter(file, mem)
 				if cur>top then break end
 				-- on trouve la fin
 				local nxt = cur
-				repeat nxt = nxt + 1 until isEmpty(nxt,nxt+BLOC) 
+				repeat nxt = nxt + 1 until nxt>top or isEmpty(nxt,nxt+BLOC) 
 				-- titre
 				w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),
 				  '</code></',HEADING,'>\n')
@@ -941,11 +942,12 @@ local function newHtmlWriter(file, mem)
                 cols[i] = type(n)=='table' and sprintf(unpack(n)) or tostring(n)
             end
             local last = #cols
+			local ADDR = cols[1]
             if last>1 then
-                local adr = cols[1]:match("^%x%x%x%x$")
+                local adr = ADDR:match("^%x%x%x%x$")
                 if adr then
                     t = t .. ' id="'..adr..'"'
-                    adr = tonumber(adr:match('^%x%x%x%x'),16)
+                    adr = tonumber(adr,16)
                     if adr>=OPT_MIN and adr<=OPT_MAX then
                         progress((adr-OPT_MIN)/((OPT_MAX-OPT_MIN)*(OPT_MAP and 2 or 1)))
                     end
@@ -959,21 +961,21 @@ local function newHtmlWriter(file, mem)
                 if i==1 then
                     t = t .. esc(n)
                 elseif i==2 or i==3 then
-                    t = t .. ahref(cols[1],n,n)
+                    t = t .. ahref(ADDR,n,n)
                 elseif i==4 then
                     t = t .. esc(n)
                 elseif i==5 then
-                    local back = rev[cols[1]]
+                    local back = rev[ADDR]
                     if back then
                         local before,arg,after = n:match('^([%d/()]+%s*%S+%s+)([%[<%-]?%$?[%w_,]+)(.*)$')
                         if not arg then before,arg,after = n:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
                         if not arg then error(n) end
-                        n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
+                        n = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
                     else
                         -- sauts divers
                         local before,addr,after = n:match('^(.*)%$(%x%x%x%x)(.*)$')
                         if addr then
-                            n = esc(before) .. ahref(cols[1], addr,'$'..addr) .. esc(after)
+                            n = esc(before) .. ahref(ADDR, addr,'$'..addr) .. esc(after)
                         else
                             n = esc(n)
                         end
@@ -1005,7 +1007,7 @@ local function newHtmlWriter(file, mem)
   <meta charset="utf-8">
   <title>DCMoto_MemMap</title>
   <style>
-    :target {background-color:lightgray;}
+    :target {background-color:gold;}
 
     table {
       border-collapse: collapse;
@@ -1030,6 +1032,11 @@ local function newHtmlWriter(file, mem)
       overflow: auto;
       width:    auto;
       height:   100vh;
+	  
+	  scroll-behavior: smooth;
+	  scroll-block: nearest;
+	  scroll-padding-top: 3em;
+	  scroll-padding-bottom: 4em;
     }
 
     #memmap {
@@ -1075,7 +1082,7 @@ local function newHtmlWriter(file, mem)
     .c4 {background-color:#11e;}
     .c5 {background-color:#e1e;}
     .c6 {background-color:#1ee;}
-    .c7 {background-color:#eee;}
+    .c7 {background-color:#eee; cursor: not-allowed;}
 
     td.c0:hover {background-color:white;}
     td.c1:hover {background-color:black;}
@@ -1091,7 +1098,7 @@ local function newHtmlWriter(file, mem)
     .mm {table-layout: fixed;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'vh; height: ',100/OPT_COLS,'vh;}\n',
+    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'vmin; height: ',100/OPT_COLS,'vmin;}\n',
     align_style,
     OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex; flex-flow:row;}\n' or '',[[
     
@@ -1111,7 +1118,7 @@ local function newHtmlWriter(file, mem)
     }  
   </style>
 </head>
-<body>
+<body onhashchange="locationHashChanged()">
   <script>
     function on(event, color) {
         document.addEventListener(event,function(event) {
@@ -1148,6 +1155,14 @@ local function newHtmlWriter(file, mem)
         button.innerHTML = txt;
       }
     }
+	function locationHashChanged(event)  {
+		const location = document.location;
+		const elt = document.getElementById(location.hash.substring(1));
+		if(elt!==null) elt.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+        });
+	}
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
