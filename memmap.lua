@@ -1560,7 +1560,7 @@ local function read_trace(filename)
 			end
 			if m.rel_jmp then
 				last_bcc  = hex(i)
-				last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'))
+				last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'),16)
 				m.rel_jmp = nil
 			else
 				last_bcc  = nil
