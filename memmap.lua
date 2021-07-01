@@ -882,7 +882,8 @@ local function newHtmlWriter(file, mem)
 				local nxt = cur
 				repeat nxt = nxt + 1 until isEmpty(nxt,nxt+BLOC) 
 				-- titre
-				w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),'</code></',HEADING,'>\n')
+				w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),
+				  '</code></',HEADING,'>\n')
 				w('  <table class="mm">\n')
 				for j=cur,nxt-1 do
 					w('    <tr>')
@@ -918,8 +919,8 @@ local function newHtmlWriter(file, mem)
             local f = self.file
             w('</table>\n',
               '<p></p>\n',
-              '<a href="#TOP" id="BOTTOM" accesskey="t" title="Short cut : [Meta]-t">&uarr;&uarr; TOP &uarr;&uarr;</a>\n',
-              '<',HEADING,'>End of analysis</',HEADING,'>\n')
+              '<',HEADING,'>End of analysis',
+			  ' <a href="#TOP" id="BOTTOM" accesskey="t" title="Go to top of page.\nShort cut : [Meta]-t">(&uarr;)</a></',HEADING,'>\n')
             if OPT_MAP then
                 w('</div>\n',
                   -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
@@ -1164,15 +1165,15 @@ local function newHtmlWriter(file, mem)
                 [MACH_TO] = 'TO7(70)/TO8/TO9(+)'
             }
             w(OPT_MAP and '  <div id="main">\n' or '',
-              '  <',HEADING,'>Analysis of <code>',TRACE,'</code></',HEADING,'>\n',
+              '  <',HEADING,'>Analysis of <code>',TRACE,'</code>',
+			  '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Go to bottom of page.\nShort cut : [Meta]-b">',
+			  '(&darr;)</a></',HEADING,'>\n',
               '  <p></p>\n',
               '  <table>\n',
               '  <tr><th style="text-align: right">Machine:</th><td>', MACH[OPT_MACH or ''],'</td></tr>\n',
               '  <tr><th style="text-align: right">Range:</th><td><code>$', hex(OPT_MIN), '</code> &rarr; <code>$', hex(OPT_MAX), '</code></td></tr>\n',
               '  <tr><th style="text-align: right">Date:</th><td>', os.date('%Y-%m-%d %H:%M:%S'), '</td></tr>\n',
               '  </table>\n',
-              '  <p></p>\n',
-              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Short cut : [Meta]-b">&darr;&darr; BOTTOM &darr;&darr;</a>\n',
               '  <p></p>\n',
               '  <table id="t1" style="font-family: monospace;">\n')
             if self.ncols>0 then self:_row("th", cols) end
