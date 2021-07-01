@@ -121,7 +121,7 @@ local profile = {clk=nil, lvl = 2,
         if self.lvl<=OPT_VERBOSE then
             if self.clk then
                 local time = os.clock() - self.clk; self.clk = nil
-                verbose(self.lvl, 'done (%.3gs)\n', time)
+                verbose(self.lvl, 'done (%.3gs).\n', time)
             else
                 msg = msg or 'Running ' .. debug.getinfo(2, "n").name .. '()'
                 verbose(self.lvl, "%s...", msg)
@@ -215,8 +215,8 @@ for i,v in ipairs(arg) do local t
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
-    else t=v:match('%-from=(-?%x+)')     if t then OPT_MIN     = tonumber(t+65536,16)%65536
-    else t=v:match('%-to=(-?%x+)')       if t then OPT_MAX     = tonumber(t+65536,16)%65536
+    else t=v:match('%-from=(-?%x+)')     if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
+    else t=v:match('%-to=(-?%x+)')       if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
     else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
@@ -735,7 +735,7 @@ local function newHtmlWriter(file, mem)
     -- récup des adresses utiles
     local valid = {} for i=OPT_MIN,OPT_MAX do 
         local m = mem[i]
-        if m and (m.asm or m.x==0) then valid[hex(i)] = true end
+        if m and (m.asm or m.r~=NOADDR or m.w~=NOADDR) then valid[hex(i)] = true end
     end
     local rev   = {}
     for i=OPT_MAX,OPT_MIN,-1 do
@@ -965,15 +965,15 @@ local function newHtmlWriter(file, mem)
                 elseif i==5 then
                     local back = rev[cols[1]]
                     if back then
-                        local before,arg,after = n:match('^([%d/()]+%s*%S+%s+[%[<]?%$?)([%w_,]+)(.*)$')
+                        local before,arg,after = n:match('^([%d/()]+%s*%S+%s+)([%[<%-]?%$?[%w_,]+)(.*)$')
                         if not arg then before,arg,after = n:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
                         if not arg then error(n) end
                         n = esc(before) .. ahref(cols[1], back, arg) .. esc(after)
                     else
                         -- sauts divers
-                        local before,addr,after = n:match('^(.*%$)(%x%x%x%x)(.*)$')
+                        local before,addr,after = n:match('^(.*)%$(%x%x%x%x)(.*)$')
                         if addr then
-                            n = esc(before) .. ahref(cols[1], addr,addr) .. esc(after)
+                            n = esc(before) .. ahref(cols[1], addr,'$'..addr) .. esc(after)
                         else
                             n = esc(n)
                         end
@@ -1402,12 +1402,15 @@ function getaddr(args, regs)
     x   = args:match(',%-([XYUS])$')            if x then return add16(reg(x),-1) end
     x   = args:match(',%-%-([XYUS])$')          if x then return add16(reg(x),-2) end
     a,x = args:match('^([D]),([XYUS])$')        if a and x then return add16(reg(x),reg(a)) end
-    a,x = args:match('^([AB]),([XYUS])$')       if a and x then return add16(reg(x),sex(reg(a))) end
-    a,x = args:match('^%$(%x%x),([XYUS])$')     if a and x then return add16(reg(x),sex(tonumber(a,16))) end
+    a,x = args:match('^([AB]),([XYUS])$')       if a and x then return add16(reg(x), sex(reg(a))) end
+    a,x = args:match('^%$(%x%x),([XYUS])$')     if a and x then return add16(reg(x), sex(tonumber(a,16))) end
     a,x = args:match('^%-$(%x%x),([XYUS])$')    if a and x then return add16(reg(x),-sex(tonumber(a,16))) end
     a,x = args:match('^%$(%x%x%x%x),([XYUS])$') if a and x then return add16(reg(x),tonumber(a,16)) end
 
-    -- TODO PCR ?
+    -- PCR
+	x   = args:match('^%$(%x%x%x%x),PCR$')      if x then return tonumber(x,16) end
+	
+	-- inconnu
     error(args)
 end
 -- getaddr = memoize:make(getaddr)
