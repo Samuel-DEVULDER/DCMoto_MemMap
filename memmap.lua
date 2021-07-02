@@ -885,7 +885,8 @@ local function newHtmlWriter(file, mem)
                 -- titre
                 w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),
                   '</code></',HEADING,'>\n')
-                w('  <table class="mm">\n')
+                -- table
+                w('  <table class="mm" id="mm',cur,'">\n')
                 for j=cur,nxt-1 do
                     w('    <tr>')
                     for i=0,OPT_COLS-1 do
@@ -905,7 +906,7 @@ local function newHtmlWriter(file, mem)
                     progress()
                 end
                 w('  </table>\n')
-                -- table
+                w('  <script>document.getElementById("mm',cur,'").style.display = "table";</script>\n')
                 cur = nxt
             until cur>top
         end
@@ -1034,7 +1035,6 @@ local function newHtmlWriter(file, mem)
       height:   100vh;
       
       scroll-behavior: smooth;
-      scroll-block: nearest;
       scroll-padding-top: 3em;
       scroll-padding-bottom: 4em;
     }
@@ -1095,10 +1095,11 @@ local function newHtmlWriter(file, mem)
 
     #t1 a:active {background-color:yellow;}
 
-    .mm {table-layout: fixed;}
+    .mm {table-layout: fixed; display:none;}
     .mm tr:hover {background-color:initial;}
     .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px; width: ]],100/OPT_COLS,'vmin; height: ',100/OPT_COLS,'vmin;}\n',
+    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px;]],
+    ' width: ',100/OPT_COLS,'vmin; height: ',100/OPT_COLS,'vmin;}\n',
     align_style,
     OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex; flex-flow:row;}\n' or '',[[
     
@@ -1111,6 +1112,14 @@ local function newHtmlWriter(file, mem)
       a                {color: #6fb9ee;}
       th, tr:hover     {background-color:#777;color: white;}
       #t1 a:active,#TOP:hover, #BOTTOM:hover {background-color:gold;}
+      .c0 {background-color:#111;}
+      .c1 {background-color:#c11;}
+      .c2 {background-color:#1c1;}
+      .c3 {background-color:#cc1;}
+      .c4 {background-color:#11c;}
+      .c5 {background-color:#c1c;}
+      .c6 {background-color:#1cc;}
+      .c7 {background-color:#ccc;}
       #loadingProgress {background-color: lightgray;}
     }  
     
@@ -1164,8 +1173,8 @@ local function newHtmlWriter(file, mem)
   <div id="loadingPage">
     <div id="loadingGray"></div>
     <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
-		Please wait while loading...<br>
-		<progress id="loadingProgressBar" max="100"></progress>
+        Please wait while loading...<br>
+        <progress id="loadingProgressBar" max="100"></progress>
     </button>
   </div>
   <script>
