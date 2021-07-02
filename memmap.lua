@@ -1149,12 +1149,8 @@ local function newHtmlWriter(file, mem)
         }
     }
     function progress(percent) {
-      const button = document.getElementById('loadingProgress')
-      if(button !== null) {
-        let txt = "Please wait while loading...";
-        if(percent>=0) txt += '<br>(' + percent + '%)';
-        button.innerHTML = txt;
-      }
+      const e = document.getElementById('loadingProgressBar')
+      if(e !== null) e.value = percent;
     }
     function locationHashChanged(event)  {
         const location = document.location;
@@ -1168,6 +1164,8 @@ local function newHtmlWriter(file, mem)
   <div id="loadingPage">
     <div id="loadingGray"></div>
     <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
+		Please wait while loading...<br>
+		<progress id="loadingProgressBar" max="100"></progress>
     </button>
   </div>
   <script>
