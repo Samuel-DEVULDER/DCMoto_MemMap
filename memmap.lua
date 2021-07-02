@@ -1008,25 +1008,27 @@ local function newHtmlWriter(file, mem)
   <meta charset="utf-8">
   <title>DCMoto_MemMap</title>
   <style>
-    :target {background-color:gold;}
+    :target {
+	  background-color: gold;
+	}
 
     table {
       border-collapse: collapse;
-      border-top: 1px solid #ddd;
-      border-bottom: 1px solid #ddd;
+      border-top:      1px solid #ddd;
+      border-bottom:   1px solid #ddd;
     }
     th, td {
       padding-left:  8px;
       padding-right: 8px;
-      border-left: 1px solid #ddd;
-      border-right: 1px solid #ddd;
+      border-left:   1px solid #ddd;
+      border-right:  1px solid #ddd;
     }
     th {
-      background-color:lightgray;
-      border-bottom: 1px solid #ddd;
+      background-color: lightgray;
+      border-bottom:    1px solid #ddd;
     }
     tr:hover {
-      background-color:lightgray;
+      background-color:  lightgray;
     }
 
     #main {
@@ -1034,46 +1036,71 @@ local function newHtmlWriter(file, mem)
       width:    auto;
       height:   100vh;
       
-      scroll-behavior: smooth;
-      scroll-padding-top: 3em;
+      scroll-behavior:       smooth;
+      scroll-padding-top:    3em;
       scroll-padding-bottom: 4em;
     }
+	table a {
+	  font-weight:     bold;
+	  text-decoration: none;
+	}
+	table a:hover {
+	  text-decoration: underline;
+	}
+
+    #TOP:hover, #BOTTOM:hover {
+	  background-color: yellow;
+	}
+
+    #t1 a:active {
+	   background-color :yellow;
+	}
 
     #memmap {
       flex-grow: 1;
-      display: flex;
+      display:   flex;
       flex-flow: column;
-      overflow: auto;
-      height:   100vh;
+      overflow:  auto;
+      height:    100vh;
     }
     #memmap a {
-      cursor:   default;
+	  font-weight: bold;
+      cursor:      default;
     }
+	#memmap a:hover {
+	  text-decoration: none;
+	}
 
     #loadingPage {
-      position: fixed; top: 0; left:0; width:100%; height: 100%;
-      display: none; justify-content: center; align-items: center;
+      position:        fixed; top: 0; left: 0; width: 100%; height: 100%;
+      display:         none; 
+	  justify-content: center; 
+	  align-items:     center;
     }
     #loadingGray {
-      z-index: 99;
-      position: fixed; top: 0; left:0; width:100%; height: 100%;
-      opacity: 0.5; background-color: black;
-      cursor: wait;
+      position:         fixed; top: 0; left:0; width:100%; height: 100%;
+      cursor:           wait;
+	  background-color: black;
+      opacity:          0.5; 
+      z-index:          99;
     }
     #loadingProgress {
-      z-index: 100;
-      display: block;
-      padding: 0.6em;
-      font-size: 2em;
-      font-weight: bold;
+      display:          block;
+      padding:          0.6em;
       cursor: progress;
-      color: black;
       background-color: #fefefe;
+      color:            black;
+      font-size:        2em;
+      font-weight:      bold;
+      z-index:          100;
     }
-    #loadingProgress:hover {background-color: #fefefe;}
+    #loadingProgress:hover {
+	  background-color: #fefefe;
+	}
 
-    #TOP, #BOTTOM             {text-decoration: none;}
-    #TOP:hover, #BOTTOM:hover {background-color: yellow;}
+    #TOP, #BOTTOM {
+	  text-decoration: none;
+	}
 
     .c0 {background-color:#111;}
     .c1 {background-color:#e11;}
@@ -1088,21 +1115,39 @@ local function newHtmlWriter(file, mem)
     td.c1:hover {background-color:black;}
     td.c2:hover {background-color:black;}
     td.c3:hover {background-color:black;}
-    td.c4:hover {background-color:black;}
+    td.c4:hover {background-color:white;}
     td.c5:hover {background-color:black;}
     td.c6:hover {background-color:black;}
     td.c7:hover {background-color:black;}
 
-    #t1 a:active {background-color:yellow;}
-
-    .mm {table-layout: fixed; display:none;}
-    .mm tr:hover {background-color:initial;}
-    .mm a {text-decoration:none; display: block; height:100%; width:100%;}
-    .mm td {padding:0; border: 1px solid #ddd; min-width:2px; min-height:2px;]],
-    ' width: ',100/OPT_COLS,'vmin; height: ',100/OPT_COLS,'vmin;}\n',
+    .mm {
+	  table-layout: fixed;
+	}
+    .mm tr:hover {
+	  background-color:initial;
+	}
+    .mm a {
+      text-decoration:none; 
+      display: block; 
+      height:100%; 
+      width:100%;
+    }
+    .mm td {
+      padding:    0; 
+      border:     1px solid #ddd; 
+      min-width:  2px; 
+      min-height: 2px;]],'\n',
+'      width:      ',100/OPT_COLS,'vmin;\n',
+'      height:     ',100/OPT_COLS,'vmin;\n',
+'    }\n',
     align_style,
-    OPT_MAP and '\n    body {overflow: hidden; margin: 0; display:flex; flex-flow:row;}\n' or '',[[
-    
+    OPT_MAP and [[
+    body {
+      overflow: hidden; 
+      margin: 0; 
+      display:flex; 
+      flex-flow:row;
+    }]] or '',[[
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #1c1c1e;
@@ -1224,30 +1269,30 @@ local function findHotspots(mem)
     local function newHot(i)
         return {
             x = 0, t = 0, a = hex(i), j=nil, b=nil,
-			touches = function(self,m)
+            touches = function(self,m)
                 return math.abs(m.x - self.x)<=1
             end,
             add = function(self,m,i)
-				if m.asm then
-					local cycles = tonumber(m.asm:match('%((%d+)')) or 0
-					self.x = m.x
-					self.t = self.t + m.x * cycles
-					-- saut ?
-					self.j = nil
-					self.b = nil
-					local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
-					if addr and addr~=self.a then
-						if jmp=='JMP' or jmp=='BRA' or jmp=='LBRA' then 
-							self.j = addr
-						elseif REL_JMP[jmp] then
-							repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
-							if i<=OPT_MAX then
-								self.j = hex(i)
-								self.b = addr~=self.a and addr
-							end
-						end
-					end
-				end
+                if m.asm then
+                    local cycles = tonumber(m.asm:match('%((%d+)')) or 0
+                    self.x = m.x
+                    self.t = self.t + m.x * cycles
+                    -- saut ?
+                    self.j = nil
+                    self.b = nil
+                    local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
+                    if addr and addr~=self.a then
+                        if jmp=='JMP' or jmp=='BRA' or jmp=='LBRA' then 
+                            self.j = addr
+                        elseif REL_JMP[jmp] then
+                            repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
+                            if i<=OPT_MAX then
+                                self.j = hex(i)
+                                self.b = addr~=self.a and addr
+                            end
+                        end
+                    end
+                end
                 return self
             end,
             push = function(self, spots)
@@ -1256,7 +1301,7 @@ local function findHotspots(mem)
             end
         }
     end
-	-- construit les portions droites
+    -- construit les portions droites
     for i=OPT_MIN,OPT_MAX do
         local m = mem[i]
         if not m then
@@ -1270,50 +1315,50 @@ local function findHotspots(mem)
     end
     -- recolle les bouts 
     local pool = {}
-	for _,h in pairs(spots) do if h.j then pool[h.a] = h end end
+    for _,h in pairs(spots) do if h.j then pool[h.a] = h end end
     while next(pool) do
-		-- on trouve le plus petit avec un saut
-		local hot
-		for _,h in pairs(pool) do 
-			hot = (hot and hot.x<h.x and hot) or h
-		end
-		-- out('Fond hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
-		-- choix de la branche la plus lourde
-		if hot and hot.j and hot.b then
-			local j,b = spots[hot.j], spots[hot.b]
-			-- nettoyage
-			if b==nil then hot.b = nil end
-			if j==nil then hot.j = hot.b end
-			-- deplace la plus lourde en j, efface le branchement
-			if j and b and j.x<b.x then	hot.j, hot.b = hot.b,nil end
-		end
-		if hot and hot.j then
-			local j = spots[hot.j]
-			if j then
-				-- fusion
-				-- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
-				-- retrait 
-				pool [hot.a],pool [j.a] = nil,nil
-				spots[hot.a],spots[j.a] = nil,nil
-				-- fustion
-				hot.a = hot.a<j.a and hot.a or j.a
-				hot.x = math.max(hot.x, j.x)
-				hot.t = hot.t + j.t
-				hot.j = j.j
-				hot.b = j.b
-				-- rajout avec la nouvelle adresse
-				pool [hot.a] = hot
-				spots[hot.a] = hot
-			else
-				-- on pointe dans le vide, on le retire du pool
-				hot.j = nil
-			end
-		end
-		-- retrait du pool si n'a pas de j ou sion reboucle sur soi)
-		if hot and (nil==hot.j or hot.a==hot.j) then 
-			pool[hot.a] = nil
-		end
-	end
+        -- on trouve le plus petit avec un saut
+        local hot
+        for _,h in pairs(pool) do 
+            hot = (hot and hot.x<h.x and hot) or h
+        end
+        -- out('Fond hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
+        -- choix de la branche la plus lourde
+        if hot and hot.j and hot.b then
+            local j,b = spots[hot.j], spots[hot.b]
+            -- nettoyage
+            if b==nil then hot.b = nil end
+            if j==nil then hot.j = hot.b end
+            -- deplace la plus lourde en j, efface le branchement
+            if j and b and j.x<b.x then hot.j, hot.b = hot.b,nil end
+        end
+        if hot and hot.j then
+            local j = spots[hot.j]
+            if j then
+                -- fusion
+                -- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
+                -- retrait 
+                pool [hot.a],pool [j.a] = nil,nil
+                spots[hot.a],spots[j.a] = nil,nil
+                -- fustion
+                hot.a = hot.a<j.a and hot.a or j.a
+                hot.x = math.max(hot.x, j.x)
+                hot.t = hot.t + j.t
+                hot.j = j.j
+                hot.b = j.b
+                -- rajout avec la nouvelle adresse
+                pool [hot.a] = hot
+                spots[hot.a] = hot
+            else
+                -- on pointe dans le vide, on le retire du pool
+                hot.j = nil
+            end
+        end
+        -- retrait du pool si n'a pas de j ou sion reboucle sur soi)
+        if hot and (nil==hot.j or hot.a==hot.j) then 
+            pool[hot.a] = nil
+        end
+    end
     -- cee une liste ordonnée
     local ret = {}
     for _,h in pairs(spots) do table.insert(ret, h) end
@@ -1366,7 +1411,7 @@ local mem = {
         return self
     end,
     -- marque "addr" comme lue/écrit depuis le compteur programme courant
-	-- la partie écrite n'est pas changée si elle est écrite ailleurs
+    -- la partie écrite n'est pas changée si elle est écrite ailleurs
     rw = function(self, addr, len, stack)
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.r, m.w, m.s = self.PC, m.w==NOADDR and self.PC or m.w, stack
@@ -1655,8 +1700,8 @@ local function read_trace(filename)
                 if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
             end
-		else
-			jmp = nil
+        else
+            jmp = nil
         end
     end
     f:close()
@@ -1690,21 +1735,22 @@ end
 -- la trace
 local _guess_MACH = {MO=0,TO=0}
 local function guess_MACH(TRACE)
-    local THR = 100000
+    local THR,TYPE = 100000
     log('Trying to determine machine.')
     profile:_()
     local f = assert(io.open(TRACE,'r'))
     for l in f:lines() do
         if     l:match('DP=[2A]') then _guess_MACH.MO = _guess_MACH.MO + 1 
         elseif l:match('DP=[6E]') then _guess_MACH.TO = _guess_MACH.TO + 1 end
-        if _guess_MACH.MO + _guess_MACH.TO > THR then break end
+        if _guess_MACH.MO + _guess_MACH.TO > THR then 
+            if _guess_MACH.MO > 2*_guess_MACH.TO then TYPE='MO'; break; end
+            if _guess_MACH.TO > 2*_guess_MACH.MO then TYPE='TO'; break; end
+        end
     end
     f:close()
     profile:_()
-    if _guess_MACH.MO + _guess_MACH.TO > THR then
-        if _guess_MACH.MO > 2*_guess_MACH.TO then machMO(); EQUATES:ini() end
-        if _guess_MACH.TO > 2*_guess_MACH.MO then machTO(); EQUATES:ini() end
-    end
+    if TYPE=='MO' then machMO(); EQUATES:ini(); end
+    if TYPE=='TO' then machTO(); EQUATES:ini(); end
 end
 
 ------------------------------------------------------------------------------
