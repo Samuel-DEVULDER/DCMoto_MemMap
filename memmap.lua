@@ -1319,6 +1319,14 @@ local mem = {
         end
         return self
     end,
+    -- marque "addr" comme lue/écrit depuis le compteur programme courant
+	-- la partie écrite n'est pas changée si elle est écrite ailleurs
+    rw = function(self, addr, len, stack)
+        for i=0,(len or 1)-1 do local m = self:_get(addr+i)
+            m.r, m.w, m.s = self.PC, m.w==NOADDR and self.PC or m.w, stack
+        end
+        return self
+    end,
     _stkop = '***STACK***',
     -- charge un fichier TAB Separated Value (CSV avec des tab)
     loadTSV = function(self, f)
@@ -1554,9 +1562,9 @@ local function read_trace(filename)
         ['RTI']  = function() pull('S','A/B/X/Y/U/CC/DP/PC',regs) end, -- take E flag of cc into account ?
         _ = function(self, set, fcn) for k in pairs(set) do self[k] = fcn end end
     }
-    DISPATCH:_(R8,  function() local a = getaddr(args,regs) if a then mem:r(a) else nomem[sig] = true end end)
-    DISPATCH:_(W8,  function() local a = getaddr(args,regs) if a then mem:w(a) else nomem[sig] = true end end)
-    DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:r(a):w(a) else nomem[sig] = true end end)
+    DISPATCH:_(R8,  function() local a = getaddr(args,regs) if a then mem:r(a)   else nomem[sig] = true end end)
+    DISPATCH:_(W8,  function() local a = getaddr(args,regs) if a then mem:w(a)   else nomem[sig] = true end end)
+    DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:rw(a)  else nomem[sig] = true end end)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
 
