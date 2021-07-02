@@ -1223,51 +1223,97 @@ local function findHotspots(mem)
     local spots,hot = {}
     local function newHot(i)
         return {
-            x = 0, t = 0, a = hex(i), j=nil,
-            touches = function(self,m)
+            x = 0, t = 0, a = hex(i), j=nil, b=nil,
+			touches = function(self,m)
                 return math.abs(m.x - self.x)<=1
             end,
-            add = function(self,m)
-                self.x = m.x
-                if m.asm then
-                    local cycles = tonumber(m.asm:match('%((%d+)')) or 0
-                    self.t = self.t + m.x * cycles
-                    local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
-                    if addr and (jmp=='JMP' or REL_JMP[jmp]) then self.j = addr end
-                end
+            add = function(self,m,i)
+				if m.asm then
+					local cycles = tonumber(m.asm:match('%((%d+)')) or 0
+					self.x = m.x
+					self.t = self.t + m.x * cycles
+					-- saut ?
+					self.j = nil
+					self.b = nil
+					local jmp,addr = m.asm:match('(%a+)%s+%$(%x%x%x%x)')
+					if addr and addr~=self.a then
+						if jmp=='JMP' or jmp=='BRA' or jmp=='LBRA' then 
+							self.j = addr
+						elseif REL_JMP[jmp] then
+							repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
+							if i<=OPT_MAX then
+								self.j = hex(i)
+								self.b = addr~=self.a and addr
+							end
+						end
+					end
+				end
                 return self
             end,
-            push = function (self, spots)
-                -- print(self.a, self.x, self.t)
+            push = function(self, spots)
                 spots[self.a] = self
                 return nil
             end
         }
     end
+	-- construit les portions droites
     for i=OPT_MIN,OPT_MAX do
         local m = mem[i]
         if not m then
             if hot then hot = hot:push(spots) end
         elseif hot and hot:touches(m) then
-            hot:add(m)
+            hot:add(m, i)
         else
             if hot and not hot:touches(m) then hot = hot:push(spots) end
-            if m.asm then hot = newHot(i):add(m) end
+            if m.asm then hot = newHot(i):add(m, i) end
         end
     end
     -- recolle les bouts 
-    local changed
-    repeat
-        changed = false
-        for k,h in pairs(spots) do 
-            local j = spots[h and h.j or '']
-            if j and j~=h then 
-                spots[h.j] = nil
-                h.t, h.j = h.t + j.t, j.j
-                changed = true
-            end
-        end 
-    until not changed
+    local pool = {}
+	for _,h in pairs(spots) do if h.j then pool[h.a] = h end end
+    while next(pool) do
+		-- on trouve le plus petit avec un saut
+		local hot
+		for _,h in pairs(pool) do 
+			hot = (hot and hot.x<h.x and hot) or h
+		end
+		-- out('Fond hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
+		-- choix de la branche la plus lourde
+		if hot and hot.j and hot.b then
+			local j,b = spots[hot.j], spots[hot.b]
+			-- nettoyage
+			if b==nil then hot.b = nil end
+			if j==nil then hot.j = hot.b end
+			-- deplace la plus lourde en j, efface le branchement
+			if j and b and j.x<b.x then	hot.j, hot.b = hot.b,nil end
+		end
+		if hot and hot.j then
+			local j = spots[hot.j]
+			if j then
+				-- fusion
+				-- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
+				-- retrait 
+				pool [hot.a],pool [j.a] = nil,nil
+				spots[hot.a],spots[j.a] = nil,nil
+				-- fustion
+				hot.a = hot.a<j.a and hot.a or j.a
+				hot.x = math.max(hot.x, j.x)
+				hot.t = hot.t + j.t
+				hot.j = j.j
+				hot.b = j.b
+				-- rajout avec la nouvelle adresse
+				pool [hot.a] = hot
+				spots[hot.a] = hot
+			else
+				-- on pointe dans le vide, on le retire du pool
+				hot.j = nil
+			end
+		end
+		-- retrait du pool si n'a pas de j ou sion reboucle sur soi)
+		if hot and (nil==hot.j or hot.a==hot.j) then 
+			pool[hot.a] = nil
+		end
+	end
     -- cee une liste ordonnée
     local ret = {}
     for _,h in pairs(spots) do table.insert(ret, h) end
@@ -1449,9 +1495,9 @@ end
 -- Auxiliaire qui marque les adresses pointée par "ptr" comme
 -- lues (dir>0) ou écrits (dir<0) en fonction des arguments de
 -- l'opération de pile
-local function stack(ptr, dir, args)
+local function stack(reg, ptr, dir, args)
     local usePC = args:match('PC')
-    local stkop = usePC or args:match('DP')
+    local stkop = usePC and reg=='S'
     ptr = tonumber(ptr,16)
     local function mk(len)
         if dir>0 then mem:r(ptr, len, stkop) else mem:w(add16(ptr,-len), len, stkop) end
@@ -1470,11 +1516,11 @@ local function stack(ptr, dir, args)
 end
 -- lecture depuis la pile "reg"
 local function pull(reg, args, regs)
-    stack(regs:match(reg..'=(%x%x%x%x)'), 1,args)
+    stack(reg, regs:match(reg..'=(%x%x%x%x)'), 1,args)
 end
 -- écriture depuis la pile "reg"
 local function push(reg, args, regs)
-    stack(regs:match(reg..'=(%x%x%x%x)'),-1,args)
+    stack(reg,regs:match(reg..'=(%x%x%x%x)'),-1,args)
 end
 
 ------------------------------------------------------------------------------
@@ -1568,8 +1614,6 @@ local function read_trace(filename)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
 
-    local prev_hexa
-
     profile:_()
     for s in f:lines() do
         -- print(s) io.stdout:flush()
@@ -1579,9 +1623,10 @@ local function read_trace(filename)
         end
 
         num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
+
         -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
          -- print(pc, hexa, opcode, args)
-        if prev_hexa~='3B' and opcode then
+        if opcode then
             -- print(pc,hex,opcode,args)
             -- curr_pc, sig = tonumber(pc,16), hexa
             curr_pc, sig = tonumber(pc,16), hexa
@@ -1610,8 +1655,9 @@ local function read_trace(filename)
                 if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
             end
+		else
+			jmp = nil
         end
-        prev_hexa = hexa
     end
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
@@ -1636,8 +1682,8 @@ local function read_trace(filename)
         end
     end
     
-    local mb = size/1024/1024
-    log('Analyzed %.3g Mb of trace (%.3g Mb/s).', mb, mb / (os.clock() -start_time))
+    local mb, time = size/1024/1024, (os.clock() -start_time)
+    log('Analyzed %.3g Mb of trace (%.3g Mb/s).', mb, mb / time)
 end
 
 -- essaye de deviner le type de machine en analysant la valeur de DP dans
