@@ -715,8 +715,8 @@ local function newTSVWriter(file, tablen)
         if not empty then
             self:row(cols)
             local l=0 for _,k in ipairs(self.clen) do l = l + k end
-            self.hsep = string.rep('=', l) .. '\n'
-            self:footer()
+            self.hsep = string.rep('=', l-1) .. '\n'
+            self.file:write(self.hsep)
         end
     end
     function w:footer()
@@ -726,10 +726,11 @@ local function newTSVWriter(file, tablen)
         local t, ok = '', #cels==self.ncols
         for i,n in ipairs(cels) do
             t = t .. '\t'
-            if type(n)=='table' then n = sprintf(unpack(n)) else n = tostring(n) end
+            n = tostring(n)
             if ok and n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
+            n = trim(n) or ''
             if self.align[i]=='>' then
-                t = t .. string.rep(' ', self.clen[i] - n:len() - 1) .. n
+                t = t .. string.rep(' ', self.clen[i] - n:len()-1) .. n
             elseif self.align[i]=='=' then
                 t = t .. string.rep(' ',math.floor((self.clen[i] - n:len())/2)) .. n
             else
@@ -1555,7 +1556,7 @@ local mem = {
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
-        writer:header{'*Number','Addr','>*Cycles','>Time         '}
+        writer:header{'*Number','Addr','>*Cycles','>Percent (Time)        '}
         for i,s in ipairs(spots) do
             if i>1 then writer:row{'', '', '', ''} end
             local EMPTY='     '
@@ -1594,35 +1595,39 @@ local mem = {
 
         writer:id("flatmap")
         writer:title("Collected addresses")
-        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Asm code"}
+        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Asm code         "}
 
-        local n,curr=0,0
+        local n,curr,first=0,-1,true
         local function u()
             if n>0 then
+                if not first then writer:row{} end first = false
                 writer:row{sprintf('%d byte%s untouched', n, n>1 and 's' or '')}
-                writer:row{}
-                n = 0
+                n,curr = 0,-1
              end
         end
+        
+        if not self[OPT_MIN] then self:pc(OPT_MIN):a('* Start of range') end
+        if not self[OPT_MAX] then self:pc(OPT_MAX):a('* End of range')   end
         
         local VOID=''
         for i=OPT_MIN,OPT_MAX do
             local m=self[i]
-            if m then
+            if m then u()
                 local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
+
                 if mask ~= curr 
-                or mask==0 and i==OPT_MAX
                 or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
-                then writer:row{} end curr = mask; u()
+                then if not first then writer:row{} end end curr = mask
                 
                 local adr = hex(i)
                 local lbl = m.asm
                 if not lbl and EQUATES[adr] then lbl = '* ' .. EQUATES[adr] end
                 if mask~=4 or lbl then
                     writer:row{adr, m.r, m.w, m.x>0 and m.x or VOID,lbl or (m.s and self._stkop) or VOID}
+                    first = false
                 end
             else
-                n, curr = n + 1, 0
+                n, curr = n + 1,-1
             end
         end u()
         writer:footer()
