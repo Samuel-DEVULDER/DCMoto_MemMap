@@ -1331,7 +1331,7 @@ local function newHtmlWriter(file, mem)
                 local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
                 if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
                 add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title), '">',
-                    '<a href="#', anchor, '"></a>')
+                    '<a href="#', a, '"></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
             end
