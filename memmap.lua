@@ -872,13 +872,6 @@ local function newHtmlWriter(file, mem)
     function w:row(cels)
         self:_row('td', cels)
     end
-    function w:footer()
-        self:_body('  </table>\n')
-        if self._footer_callback then 
-            self._footer_callback(self)
-            self._footer_callback = nil
-        end
-    end
     
     -- gestion des id
     w._2panes = nil
@@ -917,7 +910,16 @@ local function newHtmlWriter(file, mem)
                    end),
                    '</',self.HEADING,'>','\n')
     end
-    
+
+    -- fin de table
+    function w:footer()
+        self:_body('  </table>\n')
+        if self._footer_callback then 
+            self._footer_callback(self)
+            self._footer_callback = nil
+        end
+    end
+
     -- début de table
     function w:header(columns)
         local id = self:_nxId()
@@ -947,6 +949,11 @@ local function newHtmlWriter(file, mem)
             class = ' class="memmap"'
             self._footer_callback = function(self)
                 self:_body('  <script>document.getElementById("',id,'").style.display = "table";</script>\n')
+            end
+        else
+            self:_body('  <div style="display:flex">\n')
+            self._footer_callback = function(self)
+                self:_body('  </div>\n')
             end
         end
 
@@ -1084,18 +1091,16 @@ local function newHtmlWriter(file, mem)
       text-decoration: none; 
       cursor:          default;
     }
-    .memmap a:hover {
-      text-decoration: none;
-    }
-    .memmap td.c7       {cursor: not-allowed}
-    .memmap td.c0:hover {background-color:white;}
-    .memmap td.c1:hover {background-color:black;}
-    .memmap td.c2:hover {background-color:black;}
-    .memmap td.c3:hover {background-color:black;}
-    .memmap td.c4:hover {background-color:white;}
-    .memmap td.c5:hover {background-color:black;}
-    .memmap td.c6:hover {background-color:black;}
-    .memmap td.c7:hover {background-color:black;}
+    .memmap a:hover       {text-decoration:  none;}
+    .memmap td.c7         {cursor: not-allowed}
+    .memmap td.c0>a:hover {background-color:white;}
+    .memmap td.c1>a:hover {background-color:black;}
+    .memmap td.c2>a:hover {background-color:black;}
+    .memmap td.c3>a:hover {background-color:black;}
+    .memmap td.c4>a:hover {background-color:white;}
+    .memmap td.c5>a:hover {background-color:black;}
+    .memmap td.c6>a:hover {background-color:black;}
+    .memmap td.c7>a:hover {background-color:black;}
     .memmap td {
       padding:    0; 
       border:     1px solid #ddd; 
@@ -1325,7 +1330,7 @@ local function newHtmlWriter(file, mem)
                 local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
                 if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
                 add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title), '">',
-                    '<a href="#', a, '"></a>')
+                    '<a href="#', anchor, '"></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
             end
@@ -1550,7 +1555,7 @@ local mem = {
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
-        writer:header{'*Number','Addr','>*Cycles (µs)','<Time         '}
+        writer:header{'*Number','Addr','>*Cycles','>Time         '}
         for i,s in ipairs(spots) do
             if i>1 then writer:row{'', '', '', ''} end
             local EMPTY='     '
