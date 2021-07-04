@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 -- memmap.lua : Outil d'analye de traces DCMoto par S. Devulder.
 --
 -- Usage:
@@ -62,7 +62,7 @@
 --
 --      NUM bytes untouched.
 --
--- $Version$ $Date$
+-- v0.1 2021-07-03T10:48:07CEST
 ------------------------------------------------------------------------------
 
 local NOADDR = '----'                  -- marqueur d'absence
@@ -150,7 +150,7 @@ end
 
 -- efface les blancs en début et fin de chaine
 local function trim(txt)
-    return txt:match('^%s*(.*%S)')
+	return tostring(txt):match('^%s*(.*%S)')
 end
 
 -- memoization
@@ -642,21 +642,39 @@ nil} EQUATES:ini()
 -- différent formateurs de résultat
 ------------------------------------------------------------------------------
 
+-- Writer de base
+local function newBasicWriter()
+	local function not_implemented() error('not implemented!') end
+	return {
+		close  = not_implemented,
+		printf = not_implemented,
+		id     = not_implemented,
+		title  = not_implemented,
+		header = not_implemented,
+		row    = not_implemented,
+		footer = not_implemented,
+	nil}
+end
+
 -- Writer Parallèle
 local function newParallelWriter(...)
     log('Created Parallel writer.')
-    return {
-        writers = {...},
-        close = function(self)
-            for _,w in ipairs(self.writers) do w:close() end
-        end,
-        header = function(self,...)
-            for _,w in ipairs(self.writers) do w:header(...) end
-        end,
-        row = function(self,...)
-            for _,w in ipairs(self.writers) do w:row(...) end
-        end
-    }
+	local w = newBasicWriter();
+	w.writers = {...}
+	function w:_dispatch(fcn, ...)
+		for _,w in ipairs(self.writers) do 
+			local f = w[fcn]; 
+			f(w,...) 
+		end
+    end
+	function w:close (...) self:_dispatch('close',  ...) end
+	function w:printf(...) self:_dispatch('printf', ...) end
+	function w:id    (...) self:_dispatch('id',     ...) end
+	function w:title (...) self:_dispatch('title',  ...) end
+	function w:header(...) self:_dispatch('header', ...) end
+	function w:row   (...) self:_dispatch('row',    ...) end
+	function w:footer(...) self:_dispatch('footer', ...) end
+	return w
 end
 
 -- Writer TSV (CSV avec des TAB(ulations))
@@ -665,96 +683,87 @@ local function newTSVWriter(file, tablen)
     local function align(n)
         return tablen*math.floor((n + tablen -1)/tablen)
     end
+	local w = newBasicWriter();
+	-- evite le fichier vide
+	w.file = file or {write=function() end, close=function() end}
+	w.file:write('sep=\\t\t(use a tabulation of '..tablen..')\n\n')
+	
+	function w:close()
+        self.file:write("End of file\n")
+        self.file:close()
+    end
+	function w:printf(...)
+		self.file:write(sprintf(...))
+	end
+	function w:id() end
+	function w:title(...)
+		local txt = sprintf(...) .. ':'
+		self:printf("%s\n%s\n", txt, string.rep('~', txt:len()))
+	end
+	function w:header(columns)
+		local empty = true
+		self.align = {}
+		self.ncols = #columns
+		self.clen = {}
+		self.hsep = ''
+		cols = {}
+		for i,n in ipairs(columns) do
+			local tag,fnt,txt = n:match('^([<=>]?)([%*]?)(.*)')
+			self.align[i], cols[i], self.clen[i] = tag=='' and '<' or tag, txt, 0
+			if empty and trim(txt) then empty = false end
+		end
+		if not empty then
+			self:row(cols)
+			local l=0 for _,k in ipairs(self.clen) do l = l + k end
+			self.hsep = string.rep('=', l) .. '\n'
+			self:footer()
+		end
+	end
+	function w:footer()
+		self.file:write(self.hsep .. '\n')
+	end
+	function w:row(cels)
+		local t, ok = '', #cels==self.ncols
+		for i,n in ipairs(cels) do
+			t = t .. '\t'
+			if type(n)=='table' then n = sprintf(unpack(n)) else n = tostring(n) end
+			if ok and n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
+			if self.align[i]=='>' then
+				t = t .. string.rep(' ', self.clen[i] - n:len() - 1) .. n
+			elseif self.align[i]=='=' then
+				t = t .. string.rep(' ',math.floor((self.clen[i] - n:len())/2)) .. n
+			else
+				t = t .. n
+			end
+		end
+		self:printf('%s\n', t=='' and t or t:sub(2))
+    end
     log('Created CSV writer (tab=%d).', tablen)
-    return {
-        file=file or {write=function() end, close=function() end},
-        close = function(self)
-            self.file:write(self.hsep..'\n')
-            self.file:write("End of file\n")
-            self.file:close()
-        end,
-        header = function(self, columns)
-            self.ncols = #columns
-            self.align = {}
-            self.clen = {}
-            self.hsep = ''
-            cols = {}
-            for i,n in ipairs(columns) do
-                local tag = n:match('^([<=>])')
-                self.align[i], cols[i], self.clen[i] = tag or '<', tag and n:sub(2) or n, 0
-            end
-            if self.ncols>0 then
-                self:row(cols)
-                local l=0 for i=1,self.ncols do l = l + self.clen[i] end
-                self.hsep = string.rep('=', l)
-                self.file:write(self.hsep .. '\n')
-            end
-            return self
-        end,
-        row = function(self, cels)
-            local t = ''
-            for i,n in ipairs(cels) do
-                t = t .. '\t'
-                if type(n)=='table' then n = sprintf(unpack(n)) else n = tostring(n) end
-                if n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
-                if self.align[i]=='>' then
-                    t = t .. string.rep(' ', self.clen[i] - n:len() - 1) .. n
-                elseif self.align[i]=='=' then
-                    t = t .. string.rep(' ',math.floor((self.clen[i] - n:len())/2)) .. n
-                else
-                    t = t .. n
-                end
-            end
-            self.file:write((t~='' and t:sub(2) or t)..'\n')
-            return self
-        end
-    }
+	return w
 end
 
 -- Writer OPT_HTML (quelle horreur!)
 local function newHtmlWriter(file, mem)
-    log('Created HTML writer.')
-    HEADING = "h1"
-    -- evite les fichier nil
-    file=file or {write=function() end, close=function() end}
-    -- aide pour imprimer
-    local function w(...)
-        for _,s in ipairs{...} do
-            if type(s)=='table' then s = sprintf(unpack(s)) end
-            file:write(tostring(s))
-        end
-    end
-    -- échappement html
-    local function esc(txt)
-        return txt
-        -- :gsub("<<","&laquo;")
-        :gsub('['..[['"<>&]]..']', {["'"] = "&#39",['"'] = "&quot;",["<"]="&lt;",[">"]="&gt;",["&"]="&amp;"})
-        :gsub("&lt;%-", "&larr;") --:gsub("%-&gt;", "&rarr;")
-        :gsub(' ','&nbsp;')
-    end
-    -- récup des adresses utiles
-    local valid = {} for i=OPT_MIN,OPT_MAX do 
+	-- récup des adresses utiles
+    local valid = {}
+	for i=OPT_MIN,OPT_MAX do 
         local m = mem[i]
         if m and (m.asm or m.r~=NOADDR or m.w~=NOADDR) then valid[hex(i)] = true end
     end
-    local rev   = {}
-    for i=OPT_MAX,OPT_MIN,-1 do
+	
+	-- liens code --> mémoire
+    local code2mem = {}
+    for i=OPT_MAX,OPT_MIN,-1 do -- du haut vers le bas pour ne garder que le 1er accès
         local m = mem[i]
         if m and not m.s then
             i = hex(i)
-            if m.w~=NOADDR and valid[m.w] then rev[m.w] = i end
-            if m.r~=NOADDR and valid[m.r] then rev[m.r] = i end
+            if m.w~=NOADDR and valid[m.w] then code2mem[m.w] = i end
+			-- le read a priorité sur le write
+            if m.r~=NOADDR and valid[m.r] then code2mem[m.r] = i end
         end
     end
-    -- sort le code html pour la progression
-    local prog_next = .01
-    local function progress(ratio)
-        if ratio >= prog_next then
-            prog_next = ratio + .01
-            w(sprintf('\n<script>progress(%d);</script>\n\n', math.floor(100*ratio)))
-        end
-    end
-    -- descrit le contenu d'une adresse
+    
+	-- descrit le contenu d'une adresse
     local function describe(addr, opt_asm, opt_asm_addr, opt_from)
         local function code(where)
             if where~=NOADDR then
@@ -769,10 +778,8 @@ local function newHtmlWriter(file, mem)
         if m then
             opt_asm      = m.x>0 and (m.asm or opt_asm)
             opt_asm_addr = m.x>0 and (m.asm and addr or opt_asm_addr)
-            local RWX    = (m.x==0      and '-' or 'X')..
-                           (m.r==NOADDR and '-' or 'R')..
-                           (m.w==NOADDR and '-' or 'W')..
-                           (m.s and 'S' or '')
+			local RWX = mem:RWX(m)
+			
             --
             local anchor = ''
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
@@ -795,11 +802,29 @@ local function newHtmlWriter(file, mem)
             return '$' .. addr .. ' : untouched' .. EQUATES:t(addr), '---', addr
         end
     end
-    -- affiche le code html pour un hyperlien sur "addr" avec le texte
+
+    -- échappement html
+    local function esc(txt)
+        local r = txt
+        -- :gsub("<<","&laquo;")
+        :gsub('['..[['"<>&]]..']', {
+			["'"] = "&#39",
+			['"'] = "&quot;",
+			["<"]="&lt;",
+			[">"]="&gt;",
+			["&"]="&amp;"})
+        :gsub("&lt;%-", "&larr;"):gsub("%-&gt;", "&rarr;")
+		:gsub('\n','<BR>\n')
+        :gsub(' ','&nbsp;')
+		return r
+    end
+	
+	-- retourne le code html pour un hyperlien sur "addr" avec le texte
     -- "txt" (le tout pour l'adresse "from")
     local function ahref(from, addr, txt)
         local title, RWX, anchor = describe(addr,nil,nil,from)
-        -- if from == anchor then anchor = addr end -- no loop back XXXX
+        -- ajoute des petites flèches pour dire où va le lien par
+		-- rapport à l'adresse courante
         local function esc2(title)
             local x = esc(title)
             if mem[tonumber(from,16) or ''] and addr and addr~=from then
@@ -808,214 +833,192 @@ local function newHtmlWriter(file, mem)
             end
             return x
         end
-        return valid[anchor] and '<a href="#' .. anchor .. '" title="' .. esc2(title) .. '">' .. esc(txt) .. '</a>'
-                             or esc(txt)
+        return valid[anchor] 
+		and '<a href="#' .. anchor .. '" title="' .. esc2(title) .. '">' .. esc(txt) .. '</a>'
+        or esc(txt)
     end
 
-    local function memmap(mem)
-        -- encodage des couleurs de cases
-        local color = {
-            ['---' ] = 7,
-            ['--W' ] = 1,
-            ['-R-' ] = 2,
-            ['-RW' ] = 3,
-            ['X--' ] = 4,
-            ['X-W' ] = 5,
-            ['XR-' ] = 6,
-            ['XRW' ] = 0,
-            ['---S'] = 0,
-            ['--WS'] = 0,
-            ['-R-S'] = 0,
-            ['-RWS'] = 0,
-            ['X--S'] = 0,
-            ['X-WS'] = 0,
-            ['XR-S'] = 0,
-            ['XRWS'] = 0
-        }
-
-        -- encodage si JS n'est pas supporté par le browser (Lynx, Links)
-        local short = {
-            ['---' ] = '-',
-            ['--W' ] = 'W',
-            ['-R-' ] = 'R',
-            ['-RW' ] = 'M',
-            ['X--' ] = 'X',
-            ['X-W' ] = 'Z',
-            ['XR-' ] = 'Y',
-            ['XRW' ] = '#',
-            ['---S'] = 'S',
-            ['--WS'] = 'S',
-            ['-R-S'] = 'S',
-            ['-RWS'] = 'S',
-            ['X--S'] = 'S',
-            ['X-WS'] = 'S',
-            ['XR-S'] = 'S',
-            ['XRWS'] = 'S'
-        }
-        
-        -- pour avoir une table découpée en plusieurs bout (plus facile à lire et à charger)
-        local notEmpty = {}
-        local function isEmpty(i,j)
-            if j then
-                for k=i,j do if not isEmpty(k) then return false end end
-                return true
-            elseif nil~=notEmpty[i] then
-                return not notEmpty[i]
-            else 
-                local empty = true
-                for j=i*OPT_COLS,i*OPT_COLS+OPT_COLS-1 do
-                    if mem[j] then empty=false; break; end
-                end
-                notEmpty[i] = not empty
-                return empty
-            end
-        end
-        -- affiche une table découpée. On saute par dessus "BLOC' elements vides
-        local BLOC,line,total_lines = 8, 0, 0
-        local function work(w, progress)            
-            local cur,top = math.floor(OPT_MIN/OPT_COLS),math.floor(OPT_MAX/OPT_COLS)
-            local last_asm, last_asm_addr ='',''
-            repeat
-                -- saute au dessus des lignes vides
-                while cur<=top and isEmpty(cur) do cur = cur + 1 end
-                if cur>top then break end
-                -- on trouve la fin
-                local nxt = cur
-                repeat nxt = nxt + 1 until nxt>top or isEmpty(nxt,nxt+BLOC) 
-                -- titre
-                w('  <',HEADING,'>Memory map: <code>$', hex(cur*OPT_COLS), '</code> &rarr; <code>$', hex(nxt*OPT_COLS-1),
-                  '</code></',HEADING,'>\n')
-                -- table
-                w('  <table class="mm" id="mm',cur,'">\n')
-                for j=cur,nxt-1 do
-                    w('    <tr>')
-                    for i=0,OPT_COLS-1 do
-                      local m,a = mem[OPT_COLS*j+i],hex(OPT_COLS*j+i)
-                      if m then
-                          local title, RWX, anchor = describe(a, last_asm, last_asm_addr)
-                          if m.asm then last_asm,last_asm_addr = m.asm, a end
-                          w('<td', ' class="c', color[RWX],'"', ' title="',esc(title), '">',
-                            '<a href="#',anchor,'">',
-                            '<noscript>',short[RWX],'</noscript>',
-                            '</a></td>')
-                      else
-                        w('<td class="c7" title="$',a,esc(EQUATES:t(a)),' : ---"><noscript>',short['---'],'</noscript></td>')
-                      end
-                    end
-                    w('</tr>\n')
-                    progress()
-                end
-                w('  </table>\n')
-                w('  <script>document.getElementById("mm',cur,'").style.display = "table";</script>\n')
-                cur = nxt
-            until cur>top
-        end
-        work(function() end, function() total_lines = total_lines+1 end)
-        work(w, function() line = line+1; progress(.5 + .5*line/total_lines) end)
-        w('  <p></p>\n')
-    end
+	-- allez, on crée le writer
+	local w = newBasicWriter()
+	
+    -- evite les fichier nil
+    w.file=file or {write=function() end, close=function() end}
+	
+	-- pour les title
+	w.HEADING = "h1"
+	w.HEXADDR = '([0123456789ABCDEF][0123456789ABCDEF][0123456789ABCDEF][0123456789ABCDEF])'
     
-    return {
-        file=file,
-        close = function(self)
-            local f = self.file
-            w('</table>\n',
-              '<p></p>\n',
-              '<',HEADING,'>End of analysis',
-              ' <a href="#TOP" id="BOTTOM" accesskey="t" title="Go to top of page.\nShort cut : [Meta]-t">(&uarr;)</a></',HEADING,'>\n')
-            if OPT_MAP then
-                w('</div>\n',
-                  -- '<script>document.getElementById("progress").innerHTML  = "xxx"</script>\n',
-                  '<div id="memmap">\n')
-                memmap(mem)
-                w('</div>')
-            end
-            w('<script>',
-              'window.addEventListener("load", hideLoadingPage);',
-              '</script>\n')
-            w('</body></html>\n')
-            w()
-            f:close()
-        end,
-        _row = function(self, tag, columns)
-            local t, cols = '', {' '}
-            for i,n in ipairs(columns) do
-                cols[i] = type(n)=='table' and sprintf(unpack(n)) or tostring(n)
-            end
-            local last = #cols
-            local ADDR = cols[1]
-            if last>1 then
-                local adr = ADDR:match("^%x%x%x%x$")
-                if adr then
-                    t = t .. ' id="'..adr..'"'
-                    adr = tonumber(adr,16)
-                    if adr>=OPT_MIN and adr<=OPT_MAX then
-                        progress((adr-OPT_MIN)/((OPT_MAX-OPT_MIN)*(OPT_MAP and 2 or 1)))
-                    end
-                end
-            end
-            t = t .. '>'
-            for i,n in ipairs(cols) do
-                t = t .. '<' .. tag ..
-                    (i==last and i~=self.ncols and ' colspan="'..(self.ncols - i + 1)..'"' or '') ..
-                    '>'
-                if i==1 then
-                    t = t .. esc(n)
-                elseif i==2 or i==3 then
-                    t = t .. ahref(ADDR,n,n)
-                elseif i==4 then
-                    t = t .. esc(n)
-                elseif i==5 then
-                    local back = rev[ADDR]
-                    if back then
-                        local before,arg,after = n:match('^([%d/()]+%s*%S+%s+)([%[<%-]?%$?[%w_,]+)(.*)$')
-                        if not arg then before,arg,after = n:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
-                        if not arg then error(n) end
-                        n = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
-                    else
-                        -- sauts divers
-                        local before,addr,after = n:match('^(.*)%$(%x%x%x%x)(.*)$')
-                        if addr then
-                            n = esc(before) .. ahref(ADDR, addr,'$'..addr) .. esc(after)
-                        else
-                            n = esc(n)
-                        end
-                    end
-                    t = t .. n
-                end
-                t = t .. '</' .. tag .. '>'
-            end
-            w('    <tr', t , '</tr>')
-            w('\n')
-        end,
-        header = function(self, columns)
-            self.ncols = #columns
+	-- gestion du body
+	w._body_ = {}
+	function w:_body(...)
+		for _,v in ipairs{...} do
+			table.insert(self._body_, tostring(v))
+		end
+	end
+    
+	-- gestion du style
+	w._style_ = ''
+	function w:_style(...)
+		for _,v in ipairs{...} do
+			self._style_ = self._style_ .. tostring(v)
+		end
+	end
+	
+	-- les trucs simples
+	function w:printf(...)
+		local txt = sprintf(...)
+		self:_body(esc(txt))
+	end
+	function w:row(cels)
+		self:_row('td', cels)
+    end
+	function w:footer()
+		self:_body('  </table>\n')
+		if self._footer_callback then 
+			self._footer_callback(self)
+			self._footer_callback = nil
+		end
+	end
+	
+	-- gestion des id
+	w._2panes = nil
+	function w:id(id)
+		self._id = {id=id, no=-1}
+		if self._2panes==nil then
+			if id=='hotspots' then self._2panes = 1 end
+			if id=='memmap'   then self._2panes = 1 end
+		end
+		if self._2panes==1 then 
+			self._2panes = true
+			self:_body('  </div><div id="right">\n')
+		end
+	end
+	w:id('DEFAULT_ID')
+	function w:_nxId()
+		self._id.no = self._id.no + 1
+		return self._id.no==0 and self._id.id
+		                      or  self._id.id .. '_' .. self._id.no,
+			   self._id.no==0			
+	end
+	
+	-- le titre
+	function w:title(...)
+		local txt = sprintf(...)
+		self:_body('<',self.HEADING,' id="', self:_nxId(), '">',
+				   esc(txt):gsub(self.HEXADDR, function(ref) 
+					for i=0,65535 do
+						local addr,t = tonumber(ref,16)
+						t = (addr-i+65536)%65536 
+						if mem[t] then return '<a href="#'..hex(t)..'">'..ref..'</a>' end
+						t = (addr+i+65536)%65536 
+						if mem[t] then return '<a href="#'..hex(t)..'">'..ref..'</a>' end
+					end
+					return ref
+				   end),
+				   '</',self.HEADING,'>','\n')
+	end
+	
+	-- début de table
+	function w:header(columns)
+		local id = self:_nxId()
 
-            local cols,align,align_style={},{['<'] = 'left', ['='] = 'center', ['>'] = 'right'},OPT_MAP and "    #t1 {width: 100%}\n" or ''
-            for i,n in ipairs(columns) do
-                local tag = n:match('^([<=>])')
-                cols[i] = trim(tag and n:sub(2) or n)
-                align_style = align_style ..
-                    '    #t1 td:nth-of-type(' .. i .. ') {' ..
-                    'text-align: ' .. align[tag or '<'] ..  ';' ..
-                    ((i==1 or i==4) and ' font-weight: bold;' or '') ..
-                    '}\n'
-            end
+		-- selection de la fonction de gestion des lignes en fonction de l'id
+		self._row = self._std_row
+		if id:match('flatmap') then self._row = self._flatmap_row end
+		if id:match('memmap')  then self._row = self._memmap_row  end
 
-            w([[<!DOCTYPE html>
+		self.ncols = #columns
+		-- gestion du style
+		local align  = {[''] = 'left', ['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
+		local family = {['*'] = 'bold'}
+		local cols, empty = {}, true
+        for i,n in ipairs(columns) do
+            local tag,font,txt = n:match('^([<=>]?)([%*]?)(.*)')
+            cols[i] = trim(txt)
+			if cols[i] then empty=false else cols[i]='' end
+			self:_style('    #', id, ' td:nth-of-type(', i, ') {\n', family[font] and 
+			            '      font-weight:' .. family[font]..';\n' or '',
+				        '      text-align: ', align[tag], ';\n',
+						'    }\n')
+        end
+
+		local class = ""
+		if id:match('memmap') then
+			class = ' class="memmap"'
+			self._footer_callback = function(self)
+				self:_body('  <script>document.getElementById("',id,'").style.display = "table";</script>\n')
+			end
+		end
+
+		self:_body('  <table id="',id,'"', class ,'>\n')
+        if not empty then self:_std_row("th", cols) end
+    end
+	
+	-- fonction de fermeture. C'est ici qu'on écrit vraiment dans
+	-- le fichier après avoir collecté toutes les infos de style.
+	-- on en profite aussi pour ajouter les information de progression
+	-- du chargment maintenant que l'on connait l'ensemble du corp 
+	-- du fichier HTML.
+	function w:close()
+		local function f(v, ...)
+			if v then self.file:write(tostring(v)) f(...) end
+		end
+		f([[<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>DCMoto_MemMap</title>
-  <style>
+  <style>	
+	/* 2 columns */
+	body {
+      overflow: hidden; 
+      margin: 0; 
+      display:flex; 
+      flex-flow:row;
+    }
+	
+	#left {
+      overflow: auto;
+      width:    auto;
+      height:   100vh;
+	  /* scroll doux ici SVP */
+      scroll-behavior:       smooth;
+      scroll-padding-top:    3em;
+      scroll-padding-bottom: 4em;
+    }
+
+    #right {
+      flex-grow: 1;
+	  
+      overflow:  auto;
+      height:    100vh;
+      
+	  display:   flex;
+      flex-flow: column;
+    }
+	
+	/* trucs globaux: liens */
     :target {
       background-color: gold;
     }
-
+	a {
+      font-weight:     bold;
+      text-decoration: none;
+    }
+	a:hover {
+	  background-color: yellow;
+      text-decoration:  underline;
+    }
+	a:active {
+       background-color :gold;
+    }
+	
+	/* trucs globaux: table */
     table {
       border-collapse: collapse;
       border-top:      1px solid #ddd;
       border-bottom:   1px solid #ddd;
+	  font-family:     monospace;
     }
     th, td {
       padding-left:  8px;
@@ -1027,50 +1030,21 @@ local function newHtmlWriter(file, mem)
       background-color: lightgray;
       border-bottom:    1px solid #ddd;
     }
-    tr:hover {
-      background-color:  lightgray;
+	table tr:hover {
+      background-color: lightgray;
     }
+	
+	/* trucs globaux: couleurs */
+	.c0 {background-color:#111;}
+    .c1 {background-color:#e11;}
+    .c2 {background-color:#1e1;}
+    .c3 {background-color:#ee1;}
+    .c4 {background-color:#11e;}
+    .c5 {background-color:#e1e;}
+    .c6 {background-color:#1ee;}
+    .c7 {background-color:#eee;}
 
-    #main {
-      overflow: auto;
-      width:    auto;
-      height:   100vh;
-      
-      scroll-behavior:       smooth;
-      scroll-padding-top:    3em;
-      scroll-padding-bottom: 4em;
-    }
-    table a {
-      font-weight:     bold;
-      text-decoration: none;
-    }
-    table a:hover {
-      text-decoration: underline;
-    }
-
-    #TOP:hover, #BOTTOM:hover {
-      background-color: yellow;
-    }
-
-    #t1 a:active {
-       background-color :yellow;
-    }
-
-    #memmap {
-      flex-grow: 1;
-      display:   flex;
-      flex-flow: column;
-      overflow:  auto;
-      height:    100vh;
-    }
-    #memmap a {
-      font-weight: bold;
-      cursor:      default;
-    }
-    #memmap a:hover {
-      text-decoration: none;
-    }
-
+	/* loading screen */
     #loadingPage {
       position:        fixed; top: 0; left: 0; width: 100%; height: 100%;
       display:         none; 
@@ -1097,80 +1071,62 @@ local function newHtmlWriter(file, mem)
     #loadingProgress:hover {
       background-color: #fefefe;
     }
-
-    #TOP, #BOTTOM {
+	
+	/* les tables memmap */
+	.memmap {
+	  display:      none;
+      table-layout: fixed;
+	}
+	.memmap a {
+      display:         block; 
+      height:          100%; 
+      width:           100%;
+	  text-decoration: none; 
+      cursor:          default;
+    }
+    .memmap a:hover {
       text-decoration: none;
     }
-
-    .c0 {background-color:#111;}
-    .c1 {background-color:#e11;}
-    .c2 {background-color:#1e1;}
-    .c3 {background-color:#ee1;}
-    .c4 {background-color:#11e;}
-    .c5 {background-color:#e1e;}
-    .c6 {background-color:#1ee;}
-    .c7 {background-color:#eee; cursor: not-allowed;}
-
-    td.c0:hover {background-color:white;}
-    td.c1:hover {background-color:black;}
-    td.c2:hover {background-color:black;}
-    td.c3:hover {background-color:black;}
-    td.c4:hover {background-color:white;}
-    td.c5:hover {background-color:black;}
-    td.c6:hover {background-color:black;}
-    td.c7:hover {background-color:black;}
-
-    .mm {
-      table-layout: fixed;
-      display:      none;
-    }
-    .mm tr:hover {
-      background-color:initial;
-    }
-    .mm a {
-      text-decoration:none; 
-      display: block; 
-      height:100%; 
-      width:100%;
-    }
-    .mm td {
+	.memmap td.c7       {cursor: not-allowed}
+    .memmap td.c0:hover {background-color:white;}
+    .memmap td.c1:hover {background-color:black;}
+    .memmap td.c2:hover {background-color:black;}
+    .memmap td.c3:hover {background-color:black;}
+    .memmap td.c4:hover {background-color:white;}
+    .memmap td.c5:hover {background-color:black;}
+    .memmap td.c6:hover {background-color:black;}
+    .memmap td.c7:hover {background-color:black;}
+    .memmap td {
       padding:    0; 
       border:     1px solid #ddd; 
       min-width:  2px; 
-      min-height: 2px;]],'\n',
-'      width:      ',100/OPT_COLS,'vmin;\n',
-'      height:     ',100/OPT_COLS,'vmin;\n',
-'    }\n',
-    align_style,
-    OPT_MAP and [[
-    body {
-      overflow: hidden; 
-      margin: 0; 
-      display:flex; 
-      flex-flow:row;
-    }]] or '',[[
+      min-height: 2px;
+]],
+'      width:      ', 100/OPT_COLS, 'vmin;\n',
+'      height:     ', 100/OPT_COLS, 'vmin;\n',
+'    }\n', self._style_, [[
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #1c1c1e;
         color: #fefefe;
       }
-      :target          {background-color:#b70;}
+      :target          {background-color: #b70; color: black;}
       a                {color: #6fb9ee;}
-      th, tr:hover     {background-color:#777;color: white;}
-      #t1 a:active,#TOP:hover, #BOTTOM:hover {background-color:gold;}
-      .c0 {background-color:#111;}
-      .c1 {background-color:#c11;}
-      .c2 {background-color:#1c1;}
-      .c3 {background-color:#cc1;}
-      .c4 {background-color:#11c;}
-      .c5 {background-color:#c1c;}
-      .c6 {background-color:#1cc;}
-      .c7 {background-color:#ccc;}
+      a:hover          {background-color: gold;}
+      th, tr:hover     {background-color: #555; color: black;}
+      .c0              {background-color: #111;}
+      .c1              {background-color: #c11;}
+      .c2              {background-color: #1c1;}
+      .c3              {background-color: #cc1;}
+      .c4              {background-color: #11c;}
+      .c5              {background-color: #c1c;}
+      .c6              {background-color: #1cc;}
+      .c7              {background-color: #ccc;}
       #loadingProgress {background-color: lightgray;}
     }  
     
     @media (prefers-reduced-motion: reduce) {
-      html {scroll-behavior: auto;}
+      #left            {scroll-behavior: auto;}
     }
   </style>
 </head>
@@ -1220,39 +1176,163 @@ local function newHtmlWriter(file, mem)
     <div id="loadingGray"></div>
     <button id="loadingProgress" onclick="hideLoadingPage()" title="click to access anyway" class="h1">
         Please wait while loading...<br>
-        <progress id="loadingProgressBar" max="100"></progress>
+        <progress id="loadingProgressBar" max="1"></progress>
     </button>
   </div>
   <script>
     progress(0);
     document.getElementById('loadingPage').style.display = 'flex';
-  </script>]])
-            local MACH = {
-                ['']      = 'All TO/MO',
-                [MACH_XX] = 'Not decided yet',
-                [MACH_MO] = 'MO5/MO6',
-                [MACH_TO] = 'TO7(70)/TO8/TO9(+)'
-            }
-            w(OPT_MAP and '  <div id="main">\n' or '',
-              '  <',HEADING,'>Analysis of <code>',TRACE,'</code>',
-              '  <a href="#BOTTOM" id="TOP" accesskey="b" title="Go to bottom of page.\nShort cut : [Meta]-b">',
-              '(&darr;)</a></',HEADING,'>\n',
-              '  <p></p>\n',
-              '  <table>\n',
-              '  <tr><th style="text-align: right">Machine:</th><td>', MACH[OPT_MACH or ''],'</td></tr>\n',
-              '  <tr><th style="text-align: right">Range:</th><td><code>$', hex(OPT_MIN), '</code> &rarr; <code>$', hex(OPT_MAX), '</code></td></tr>\n',
-              '  <tr><th style="text-align: right">Date:</th><td>', os.date('%Y-%m-%d %H:%M:%S'), '</td></tr>\n',
-              '  </table>\n',
-              '  <p></p>\n',
-              '  <table id="t1" style="font-family: monospace;">\n')
-            if self.ncols>0 then self:_row("th", cols) end
-            return self
-        end,
-        row = function(self, cels)
-            self:_row('td', cels)
-            return self
+	window.addEventListener("load", hideLoadingPage);
+  </script>
+]])
+
+		if self._2panes then f('  <div id="left">\n') end
+
+		-- écriture du body avec la progression
+		local nxt, size = 0, #self._body_
+		for i,txt in ipairs(self._body_) do
+			f(txt)
+			if txt:len()>0 and txt:sub(-1)=='\n' and i>nxt then
+				f('<script>progress(', (i-1)/size, ')</script>\n')
+				nxt = i + size/100 -- on augmente de 1%
+			end
+		end
+	
+		if self._2panes then f('  </div>') end
+		f[[
+</body>
+</html>]]
+		self.file:close()
+	end
+	
+	-- lignes html pure
+	function w:_raw_row(tag, html_cols)
+   		if nil==html_cols[1] then
+			html_cols[1] = '&nbsp;'
+		end
+
+		local tr = {}
+		local function add(v,...) 
+			if v then table.insert(tr,v) add(...) end
+		end
+		add('    ','<tr')
+		local id,orig = self:_nxId()
+		if orig then add(' id="',id,'"') end
+		add('>')
+		
+		local span = #html_cols~=self.ncols and #html_cols or -1
+		for i,v in ipairs(html_cols) do
+			add('<', tag)
+			if i==span then add(' style="text-align:left;" colspan="', self.ncols - i + 1,'"') end
+			add('>', v, '</',tag,'>')
+		end
+		add('</tr>\n')
+		self:_body(unpack(tr))
+	end
+	
+	-- ligne standard
+	function w:_std_row(tag, columns)
+		local cols = {}
+		for i,v in ipairs(columns) do 
+			local t = esc(trim(v) or ' ') 
+			local before,a,after = t:match('(.*)'..self.HEXADDR..'(.*)')
+			if a and valid[a] then
+				t = before .. ahref('',a,a) .. after
+			end
+			cols[i] = t
+		end
+		self:_raw_row(tag,cols)
+	end
+	
+	-- ligne de la flatmap
+	function w:_flatmap_row(tag,columns)
+		local ADDR, cols = columns[1], {}
+		-- la 1er colonne donne l'id
+		if ADDR and ADDR:len()==4 then self:id(ADDR) end
+		for i,v in ipairs(columns) do
+			v = trim(tostring(v)) or ' '
+            if i==2 or i==3 then
+                v = ahref(ADDR,v,v)
+            elseif i==5 then
+                local back = code2mem[ADDR]
+                if back then
+                    local before,arg,after = v:match('^([%d/()]+%s*%S+%s+)([%[<%-]?%$?[%w_,]+)(.*)$')
+                    if not arg then before,arg,after = v:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
+                    if not arg then error(v) end
+                    v = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
+                else
+                    -- sauts divers
+                    local before,addr,after = v:match('^(.*)%$'..self.HEXADDR..'(.*)$')
+                    if addr then
+                        v = esc(before) .. ahref(ADDR, addr,'$'..addr) .. esc(after)
+                    else
+                        v = esc(v)
+                    end
+                end
+			else
+				v = esc(v)
+            end
+			cols[i] = v
         end
-    }
+        self:_raw_row(tag,cols)
+    end
+	
+	-- ligne hotspot
+	function w:_hotspot_row(tag,columns)
+		local cols = {}
+		for i,v in ipairs(columns) do
+			v = trim(v) or ''
+            if i==2 then
+                v = ahref('',v,v)
+			else
+                v = esc(v)
+            end
+			cols[i] = v
+        end
+        self:_raw_row(tag,cols)
+    end
+	
+	-- TODO ligne memmap
+	w._memmap_color = {
+		['---' ] = 7,
+		['--W' ] = 1,
+		['-R-' ] = 2,
+		['-RW' ] = 3,
+		['X--' ] = 4,
+		['X-W' ] = 5,
+		['XR-' ] = 6,
+		['XRW' ] = 0,
+		['---S'] = 0,
+		['--WS'] = 0,
+		['-R-S'] = 0,
+		['-RWS'] = 0,
+		['X--S'] = 0,
+		['X-WS'] = 0,
+		['XR-S'] = 0,
+		['XRWS'] = 0
+	}
+	function w:_memmap_row(tag,cols)
+		local t = {} local function add(v,...)
+			if v then self:_body(v) add(...) end
+		end
+		add('<tr>')
+		local BASE = tonumber(cols[1],16)-1
+        for i=1,cols[2]:len() do
+            local m,a = mem[BASE+i],hex(BASE+i)
+            if m then
+				local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
+				if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
+				add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title), '">',
+					'<a href="#', a, '"></a>')
+            else
+				add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
+            end
+		end
+		add('</tr>\n')
+	end
+		
+	log('Created HTML writer.')
+    return w
 end
 
 ------------------------------------------------------------------------------
@@ -1431,13 +1511,24 @@ local mem = {
         end
         return self
     end,
-    _stkop = '***STACK***',
+	RWX = function(self, m)
+		if type(m)=='string' then m = tonumber(m,16) end
+		if type(m)=='number' then m = self[m] end
+		return m and
+			(m.x==0      and '-' or 'X')..
+		    (m.r==NOADDR and '-' or 'R')..
+		    (m.w==NOADDR and '-' or 'W')..
+		    (m.s and 'S' or '')
+		or
+			'---'
+	end,
+    _stkop = '* STACK-ZONE *',
     -- charge un fichier TAB Separated Value (CSV avec des tab)
     loadTSV = function(self, f)
         if f then
             profile:_()
             for s in f:lines() do
-                local pc,r,w,x,a = s:match('(%x+)%s+([-%x]+)%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
+                local pc,r,w,x,a = s:match('%s*(%x+)%s+([-%x]+)%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
                 if pc then
                     local stkop = a==self._stkop; a = _stkop and ''or a
                     if x~='-'    then self:pc(pc):x('12',tonumber(x)):a(a) end
@@ -1451,72 +1542,160 @@ local mem = {
         end
         return f
     end,
-    -- hotspot
     _saveHotspot = function(self, writer)
-        local spots,total,count,first = findHotspots(self),0,0,true
+        local spots,total,count = findHotspots(self),0,0
         profile:_()
         for i,s in ipairs(spots) do total = total + s.t end
+		writer:id("hotspots")
+		writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
+		writer:header{'*Number','Addr','>*Cycles (µs)','<Time         '}
         for i,s in ipairs(spots) do
-            if first then
-                first = false
-                writer:row{}
-                writer:row{{'Hot spots (runtime: ~%.2fs)', total/1000000}}
-            end
-            writer:row{}
+            if i>1 then writer:row{'', '', '', ''} end
             local EMPTY='     '
             s.p = s.p or {s.a}
             for j,p in ipairs(s.p) do
-                writer:row{EMPTY, 
-                    j==1 and {'  #%-4d',i} or EMPTY, 
+                writer:row{
+                    j==1 and sprintf('  #%-4d',i) or EMPTY, 
                     p,
-                    {'%5d', self[tonumber(p,16)].x},
-                    j==1 and {'%5.2f%% (%.3gs)',  100*s.t/total, s.t/1000000} or EMPTY}
+                    sprintf('%5d', self[tonumber(p,16)].x), -- %5d pour éviter de matcher une adresse (4 chiffres)
+                    j==1 and sprintf('%5.2f%% (%.3gs)',  100*s.t/total, s.t/1000000) or EMPTY
+				}
             end
             count = count + s.t
             if i>=3 and count >= .8 * total then break end
         end
+		writer:footer()
         profile:_()
     end,
-    _saveTab = function(self, writer)
+	_saveMach = function(self, writer)
+        local MACH = {
+            ['']      = 'All TO/MO',
+            [MACH_XX] = 'Unknown',
+            [MACH_MO] = 'MO5/MO6',
+            [MACH_TO] = 'TO7(70)/TO8/TO9(+)'
+        }
+		writer:id('info')
+		writer:header{'>','<'}
+		writer:row{'Start', hex(OPT_MIN)}
+		writer:row{'Stop',  hex(OPT_MAX)}
+		writer:row{'Type',  MACH[OPT_MACH or '']}
+		writer:row{'Date',  os.date('%Y-%m-%d %H:%M:%S')}
+		writer:footer()
+	end,
+    _saveFlatMap = function(self, writer)
         profile:_()
 
-        writer:header{"Addr   ", "RdFrom ", "WrFrom ", "> ExeCnt", "<Asm code"}
+		writer:id("flatmap")
+		writer:title("Collected addresses")
+        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Asm code"}
 
         local n,curr=0,0
-        local function u(space)
+        local function u()
             if n>0 then
-                if space<0 then writer:row{} end
-                writer:row{{'%d byte%s untouched', n, n>1 and 's' or ''}}
-                if space>0 then writer:row{} end
+				writer:row{sprintf('%d byte%s untouched', n, n>1 and 's' or '')}
+                writer:row{}
                 n = 0
              end
         end
+		
+		local VOID=''
         for i=OPT_MIN,OPT_MAX do
             local m=self[i]
             if m then
                 local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
                 if mask ~= curr 
+				or mask==0 and i==OPT_MAX
                 or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
-                then writer:row{} end curr = mask
-                u(1)
-                if mask~=4 or m.asm then
-                    writer:row{hex(i), m.r, m.w, m.x==0 and '-' or m.x,m.asm or (m.s and self._stkop) or ''}
+                then writer:row{} end curr = mask; u()
+				
+				local adr = hex(i)
+				local lbl = m.asm
+				if not lbl and EQUATES[adr] then lbl = '* ' .. EQUATES[adr] end
+                if mask~=4 or lbl then
+                    writer:row{adr, m.r, m.w, m.x>0 and m.x or VOID,lbl or (m.s and self._stkop) or VOID}
                 end
             else
                 n, curr = n + 1, 0
             end
-        end
-        u(-1)
+        end u()
+		writer:footer()
         profile:_()
     end,
+	_save_Memmap = function(self,writer)
+	        -- encodage si JS n'est pas supporté par le browser (Lynx, Links)
+        local short = {
+            ['---' ] = '-',
+            ['--W' ] = 'W',
+            ['-R-' ] = 'R',
+            ['-RW' ] = 'M',
+            ['X--' ] = 'X',
+            ['X-W' ] = 'Z',
+            ['XR-' ] = 'Y',
+            ['XRW' ] = '#',
+            ['---S'] = 'S',
+            ['--WS'] = 'S',
+            ['-R-S'] = 'S',
+            ['-RWS'] = 'S',
+            ['X--S'] = 'S',
+            ['X-WS'] = 'S',
+            ['XR-S'] = 'S',
+            ['XRWS'] = 'S'
+        }
+        
+        -- pour avoir une table découpée en plusieurs bout (plus facile à lire et à charger)
+        local notEmpty = {}
+        local function isEmpty(i,j)
+            if j then
+                for k=i,j do if not isEmpty(k) then return false end end
+                return true
+            elseif nil~=notEmpty[i] then
+                return not notEmpty[i]
+            else 
+                local empty = true
+                for j=i*OPT_COLS,i*OPT_COLS+OPT_COLS-1 do
+                    if self:RWX(j)~='---' then empty=false; break; end
+                end
+                notEmpty[i] = not empty
+                return empty
+            end
+        end
+        -- affiche une table découpée. On saute par dessus "BLOC' elements vides
+        local BLOC = 8
+        local cur,top = math.floor(OPT_MIN/OPT_COLS),math.floor(OPT_MAX/OPT_COLS)
+        repeat
+			-- saute au dessus des lignes vides
+			while cur<=top and isEmpty(cur) do cur = cur + 1 end
+			if cur>top then break end
+			-- on trouve la fin
+			local nxt = cur
+			repeat nxt = nxt + 1 until nxt>top or isEmpty(nxt,nxt+BLOC) 
+			-- titre
+			writer:title('Memory map: $%04X -> $%04X', cur*OPT_COLS, nxt*OPT_COLS-1)
+			writer:id('memmap' .. cur)
+			writer:header{'=','<'}
+			for j=cur,nxt-1 do
+				local c1, c2 = hex(OPT_COLS*j), ''
+				for i=0,OPT_COLS-1 do
+					c2 = c2 .. short[self:RWX(OPT_COLS*j+i)]
+				end
+				writer:row{c1, c2}
+			end
+			writer:footer()
+			cur = nxt
+        until cur>top		
+	end,
     -- écrit un fichier en utilisant le writer fourni
     save = function(self, writer)
         writer = writer or newParallelWriter()
-        self:_saveTab(writer)
+		self:_saveMach(writer)
+        self:_saveFlatMap(writer)
         self:_saveHotspot(writer)
+		self:_save_Memmap(writer)
         return writer
     end
 }
+mem:pc(00000):a('* Start of memory')
+mem:pc(65535):a('* End of memory')
 
 ------------------------------------------------------------------------------
 -- Programme principal: analyse le fichier de trace
