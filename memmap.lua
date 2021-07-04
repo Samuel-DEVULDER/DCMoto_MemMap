@@ -803,6 +803,16 @@ local function newHtmlWriter(file, mem)
             return '$' .. addr .. ' : untouched' .. EQUATES:t(addr), '---', addr
         end
     end
+	
+	-- retourne l'adresse valid la plus proche ou nil
+	local function closest_valid(addr)
+		local base,n = tonumber(addr,16)
+		for i=0,65535 do
+			n = hex(base+i); if valid[n] then return n end
+			n = hex(base-i); if valid[n] then return n end
+		end
+		return nil
+	end
 
     -- échappement html
     local function esc(txt)
@@ -899,16 +909,10 @@ local function newHtmlWriter(file, mem)
     function w:title(...)
         local txt = sprintf(...)
         self:_body('<',self.HEADING,' id="', self:_nxId(), '">',
-                   esc(txt):gsub(self.HEXADDR, function(ref) 
-                    for i=0,65535 do
-                        local addr,t = tonumber(ref,16)
-                        t = (addr-i+65536)%65536 
-                        if mem[t] then return '<a href="#'..hex(t)..'">'..ref..'</a>' end
-                        t = (addr+i+65536)%65536 
-                        if mem[t] then return '<a href="#'..hex(t)..'">'..ref..'</a>' end
-                    end
-                    return ref
-                   end),
+					esc(txt):gsub(self.HEXADDR, function(ref) 
+						local valid = closest_valid(ref)
+						return valid and '<a href="#'..valid..'">'..ref..'</a>' or ref
+                    end),
                    '</',self.HEADING,'>','\n')
     end
 
@@ -1331,7 +1335,7 @@ local function newHtmlWriter(file, mem)
                 local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
                 if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
                 add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title), '">',
-                    '<a href="#', a, '"></a>')
+                    '<a href="#', a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
             end
