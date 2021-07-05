@@ -804,14 +804,22 @@ local function newHtmlWriter(file, mem)
         end
     end
 	
-	-- retourne l'adresse valid la plus proche ou nil
-	local function closest_valid(addr)
-		local base,n = tonumber(addr,16)
-		for i=0,65535 do
-			n = hex(base+i); if valid[n] then return n end
-			n = hex(base-i); if valid[n] then return n end
+	-- pointe sur l'adrese la plus proche
+	local function closest_ahref(addr)
+		if valid[add] then
+			return '<a href="#' .. addr .. '>' .. addr .. '</a>'
+		else
+			local base,n = tonumber(addr,16)
+			for i=1,65535 do
+				n = hex(base+i); if valid[n] then break end
+				n = hex(base-i); if valid[n] then break end
+			end
+			if valid[n] then
+				return '<a href="#' .. n .. '" title="goto $' .. n ..'">' .. addr .. '</a>'
+			else
+				return add
+			end
 		end
-		return nil
 	end
 
     -- échappement html
@@ -909,10 +917,7 @@ local function newHtmlWriter(file, mem)
     function w:title(...)
         local txt = sprintf(...)
         self:_body('<',self.HEADING,' id="', self:_nxId(), '">',
-					esc(txt):gsub('%$'..self.HEXADDR, function(ref) 
-						local valid = closest_valid(ref)
-						return valid and '$<a href="#'..valid..'">'..ref..'</a>' or ref
-                    end),
+					esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
                    '</',self.HEADING,'>','\n')
     end
 
@@ -1248,9 +1253,8 @@ local function newHtmlWriter(file, mem)
         for i,v in ipairs(columns) do 
             local t = esc(trim(v) or ' ') 
             local before,a,after = t:match('(.*%$)'..self.HEXADDR..'(.*)')
-			local v = a and closest_valid(a)
-            if v then
-                t = before .. '<a href="#' .. v .. '">' .. a .. "</a>" .. after
+            if a then
+				t = before .. closest_ahref(a) .. after
             end
             cols[i] = t
         end
@@ -1270,8 +1274,8 @@ local function newHtmlWriter(file, mem)
                 local back = code2mem[ADDR]
                 if back then
                     local before,arg,after = v:match('(.*%$)'..self.HEXADDR..'(.*)')
-                    if not arg then v:match('^([%d/()]+%s*%S+%s+)([%[<%-]?%$?[%w_,]+)(.*)$') end
-                    if not arg then before,arg,after = v:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
+                    if not arg then before,arg,after = v:match('^(%([%d/]+%)%s*%S+%s+[%[<]?)(%-?%$?[%w_,]+)(.*)$') end
+                    if not arg then before,arg,after = v:match('^(%([%d/]+%)%s*)([%w_,]+)(.*)$') end
                     if not arg then error(v) end
                     v = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
                 else
@@ -1619,7 +1623,8 @@ local mem = {
         for i=OPT_MIN,OPT_MAX do
             local m=self[i]
             if m then u()
-                local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
+                -- local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
+                local mask = ((m.r..m.w==NOADDR..NOADDR or m.asm) and 0 or 1) + (m.x==0 and 0 or 4)
 
                 if mask ~= curr 
                 or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
