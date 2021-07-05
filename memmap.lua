@@ -909,9 +909,9 @@ local function newHtmlWriter(file, mem)
     function w:title(...)
         local txt = sprintf(...)
         self:_body('<',self.HEADING,' id="', self:_nxId(), '">',
-					esc(txt):gsub(self.HEXADDR, function(ref) 
+					esc(txt):gsub('%$'..self.HEXADDR, function(ref) 
 						local valid = closest_valid(ref)
-						return valid and '<a href="#'..valid..'">'..ref..'</a>' or ref
+						return valid and '$<a href="#'..valid..'">'..ref..'</a>' or ref
                     end),
                    '</',self.HEADING,'>','\n')
     end
@@ -931,8 +931,9 @@ local function newHtmlWriter(file, mem)
 
         -- selection de la fonction de gestion des lignes en fonction de l'id
         self._row = self._std_row
-        if id:match('flatmap') then self._row = self._flatmap_row end
-        if id:match('memmap')  then self._row = self._memmap_row  end
+        if id:match('flatmap')  then self._row = self._flatmap_row end
+        if id:match('hotspots') then self._row = self._hotspot_row end
+        if id:match('memmap')   then self._row = self._memmap_row  end
 
         self.ncols = #columns
         -- gestion du style
@@ -1246,9 +1247,10 @@ local function newHtmlWriter(file, mem)
         local cols = {}
         for i,v in ipairs(columns) do 
             local t = esc(trim(v) or ' ') 
-            local before,a,after = t:match('(.*)'..self.HEXADDR..'(.*)')
-            if a and valid[a] then
-                t = before .. ahref('',a,a) .. after
+            local before,a,after = t:match('(.*%$)'..self.HEXADDR..'(.*)')
+			local v = a and closest_valid(a)
+            if v then
+                t = before .. '<a href="#' .. v .. '">' .. a .. "</a>" .. after
             end
             cols[i] = t
         end
@@ -1267,16 +1269,16 @@ local function newHtmlWriter(file, mem)
             elseif i==5 then
                 local back = code2mem[ADDR]
                 if back then
-                    local before,arg,after = v:match('(.*)'..self.HEXADDR..'(.*)')
+                    local before,arg,after = v:match('(.*%$)'..self.HEXADDR..'(.*)')
                     if not arg then v:match('^([%d/()]+%s*%S+%s+)([%[<%-]?%$?[%w_,]+)(.*)$') end
                     if not arg then before,arg,after = v:match('^([%d/()]+%s*)([%w_,]+)(.*)$') end
                     if not arg then error(v) end
                     v = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
                 else
                     -- sauts divers
-                    local before,addr,after = v:match('^(.*)%$'..self.HEXADDR..'(.*)$')
+                    local before,addr,after = v:match('^(.*%$)'..self.HEXADDR..'(.*)$')
                     if addr then
-                        v = esc(before) .. ahref(ADDR, addr,'$'..addr) .. esc(after)
+                        v = esc(before) .. ahref(ADDR, addr, addr) .. esc(after)
                     else
                         v = esc(v)
                     end
@@ -1293,7 +1295,7 @@ local function newHtmlWriter(file, mem)
     function w:_hotspot_row(tag,columns)
         local cols = {}
         for i,v in ipairs(columns) do
-            v = trim(v) or ''
+            v = trim(v) or ' '
             if i==2 then
                 v = ahref('',v,v)
             else
@@ -1588,8 +1590,8 @@ local mem = {
         }
         writer:id('info')
         writer:header{'>','<'}
-        writer:row{'Start', hex(OPT_MIN)}
-        writer:row{'Stop',  hex(OPT_MAX)}
+        writer:row{'Start', '$'..hex(OPT_MIN)}
+        writer:row{'Stop',  '$'..hex(OPT_MAX)}
         writer:row{'Type',  MACH[OPT_MACH or '']}
         writer:row{'Date',  os.date('%Y-%m-%d %H:%M:%S')}
         writer:footer()
