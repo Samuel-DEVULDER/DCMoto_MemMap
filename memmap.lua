@@ -66,6 +66,7 @@
 ------------------------------------------------------------------------------
 
 local NOADDR = '----'                  -- marqueur d'absence
+local NOCYCL = ''                      -- marqueur d'absence
 local TRACE  = 'dcmoto_trace.txt'      -- fichier trace
 local RESULT = 'memmap'                -- racine des fichiers résultats
 local BRAKET = {' <-',''}              -- pour décorer les equates
@@ -160,9 +161,7 @@ local memoize = {
     make = function(self, fcn)
         -- do return fcn end
         return function(...)
-            local args = {...}
-            local k = ''
-            for i,v in ipairs(args) do k = k .. ':' .. tostring(v) end
+            local k = table.concat({...},':')
             local function set(...)
                 local v = {...}
                 if self.size >= 65536 then self.size, self.cache = 0, {} end
@@ -260,7 +259,7 @@ local EQUATES = {
         return OPT_EQU 
         and (self[addr or ''] and BRAKET[1]..self[addr]..BRAKET[2]
         or   self[add2 or ''] and BRAKET[1]..self[add2]..BRAKET[2]
-        or   '')
+        or   '') or ''
     end,
     -- init equates for video ram
     iniVRAM = function(self, base)
@@ -681,7 +680,7 @@ end
 local function newTSVWriter(file, tablen)
     tablen = tablen or 8
     local function align(n)
-        return tablen*math.floor((n + tablen -1)/tablen)
+        return tablen*math.floor(1+n/tablen)
     end
     local w = newBasicWriter();
     -- evite le fichier vide
@@ -730,11 +729,11 @@ local function newTSVWriter(file, tablen)
             if ok and n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
             n = trim(n) or ''
             if self.align[i]=='>' then
-                t = t .. string.rep(' ', self.clen[i] - n:len()-1) .. n
+                t = t .. string.rep(' ', self.clen[i] - n:len() - 1) .. n
             elseif self.align[i]=='=' then
-                t = t .. string.rep(' ',math.floor((self.clen[i] - n:len())/2)) .. n
+                t = t .. string.rep(' ',math.floor((self.clen[i] - n:len() - 1)/2)) .. n
             else
-                t = t .. n
+                t = t .. n .. string.rep(' ', self.clen[i] - n:len() - tablen)
             end
         end
         self:printf('%s\n', t=='' and t or t:sub(2))
@@ -804,24 +803,6 @@ local function newHtmlWriter(file, mem)
         end
     end
 	
-	-- pointe sur l'adrese la plus proche
-	local function closest_ahref(addr)
-		if valid[add] then
-			return '<a href="#' .. addr .. '>' .. addr .. '</a>'
-		else
-			local base,n = tonumber(addr,16)
-			for i=1,65535 do
-				n = hex(base+i); if valid[n] then break end
-				n = hex(base-i); if valid[n] then break end
-			end
-			if valid[n] then
-				return '<a href="#' .. n .. '" title="goto $' .. n ..'">' .. addr .. '</a>'
-			else
-				return add
-			end
-		end
-	end
-
     -- échappement html
     local function esc(txt)
         local r = txt
@@ -838,6 +819,24 @@ local function newHtmlWriter(file, mem)
         return r
     end
     
+	-- pointe sur l'adrese la plus proche
+	local function closest_ahref(addr)
+		if valid[addr] then
+			return '<a href="#' .. addr .. '">' .. addr .. '</a>'
+		else
+			local base,n = tonumber(addr,16)
+			for i=1,65535 do
+				n = hex(base+i); if valid[n] then break end
+				n = hex(base-i); if valid[n] then break end
+			end
+			if valid[n] then
+				return '<a href="#' .. n .. '" title="goto $' .. n ..'">' .. addr .. '</a>'
+			else
+				return add
+			end
+		end
+	end
+
     -- retourne le code html pour un hyperlien sur "addr" avec le texte
     -- "txt" (le tout pour l'adresse "from")
     local function ahref(from, addr, txt)
@@ -853,8 +852,8 @@ local function newHtmlWriter(file, mem)
             return x
         end
         return valid[anchor] 
-        and '<a href="#' .. anchor .. '" title="' .. esc2(title) .. '">' .. esc(txt) .. '</a>'
-        or esc(txt)
+        and '<a href="#' .. anchor .. '" title="' .. esc2(title):gsub('<BR>','') .. '">' .. esc(txt) .. '</a>'
+		or esc(txt)
     end
 
     -- allez, on crée le writer
@@ -886,8 +885,9 @@ local function newHtmlWriter(file, mem)
     -- les trucs simples
     function w:printf(...)
         local txt = sprintf(...)
-        self:_body(esc(txt))
+		self:_body(esc(txt))
     end
+	
     function w:row(cels)
         self:_row('td', cels)
     end
@@ -961,6 +961,9 @@ local function newHtmlWriter(file, mem)
             self._footer_callback = function(self)
                 self:_body('  <script>document.getElementById("',id,'").style.display = "table";</script>\n')
             end
+		-- elseif id:match('caption') then
+			-- self:_body('<noscript>\n')
+			-- self._footer_callback = function(self) self:_body('</noscript>\n') end
         else
             self:_body('  <div style="display:flex">\n')
             self._footer_callback = function(self)
@@ -1372,12 +1375,10 @@ local function findHotspots(mem)
                 return math.abs(m.x - self.x)<=1
             end,
             add = function(self,m,i)
-                if m.asm then
-                    local cycles = tonumber(m.asm:match('%((%d+)')) or 0
-                    self.x = m.x
-                    self.t = self.t + m.x * cycles
-                    self.i = i
-                end
+				local cycles = tonumber(m.asm:match('%((%d+)')) or 0
+				self.x = m.x
+				self.t = self.t + m.x * cycles
+				self.i = i --- dernière adresse du blocq
                 return self
             end,
             push = function(self, spots)
@@ -1402,16 +1403,18 @@ local function findHotspots(mem)
         }
     end
     -- construit les portions droites
-    for i=OPT_MIN,OPT_MAX do
+    for i=OPT_MIN,OPT_MAX do 
         local m = mem[i]
-        if not m then
-            if hot then hot = hot:push(spots) end
-        elseif hot and hot:touches(m) then
-            hot:add(m, i)
-        else
-            if hot and not hot:touches(m) then hot = hot:push(spots) end
-            if m.asm then hot = newHot(i):add(m, i) end
-        end
+		if nil==m or m.x==0 or m.asm then
+			if nil==m or m.x==0 then
+				if hot then hot = hot:push(spots) end
+			elseif hot and hot:touches(m) then
+				if m.asm then hot:add(m, i) end
+			else
+				if hot then hot = hot:push(spots) end
+				if m.asm then hot = newHot(i):add(m, i) end
+			end
+		end
     end
     -- recolle les bouts 
     local pool = {}
@@ -1454,7 +1457,7 @@ local function findHotspots(mem)
                 hot.t = hot.t + j.t
                 hot.j = j.j
                 hot.b = j.b
-                j.a, j.p,j.x,j.t = nil
+                j.a,j.b,j.x,j.t = nil
                 -- rajout avec la nouvelle adresse
                 pool [hot.a] = hot
                 spots[hot.a] = hot
@@ -1483,6 +1486,7 @@ end
 ------------------------------------------------------------------------------
 
 local mem = {
+	cycles = 0,
     -- accesseur privé à une case mémoire
     _get = function(self, i)
         local t = self[i % 65536]
@@ -1509,7 +1513,7 @@ local mem = {
     end,
     -- marque "addr" comme lue depuis le compteur programme courant
     r = function(self, addr, len, stack)
-        for i=0,(len or 1)-1 do local m = self:_get(addr+i)
+		for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.r, m.s = self.PC, stack
         end
         return self
@@ -1540,19 +1544,31 @@ local mem = {
         or
             '---'
     end,
-    _stkop = '* STACK-ZONE *',
+    _stkop     = '* STACK-ZONE *',
+	_cycles_hd = 'Total Cycles',
     -- charge un fichier TAB Separated Value (CSV avec des tab)
     loadTSV = function(self, f)
         if f then
             profile:_()
+			local _stkop = self._stkop
             for s in f:lines() do
-                local pc,r,w,x,a = s:match('%s*(%x+)%s+([-%x]+)%s+([-%x]+)%s+([-%d]+)%s+(.*)$')
-                if pc then
-                    local stkop = a==self._stkop; a = _stkop and ''or a
-                    if x~='-'    then self:pc(pc):x('12',tonumber(x)):a(a) end
-                    if r~=NOADDR then self:pc(r):r(pc,stkop)     end
-                    if w~=NOADDR then self:pc(w):r(pc,stkop)     end
-                end
+				local t = {}
+				-- s:gsub('([^\t]*)\t?', function(v) table.insert(t, trim(v) or '') return '' end) i=#t
+				-- local i=1 for v in s:gmatch('([^\t]*)\t?') do t[i],i = trim(v) or '', i+1 end
+				-- for v in s:gmatch('([^\t]*)\t?') do t[#t+1] = trim(v) or '' end
+				for v in s:gmatch('([^\t]*)\t?') do table.insert(t, trim(v) or '') end
+				-- for v in s:gmatch('([^\t]*)\t?') do rawset(t, #t+1, trim(v) or '') end
+				if t[1] == self._cycles_hd then
+					self.cycles = tonumber(t[2]:match('^(%d+)')) or self.cycles
+				elseif t[5] and t[1]:match('^%x%x%x%x$') then
+					local pc,r,w,x,a,stkop = unpack(t)
+					-- print(table.concat(t,','))
+					pc = tonumber(pc,16)
+					if a==_stkop then a,stkop = '',true else stkop = nil end
+                    if x~=NOCYCL then self:pc(pc):x('12',tonumber(x)):a(a)  end
+                    if r~=NOADDR then self:pc(tonumber(r,16)):r(pc,1,stkop) end
+                    if w~=NOADDR then self:pc(tonumber(w,16)):w(pc,1,stkop)	 end
+				end
             end
             profile:_()
         else
@@ -1576,7 +1592,7 @@ local mem = {
                     j==1 and sprintf('  #%-4d',i) or EMPTY, 
                     p,
                     sprintf('%5d', self[tonumber(p,16)].x), -- %5d pour éviter de matcher une adresse (4 chiffres)
-                    j==1 and sprintf('%5.2f%% (%.3gs)',  100*s.t/total, s.t/1000000) or EMPTY
+                    j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000) or EMPTY
                 }
             end
             count = count + s.t
@@ -1585,7 +1601,13 @@ local mem = {
         writer:footer()
         profile:_()
     end,
-    _saveMach = function(self, writer)
+    _saveInfos = function(self, writer)
+		-- trouve la pile supposée
+		local stack
+		for i=0,65535 do
+			local m=self[i]
+			if m and m.s then stack = '$'..hex(i); break end
+		end
         local MACH = {
             ['']      = 'All TO/MO',
             [MACH_XX] = 'Unknown',
@@ -1593,11 +1615,13 @@ local mem = {
             [MACH_TO] = 'TO7(70)/TO8/TO9(+)'
         }
         writer:id('info')
-        writer:header{'>','<'}
-        writer:row{'Start', '$'..hex(OPT_MIN)}
-        writer:row{'Stop',  '$'..hex(OPT_MAX)}
-        writer:row{'Type',  MACH[OPT_MACH or '']}
-        writer:row{'Date',  os.date('%Y-%m-%d %H:%M:%S')}
+        writer:header{'<','<'}
+        writer:row{    'Current Date' ,  os.date('%Y-%m-%d %H:%M:%S')}
+		writer:row{   self._cycles_hd , sprintf('%d (~%.0fs)', self.cycles, self.cycles/1000000)}
+        writer:row{    'Machine Type' , MACH[OPT_MACH or '']}
+		writer:row{ 'Stack (guessed)' , stack or "n/a"}
+        writer:row{   'Start Address' , '$'..hex(OPT_MIN)}
+        writer:row{    'Stop Address' , '$'..hex(OPT_MAX)}
         writer:footer()
     end,
     _saveFlatMap = function(self, writer)
@@ -1634,7 +1658,7 @@ local mem = {
                 local lbl = m.asm
                 if not lbl and EQUATES[adr] then lbl = '* ' .. EQUATES[adr] end
                 if mask~=4 or lbl then
-                    writer:row{adr, m.r, m.w, m.x>0 and m.x or VOID,lbl or (m.s and self._stkop) or VOID}
+                    writer:row{adr, m.r, m.w, m.x>0 and m.x or NOCYCL,lbl or (m.s and self._stkop) or VOID}
                     first = false
                 end
             else
@@ -1645,25 +1669,26 @@ local mem = {
         profile:_()
     end,
     _save_Memmap = function(self,writer)
+		profile:_()
             -- encodage si JS n'est pas supporté par le browser (Lynx, Links)
         local short = {
-            ['---' ] = '-',
-            ['--W' ] = 'W',
-            ['-R-' ] = 'R',
-            ['-RW' ] = 'M',
-            ['X--' ] = 'X',
-            ['X-W' ] = 'Z',
-            ['XR-' ] = 'Y',
-            ['XRW' ] = '#',
-            ['---S'] = 'S',
-            ['--WS'] = 'S',
-            ['-R-S'] = 'S',
-            ['-RWS'] = 'S',
-            ['X--S'] = 'S',
-            ['X-WS'] = 'S',
-            ['XR-S'] = 'S',
-            ['XRWS'] = 'S'
-        }
+            ['---' ] = {'-','Untouched byte',''},
+            ['--W' ] = {'W','Writen byte',''},
+            ['-R-' ] = {'R','Read byte',''},
+            ['-RW' ] = {'M','Modified byte',''},
+            ['X--' ] = {'X','Code',''},
+            ['X-W' ] = {'Z','Modified code','(cool)'},
+            ['XR-' ] = {'Y','Entry point',''},
+            ['XRW' ] = {'#','Modified entry point','(strange)'},
+            ['---S'] = {'*','Untouched stack byte','(weird)'},
+            ['--WS'] = {'*','Never read stack byte','(strange)'},
+            ['-R-S'] = {'*','Never writen stack byte','(strange)'},
+            ['-RWS'] = {'*','Stack byte',''},
+            ['X--S'] = {'*','Impossible','(call me)'},
+            ['X-WS'] = {'*','Code on stack','(strange)'},
+            ['XR-S'] = {'*','Impossible','(call me)'},
+            ['XRWS'] = {'*','Code & stack together','(weird)'},
+        nil}
         
         -- pour avoir une table découpée en plusieurs bout (plus facile à lire et à charger)
         local notEmpty = {}
@@ -1699,18 +1724,30 @@ local mem = {
             for j=cur,nxt-1 do
                 local c1, c2 = hex(OPT_COLS*j), ''
                 for i=0,OPT_COLS-1 do
-                    c2 = c2 .. short[self:RWX(OPT_COLS*j+i)]
+                    c2 = c2 .. short[self:RWX(OPT_COLS*j+i)][1]
                 end
                 writer:row{c1, c2}
             end
             writer:footer()
             cur = nxt
-        until cur>top       
+        until cur>top
+		
+		writer:id('caption')
+		writer:title('Caption')
+		local code = {}
+		for k,_ in pairs(short) do table.insert(code, sprintf('%4s',k)) end
+		table.sort(code)
+		writer:header{'<*Attr','=Short','<Description           ','>Comment '}
+		for _,k in ipairs(code) do
+			writer:row{k, unpack(short[trim(k)])}
+		end
+		writer:footer()
+		profile:_()
     end,
     -- écrit un fichier en utilisant le writer fourni
     save = function(self, writer)
         writer = writer or newParallelWriter()
-        self:_saveMach(writer)
+        self:_saveInfos(writer)
         self:_saveFlatMap(writer)
         self:_saveHotspot(writer)
         self:_save_Memmap(writer)
@@ -1750,9 +1787,8 @@ function getaddr(args, regs)
     x = args:match('^%$(%x%x%x%x)$') if x then return tonumber(x,16) end
 
     -- Indexé
-    x   = args:match('^,([XYUS])')              if x then return reg(x) end
-    x   = args:match(',%-([XYUS])$')            if x then return add16(reg(x),-1) end
-    x   = args:match(',%-%-([XYUS])$')          if x then return add16(reg(x),-2) end
+    x   = args:match('^,%-*([XYUS])$')          if x then return reg(x) end
+    x,a = args:match(',([XYUS])(%++)$')         if x then return add16(reg(x), -a:len()) end
     a,x = args:match('^([D]),([XYUS])$')        if a and x then return add16(reg(x),reg(a)) end
     a,x = args:match('^([AB]),([XYUS])$')       if a and x then return add16(reg(x), sex(reg(a))) end
     a,x = args:match('^%$(%x%x),([XYUS])$')     if a and x then return add16(reg(x), sex(tonumber(a,16))) end
@@ -1775,7 +1811,7 @@ local function stack(reg, ptr, dir, args)
     local stkop = usePC and reg=='S'
     ptr = tonumber(ptr,16)
     local function mk(len)
-        if dir>0 then mem:r(ptr, len, stkop) else mem:w(add16(ptr,-len), len, stkop) end
+        if dir>0 then mem:w(ptr, len, stkop) else mem:r(add16(ptr,-len), len, stkop) end
         ptr = add16(ptr,dir*len)
     end
     if usePC            then mk(2) end
@@ -1791,11 +1827,11 @@ local function stack(reg, ptr, dir, args)
 end
 -- lecture depuis la pile "reg"
 local function pull(reg, args, regs)
-    stack(reg, regs:match(reg..'=(%x%x%x%x)'), 1,args)
+    stack(reg, regs:match(reg..'=(%x%x%x%x)'),-1,args)
 end
 -- écriture depuis la pile "reg"
 local function push(reg, args, regs)
-    stack(reg,regs:match(reg..'=(%x%x%x%x)'),-1,args)
+    stack(reg,regs:match(reg..'=(%x%x%x%x)'), 1,args)
 end
 
 ------------------------------------------------------------------------------
@@ -1860,7 +1896,7 @@ local function read_trace(filename)
     local start_time = os.clock()
 
     local pc,hexa,opcode,args,regs,sig,jmp,curr_pc
-    local nomem = {} -- cache des codes hexa ne touchant pas la mémoire (pour aller plus vite)
+    local nomem_asm = {} -- cache des codes hexa ne touchant pas la mémoire (pour aller plus vite)
     local jmp = nil -- pour tracer d'où l'on vient en cas de saut
     local function maybe_indirect()
         if args:sub(1,1)=='[' then
@@ -1869,7 +1905,7 @@ local function read_trace(filename)
         end
     end
     local DISPATCH = {
-        ['???']  = function() opcode = DCMOTO_RESERVED[hexa] or opcode; nomem[sig] = true end,
+        ['???']  = function() opcode = DCMOTO_RESERVED[hexa] or opcode; return true end,
         ['PULS'] = function() pull('S',args,regs) end,
         ['PSHS'] = function() push('S',args,regs) end,
         ['PULU'] = function() pull('U',args,regs) end,
@@ -1883,12 +1919,18 @@ local function read_trace(filename)
         ['RTI']  = function() pull('S','A/B/X/Y/U/CC/DP/PC',regs) end, -- take E flag of cc into account ?
         _ = function(self, set, fcn) for k in pairs(set) do self[k] = fcn end end
     }
-    DISPATCH:_(R8,  function() local a = getaddr(args,regs) if a then mem:r(a)   else nomem[sig] = true end end)
-    DISPATCH:_(W8,  function() local a = getaddr(args,regs) if a then mem:w(a)   else nomem[sig] = true end end)
-    DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:rw(a)  else nomem[sig] = true end end)
-    DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else nomem[sig] = true end end)
-    DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else nomem[sig] = true end end)
+    DISPATCH:_(R8,  function() local a = getaddr(args,regs) if a then mem:r(a)   else return true end end)
+    DISPATCH:_(W8,  function() local a = getaddr(args,regs) if a then mem:w(a)   else return true end end)
+    DISPATCH:_(RW8, function() local a = getaddr(args,regs) if a then mem:rw(a)  else return true end end)
+    DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else return true end end)
+    DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else return true end end)
 
+	local function parse(s)
+		return s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
+	end
+	-- parse = memoize:make(parse)
+
+	local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}
     profile:_()
     for s in f:lines() do
         -- print(s) io.stdout:flush()
@@ -1896,39 +1938,43 @@ local function read_trace(filename)
             local txt = sprintf('%6.02f%%', 100*f:seek()/size)
             out('%s%s', txt, string.rep('\b', txt:len()))
         end
-
-        num,pc,hexa,opcode,args = num+1,s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
-
-        -- local pc,hexa,opcode,args = s:sub(1,4),trim(s:sub(6,15)),s:sub(17,42):match('(%S+)%s+(%S*)%s*$')
-         -- print(pc, hexa, opcode, args)
-        if opcode then
-            -- print(pc,hex,opcode,args)
+        if OK_START[s:sub(1,1)] then
+			num,last,pc,hexa,opcode,args = num+1,s,parse(s)--s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
+			-- print(pc,hex,opcode,args)
             -- curr_pc, sig = tonumber(pc,16), hexa
-            curr_pc, sig = tonumber(pc,16), hexa
+            curr_pc = tonumber(pc,16)
             if jmp then mem:pc(jmp):r(curr_pc) jmp = nil end
                 -- if pc~=jmp_skip then mem:pc(jmp):r(curr_pc) end
                 -- jmp,jmp_skip = nil 
             -- end
             mem:pc(curr_pc):x(hexa,1)
-            if REL_JMP[opcode] then sig, jmp, mem[curr_pc].rel_jmp = pc..':'..hexa, curr_pc, args end
+            if REL_JMP[opcode] then 
+				sig, jmp, mem[curr_pc].rel_jmp = pc..':'..hexa, curr_pc, args 
+			else
+				sig = hexa
+			end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
-            if nomem[sig] then
-                mem:a(nomem[sig])
+            if nomem_asm[sig] then
+                mem:a(nomem_asm[sig])
             else
                 regs = s:sub(61,106)
-                local f = DISPATCH[opcode] if f then f() else nomem[sig] = true end
+                local f = DISPATCH[opcode] 
+				local nomem = nil==f or f()
                 -- on ne connait le code asm vraiment qu'à la fin
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     "(" .. trim(s:sub(43,46)) .. ")"
-                local equate = EQUATES:t(args:match('%$(%x%x%x%x)'), pc)
-                if equate~='' then 
-                    local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+				local addr   = args:match('%$(%x%x%x%x)')
+                local equate = addr and EQUATES:t(addr, pc) or ''
+                if equate~='' then -- remore duplicate
+					-- protect special chars
+					local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
                     asm = asm:gsub(equate_ptn, '')
                 end
                 asm = sprintf("%-5s%s%s", cycles, asm, equate)
-                if nomem[sig] then nomem[sig] = asm end
                 mem:pc(curr_pc):a(asm)
+                -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
+				if nomem then nomem_asm[sig] = asm end
             end
         else
             jmp = nil
@@ -1936,6 +1982,7 @@ local function read_trace(filename)
     end
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
+	mem.cycles = mem.cycles + tonumber(last:sub(48,57))
     profile:_()
     
     -- nettoyage des branchements conditionnels non pris
@@ -1944,11 +1991,13 @@ local function read_trace(filename)
         local m = mem[i]
         if m and m.asm then
             if m.r==last_bcc and i~=last_arg then
+				-- si on est lu sans venir d'un saut, on retire le flag de lecture
                 m.r = NOADDR
             end
             if m.rel_jmp then
                 last_bcc  = hex(i)
                 last_arg  = tonumber(m.rel_jmp:match('%$(%x%x%x%x)'),16)
+				m.asm = (nil==last_arg or mem[last_arg]) and m.asm or m.asm..BRAKET[1].."unreached"..BRAKET[2]
                 -- m.rel_jmp = nil
             else
                 last_bcc  = nil
