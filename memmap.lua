@@ -67,7 +67,7 @@
 --
 --      NUM bytes untouched.
 --
--- v0.1 2021-07-03T10:48:07CEST
+-- $Version $Date
 ------------------------------------------------------------------------------
 
 local NOADDR = '----'                  -- marqueur d'absence
