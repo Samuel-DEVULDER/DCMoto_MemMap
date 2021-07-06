@@ -939,6 +939,7 @@ local function newHtmlWriter(file, mem)
         if id:match('flatmap')  then self._row = self._flatmap_row end
         if id:match('hotspots') then self._row = self._hotspot_row end
         if id:match('memmap')   then self._row = self._memmap_row  end
+		if id:match('caption')  then self._row = self._caption_row end
 
         self.ncols = #columns
         -- gestion du style
@@ -1059,7 +1060,7 @@ local function newHtmlWriter(file, mem)
     .c0 {background-color:#111;}
     .c1 {background-color:#e11;}
     .c2 {background-color:#1e1;}
-    .c3 {background-color:#ee1;}
+    .c3 {background-color:#fe1;}
     .c4 {background-color:#11e;}
     .c5 {background-color:#e1e;}
     .c6 {background-color:#1ee;}
@@ -1252,10 +1253,10 @@ local function newHtmlWriter(file, mem)
     
     -- ligne standard
     function w:_std_row(tag, columns)
-        local cols = {}
+        local cols, patt = {}, '(.*%$)'..self.HEXADDR..'(.*)'
         for i,v in ipairs(columns) do 
             local t = esc(trim(v) or ' ') 
-            local before,a,after = t:match('(.*%$)'..self.HEXADDR..'(.*)')
+            local before,a,after = t:match(patt)
             if a then
 				t = before .. closest_ahref(a) .. after
             end
@@ -1344,14 +1345,33 @@ local function newHtmlWriter(file, mem)
                 local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
                 if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
                 add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title), '">',
-                    '<a href="#', a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
+                    '<a href="#', m.x>0 and self._memmap_last_asm_addr or a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
             end
         end
         add('</tr>\n')
     end
-        
+
+	function w:_caption_row(tag,columns)
+		local cols = {}
+        for i,v in ipairs(columns) do
+            v = trim(v) or ' '
+            if i==2 then
+				local c = self._memmap_color[trim(columns[1])]
+				local d = (c==0 or c==4) and "white" or "black";
+				v = '<div align="center" class="c' .. c .. '" ' ..
+					' style="display: inline-block; width:1em; height: 1em; color: ' .. d .. ';">' ..
+					'<noscript>' .. esc(v) .. '</noscript>' ..
+					'</div>'
+            else
+                v = esc(v)
+            end
+            cols[i] = v
+        end
+        self:_raw_row(tag,cols)
+	end
+	        
     log('Created HTML writer.')
     return w
 end
@@ -1737,7 +1757,7 @@ local mem = {
 		local code = {}
 		for k,_ in pairs(short) do table.insert(code, sprintf('%4s',k)) end
 		table.sort(code)
-		writer:header{'<*Attr','=Short','<Description           ','>Comment '}
+		writer:header{'<*Attr','=Short','<	Description           ','>Comment '}
 		for _,k in ipairs(code) do
 			writer:row{k, unpack(short[trim(k)])}
 		end
