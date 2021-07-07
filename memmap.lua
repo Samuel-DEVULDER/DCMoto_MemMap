@@ -3,11 +3,12 @@
 --
 -- Usage:
 --     lua.exe memmap.lua [-reset] [-loop]
---                        [-from=XXXX] [-to=XXXX]
 --                        [-mach=(mo|to|??)]
+--                        [-from=XXXX] [-to=XXXX]
 --                        [-map[=NBCOLS]] [-hot] [-equ] 
 --                        [-html] [-smooth]
 --                        [-verbose[=N]]
+--                        [?|-h|--help]
 --
 -- Le programme attends que le fichier dcmoto_trace.txt apparaisse dans
 -- le repertoire courant. Ensuite il l'analyse, et produit un fichier
@@ -1135,6 +1136,12 @@ local function newHtmlWriter(file, mem)
 '      width:      ', 100/OPT_COLS, 'vmin;\n',
 '      height:     ', 100/OPT_COLS, 'vmin;\n',
 '    }\n', self._style_, [[
+	.caption {
+		align:   center;
+		display: inline-block;
+		width:   1em; 
+		height:  1em;
+	}
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #1c1c1e;
@@ -1370,10 +1377,10 @@ local function newHtmlWriter(file, mem)
             if i==2 then
                 local c = self._memmap_color[trim(columns[1])]
                 local d = (c==0 or c==4) and "white" or "black";
-                v = '<div align="center" class="c' .. c .. '" ' ..
-                    ' style="display: inline-block; width:1em; height: 1em; color: ' .. d .. ';">' ..
-                    '<noscript>' .. esc(v) .. '</noscript>' ..
-                    '</div>'
+				v = '<span class="caption c' .. c .. 
+					'" style="color: ' .. d .. ';">' ..
+					'<noscript>' .. esc(v) .. '</noscript>' ..
+					'</span>'
             else
                 v = esc(v)
             end
