@@ -3,6 +3,8 @@
 -- Version : $Version$
 -- Author  : Samuel Devulder
 -- Date    : $Date$
+--
+-- Usage:
 -- $Usage$ : see README
 -----------------------------------------------------------------------------
 

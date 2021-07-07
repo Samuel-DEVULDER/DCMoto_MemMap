@@ -2,7 +2,6 @@
 Outil d'analyse de traces d'execution de [DCMoto](http://dcmoto.free.fr/emulateur/index.html) par S. Devulder.
 
 # Usage
-Usage:
 ```
 	lua memmap.lua	[-reset] [-loop]
 	                [-mach=(mo|to|??)]
