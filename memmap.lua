@@ -107,13 +107,44 @@ local memoize = {
         -- do return fcn end
         return function(...)
             local k = table.concat({...},':')
-            local function set(...)
-                local v = {...}
+            local function set(self,k,v)
                 if self.size >= 65536 then self.size, self.cache = 0, {} end
                 self.size, self.cache[k] = self.size + 1, v
                 return v
             end
-            return unpack(self.cache[k] or set(fcn(...)))
+            return unpack(self.cache[k] or set(self,k,fcn(...)))
+        end
+    end
+}
+local memoize21 = {
+    size  = 0,
+    cache = {},
+    make = function(self, fcn)
+        -- do return fcn end
+        return function(a1,a2)
+            local k = a1..a2
+            local function set(self,k,v)
+                if self.size >= 655360 then self.size, self.cache = 0, {} end
+                self.size, self.cache[k] = self.size + 1, v
+                return v
+            end
+            return self.cache[k] or set(self,k,fcn(a1,a2))
+        end
+    end
+}
+local memoize1n = {
+    size  = 0,
+    cache = {},
+    make = function(self, fcn)
+        -- do return fcn end
+        return function(a1)
+            local k = a1
+            local function set(self,k,v)
+                if self.size >= 65536 then self.size, self.cache = 0, {} end
+                self.size, self.cache[k] = self.size + 1, v
+                return v
+            end
+            return unpack(self.cache[k] or set(self,k,{fcn(a1)}))
         end
     end
 }
@@ -762,7 +793,7 @@ local function newHtmlWriter(file, mem)
             ["&"]="&amp;"})
         :gsub("&lt;%-", "&larr;"):gsub("%-&gt;", "&rarr;")
         :gsub('\n','<BR>\n')
-        :gsub(' ','&nbsp;')
+        :gsub('  ',' &nbsp;')
         return r
     end
     
@@ -1777,7 +1808,7 @@ function getaddr(args, regs)
     -- inconnu
     error(args)
 end
--- getaddr = memoize:make(getaddr)
+getaddr = memoize21:make(getaddr)
 
 -- Auxiliaire qui marque les adresses pointée par "ptr" comme
 -- lues (dir>0) ou écrits (dir<0) en fonction des arguments de
@@ -1904,7 +1935,7 @@ local function read_trace(filename)
     local function parse(s)
         return s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
     end
-    -- parse = memoize:make(parse)
+    -- parse = memoize1n:make(parse)
 
     local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}
     profile:_()
@@ -1958,7 +1989,7 @@ local function read_trace(filename)
     end
     f:close()
     out(string.rep(' ', 10) .. string.rep('\b',10))
-    mem.cycles = mem.cycles + tonumber(last:sub(48,57))
+    if last then mem.cycles = mem.cycles + tonumber(last:sub(48,57)) end
     profile:_()
     
     -- nettoyage des branchements conditionnels non pris
