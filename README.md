@@ -63,4 +63,4 @@ En principe le fichier HTML est compatible tout "brouteur", y compris ceux en mo
 
 Cliquez sur [ce lien](https://github.com/Samuel-DEVULDER/DCMoto_MemMap/blob/main/example/memmap.csv) pour voir à quoi ressemble une version CSV.
 
-Cliquez sur [cet autre lien](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Samuel-DEVULDER/DCMoto_MemMap/main/example/memmap.html) pour jouer avec une version HTML ( <u>/!\</u> L'affichage est plutôt lent).
+Cliquez sur [cet autre lien](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Samuel-DEVULDER/DCMoto_MemMap/main/example/memmap.html) pour jouer avec une version HTML ( <u>/!\\</u> L'affichage est plutôt lent).
