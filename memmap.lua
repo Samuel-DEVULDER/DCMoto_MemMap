@@ -983,23 +983,28 @@ local function newHtmlWriter(file, mem)
   <meta charset="utf-8">
   <title>DCMoto_MemMap</title>
   <style>
-    html {
+    body {
       scroll-padding-top:    3em;
       scroll-padding-bottom: 4em;
-      scroll-behavior:       ]], OPT_SMOOTH, [[;
-    }]], self._2panes and [[
-    body {
-      /* 2 columns */
+      scroll-behavior:       ]], OPT_SMOOTH, ';\n',
+    self._2panes and [[
+      
+	  /* 2 columns */
       overflow: hidden; 
       margin: 0; 
       display:flex; 
       flex-flow:row;
-    }
     ]] or '', [[
+	}
+	
     #left {
       overflow: auto;
       width:    auto;
       height:   100vh;
+	  
+	  scroll-padding-top:    3em;
+      scroll-padding-bottom: 4em;
+      scroll-behavior:       ]], OPT_SMOOTH, ';\n',[[
     }
 
     #right {
@@ -1010,6 +1015,10 @@ local function newHtmlWriter(file, mem)
       
       display:   flex;
       flex-flow: column;
+	  
+	  scroll-padding-top:    3em;
+      scroll-padding-bottom: 4em;
+      scroll-behavior:       ]], OPT_SMOOTH, ';\n',[[
     }
     
     /* trucs globaux: liens */
@@ -1045,6 +1054,9 @@ local function newHtmlWriter(file, mem)
       background-color: lightgray;
       border-bottom:    1px solid #ddd;
     }
+	tr {
+	  height: 1em;
+	}
     table tr:hover {
       background-color: lightgray;
     }
@@ -1302,7 +1314,7 @@ local function newHtmlWriter(file, mem)
     function w:_hotspot_row(tag,columns)
         local cols = {}
         for i,v in ipairs(columns) do
-            v = trim(v) or ' '
+            v = trim(v) or ''
             if i==2 then
                 v = ahref('',v,v)
             else
@@ -1389,7 +1401,7 @@ local function findHotspots(mem)
     local spots,hot = {}
     local function newHot(i)
         return {
-            x = 0, t = 0, a = hex(i), j=nil, b=nil, p=nil,
+            x = 0, t = 0, a = hex(i), j=nil, b=nil, p={hex(i)},
             touches = function(self,m)
                 return math.abs(m.x - self.x)<=1
             end,
@@ -1397,23 +1409,24 @@ local function findHotspots(mem)
                 local cycles = tonumber(m.asm:match('%((%d+)')) or 0
                 self.x = m.x
                 self.t = self.t + m.x * cycles
-                self.i = i --- dernière adresse du blocq
+                self.i = i -- dernière adresse du bloc
                 return self
             end,
             push = function(self, spots)
                 local i = self.i
                 local asm = mem[i].asm
                 local jmp,addr = asm:match('(%a+)%s+%$(%x%x%x%x)')
+				table.insert(self.p, hex(i))
                 self.i = nil
                 if not(asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$')) then
                     repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
                     self.j = i<=OPT_MAX and hex(i) or nil
                 end
-                if addr and addr~=self.a then
+                if addr then
                     if jmp=='JMP' or jmp=='BRA' or jmp=='LBRA' then 
                         self.j = addr
                     elseif REL_JMP[jmp] then
-                        self.b = addr~=self.a and addr
+                        self.b = addr
                     end
                 end
                 spots[self.a] = self
@@ -1437,59 +1450,51 @@ local function findHotspots(mem)
     end
     -- recolle les bouts 
     local pool = {}
-    for _,h in pairs(spots) do if h.j then pool[h.a] = h end end
+    for _,h in pairs(spots) do if h.j and h.a~=h.j then pool[h.a] = h end end
     while next(pool) do
         -- on trouve le plus petit avec un saut
         local hot
         for _,h in pairs(pool) do 
             hot = (hot and hot.x<h.x and hot) or h
         end
-        -- out('Fond hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
+        -- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
         -- out('>>%s\n', type(hot.j))
-        -- choix de la branche la plus lourde
-        if hot and hot.j and hot.b then
-        -- out('1\n')
-            local j,b = spots[hot.j], spots[hot.b]
-            -- nettoyage
-            if b==nil then hot.b = nil end
-            if j==nil then hot.j = hot.b end
-            -- deplace la plus lourde en j, efface le branchement
-            if j and b and j.x<b.x then hot.j, hot.b = hot.b,nil end
-            -- on vire les trucs auto-bloquants
-            if hot.a==hot.j then hot.j=nil end
-        end
-        if hot and hot.j then
-        -- out('2\n')
-            local j = spots[hot.j]
-            if j then
-                -- fusion
-                -- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
-                if hot.a>j.a then hot,j = j,hot end
-                hot.p = hot.p or {hot.a}
-                for _,x in ipairs(j.p or {j.a}) do table.insert(hot.p,x) end
-                -- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
-                -- retrait 
-                pool [hot.a],pool [j.a] = nil,nil
-                spots[hot.a],spots[j.a] = nil,nil
-                -- fusion
-                hot.x = math.max(hot.x, j.x)
-                hot.t = hot.t + j.t
-                hot.j = j.j
-                hot.b = j.b
-                j.a,j.b,j.x,j.t = nil
-                -- rajout avec la nouvelle adresse
-                pool [hot.a] = hot
-                spots[hot.a] = hot
-            else
-                -- on pointe dans le vide, on le retire du pool
-                hot.j = nil
-            end
-        end
-        -- retrait du pool si n'a pas de j ou sion reboucle sur soi)
-        if hot and ((nil==hot.j) or (hot.a==hot.j)) then 
+        
+		-- choix de la branche la plus lourde
+		local j = hot and spots[hot.j]
+		if j and hot.b then
+			local b = spots[hot.b]
+			if b and j.x<b.x then j = b end
+		end
+        
+		-- on vire les trucs auto-bloquants
+		if j and j==hot then j=nil end
+		
+		if j then
+			-- fusion
+			-- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
+			if hot.a>j.a then hot,j = j,hot end
+			
+			if hot.b == nil then hot.p[#hot.p] = nil end
+			if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
+			for _,x in ipairs(j.p) do table.insert(hot.p,x)	end
+			
+			-- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
+			-- retrait 
+			pool [hot.a],pool [j.a] = nil,nil
+			spots[hot.a],spots[j.a] = nil,nil
+			-- fusion
+			hot.x = math.max(hot.x, j.x)
+			hot.t = hot.t + j.t
+			hot.j = j.j
+			hot.b = j.b
+			j.a,j.b,j.x,j.t = nil
+			-- rajout avec la nouvelle adresse
+			pool [hot.a] = hot
+			spots[hot.a] = hot
+		else
             -- out('Remove %s\n', hot.a)
-            if pool[hot.a]~=hot then error(hot.a) end
-            pool[hot.a] = nil
+			pool[hot.a] = nil
         end
     end
     -- cee une liste ordonnée
@@ -1596,7 +1601,7 @@ local mem = {
         return f
     end,
     _saveHotspot = function(self, writer)
-        local spots,total,count = findHotspots(self),0,0
+        local spots,total,count = self._hotspots or findHotspots(self),0,0
         profile:_()
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
