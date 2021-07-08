@@ -101,51 +101,65 @@ end
 
 -- memoization
 local memoize = {
-    size  = 0,
-    cache = {},
-    make = function(self, fcn)
-        -- do return fcn end
-        return function(...)
-            local k = table.concat({...},':')
-            local function set(self,k,v)
-                if self.size >= 65536 then self.size, self.cache = 0, {} end
-                self.size, self.cache[k] = self.size + 1, v
-                return v
-            end
-            return unpack(self.cache[k] or set(self,k,fcn(...)))
-        end
-    end
-}
-local memoize21 = {
-    size  = 0,
-    cache = {},
-    make = function(self, fcn)
-        -- do return fcn end
-        return function(a1,a2)
-            local k = a1..a2
-            local function set(self,k,v)
-                if self.size >= 655360 then self.size, self.cache = 0, {} end
-                self.size, self.cache[k] = self.size + 1, v
-                return v
-            end
-            return self.cache[k] or set(self,k,fcn(a1,a2))
-        end
-    end
-}
-local memoize1n = {
-    size  = 0,
-    cache = {},
-    make = function(self, fcn)
-        -- do return fcn end
-        return function(a1)
-            local k = a1
-            local function set(self,k,v)
-                if self.size >= 65536 then self.size, self.cache = 0, {} end
-                self.size, self.cache[k] = self.size + 1, v
-                return v
-            end
-            return unpack(self.cache[k] or set(self,k,{fcn(a1)}))
-        end
+	-- version n->n
+    ret_n = function(self, fcn)
+		local size, cache, concat = 0,{},table.concat
+		local info = debug.getinfo(fcn)
+		if info.nparams==1 and not info.isvararg then
+			return function(k)
+				local v = cache[k]
+				if v then
+					return unpack(v)
+				else
+					v = {fcn(k)}
+					if size>=65536 then size,cache = 0,{} end
+					cache[k], size = v, size+1
+					return unpack(v)
+				end
+			end
+		end
+		return function(...)
+			local k = concat(arg,'')
+			local v = cache[k]
+			if v then
+				return unpack(v)
+			else
+				v = {fcn(...)}
+				if size>=65536 then size,cache = 0,{} end
+				cache[k], size = v, size+1
+				return unpack(v)
+			end
+		end
+    end,
+	-- version n->1
+    ret_1 = function(self, fcn)
+		local size, cache, concat = 0,{},table.concat
+		local info = debug.getinfo(fcn)
+		if info.nparams==1 and not info.isvararg then
+			return function(k)
+				local v = cache[k]
+				if v then
+					return v
+				else
+					v = fcn(k)
+					if size>=65536 then size,cache = 0,{} end
+					cache[k], size = v, size+1
+					return v
+				end
+			end
+		end
+		return function(...)
+			local k = concat(arg,'')
+			local v = cache[k]
+			if v then
+				return v
+			else
+				v = fcn(...)
+				if size>=65536 then size,cache = 0,{} end
+				cache[k], size = v, size+1
+				return v
+			end
+		end
     end
 }
 
@@ -1808,7 +1822,7 @@ function getaddr(args, regs)
     -- inconnu
     error(args)
 end
-getaddr = memoize21:make(getaddr)
+getaddr = memoize:ret_1(getaddr) -- speedup with meoization
 
 -- Auxiliaire qui marque les adresses pointée par "ptr" comme
 -- lues (dir>0) ou écrits (dir<0) en fonction des arguments de
@@ -1935,7 +1949,7 @@ local function read_trace(filename)
     local function parse(s)
         return s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
     end
-    -- parse = memoize1n:make(parse)
+    -- parse = memoize:ret_n(parse)
 
     local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}
     profile:_()
