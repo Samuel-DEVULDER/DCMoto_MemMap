@@ -59,6 +59,8 @@ Si on laisse la souris un certain temps sur un hyperlien, des infos synthétique
 
 En principe le fichier HTML est compatible tout "brouteur", y compris ceux en mode texte ou ceux fonctionnant en mode ésombre". Attention toutefois, comme il est assez gros cerains "browsers" mettent de temps à l'afficher. A l'heure actuelle il semble que ce soit Firefox qui soit le plus perfomant. Chrome mets plus de temps, mais une barre de progression est affichée durant le chargement pour patienter.
 
-# Example
+# Examples
 
-Cliquez sur [ce lien](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Samuel-DEVULDER/DCMoto_MemMap/main/memmap.html) pour jouer avec une version HTML.
+Cliquez sur [ce lien](https://github.com/Samuel-DEVULDER/DCMoto_MemMap/blob/main/example/memmap.csv) pour voir à quoi ressemble une version CSV.
+
+Cliquez sur [cet autre lien](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Samuel-DEVULDER/DCMoto_MemMap/main/example/memmap.html) pour jouer avec une version HTML ( <u>/!\</u> L'affichage est plutôt lent).

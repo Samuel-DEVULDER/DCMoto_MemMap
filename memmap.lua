@@ -101,65 +101,65 @@ end
 
 -- memoization
 local memoize = {
-	-- version n->n
+    -- version n->n
     ret_n = function(self, fcn)
-		local size, cache, concat = 0,{},table.concat
-		local info = debug.getinfo(fcn)
-		if info.nparams==1 and not info.isvararg then
-			return function(k)
-				local v = cache[k]
-				if v then
-					return unpack(v)
-				else
-					v = {fcn(k)}
-					if size>=65536 then size,cache = 0,{} end
-					cache[k], size = v, size+1
-					return unpack(v)
-				end
-			end
-		end
-		return function(...)
-			local k = concat(arg,'')
-			local v = cache[k]
-			if v then
-				return unpack(v)
-			else
-				v = {fcn(...)}
-				if size>=65536 then size,cache = 0,{} end
-				cache[k], size = v, size+1
-				return unpack(v)
-			end
-		end
+        local size, cache, concat = 0,{},table.concat
+        local info = debug.getinfo(fcn)
+        if info.nparams==1 and not info.isvararg then
+            return function(k)
+                local v = cache[k]
+                if v then
+                    return unpack(v)
+                else
+                    v = {fcn(k)}
+                    if size>=65536 then size,cache = 0,{} end
+                    cache[k], size = v, size+1
+                    return unpack(v)
+                end
+            end
+        end
+        return function(...)
+            local k = concat(arg,'')
+            local v = cache[k]
+            if v then
+                return unpack(v)
+            else
+                v = {fcn(...)}
+                if size>=65536 then size,cache = 0,{} end
+                cache[k], size = v, size+1
+                return unpack(v)
+            end
+        end
     end,
-	-- version n->1
+    -- version n->1
     ret_1 = function(self, fcn)
-		local size, cache, concat = 0,{},table.concat
-		local info = debug.getinfo(fcn)
-		if info.nparams==1 and not info.isvararg then
-			return function(k)
-				local v = cache[k]
-				if v then
-					return v
-				else
-					v = fcn(k)
-					if size>=65536 then size,cache = 0,{} end
-					cache[k], size = v, size+1
-					return v
-				end
-			end
-		end
-		return function(...)
-			local k = concat(arg,'')
-			local v = cache[k]
-			if v then
-				return v
-			else
-				v = fcn(...)
-				if size>=65536 then size,cache = 0,{} end
-				cache[k], size = v, size+1
-				return v
-			end
-		end
+        local size, cache, concat = 0,{},table.concat
+        local info = debug.getinfo(fcn)
+        if info.nparams==1 and not info.isvararg then
+            return function(k)
+                local v = cache[k]
+                if v then
+                    return v
+                else
+                    v = fcn(k)
+                    if size>=65536 then size,cache = 0,{} end
+                    cache[k], size = v, size+1
+                    return v
+                end
+            end
+        end
+        return function(...)
+            local k = concat(arg,'')
+            local v = cache[k]
+            if v then
+                return v
+            else
+                v = fcn(...)
+                if size>=65536 then size,cache = 0,{} end
+                cache[k], size = v, size+1
+                return v
+            end
+        end
     end
 }
 
@@ -989,20 +989,19 @@ local function newHtmlWriter(file, mem)
       scroll-behavior:       ]], OPT_SMOOTH, ';\n',
     self._2panes and [[
       
-	  /* 2 columns */
+      /* 2 columns */
       overflow: hidden; 
       margin: 0; 
       display:flex; 
-      flex-flow:row;
-    ]] or '', [[
-	}
-	
+      flex-flow:row;]]..'\n' or '', [[
+    }
+    
     #left {
       overflow: auto;
       width:    auto;
       height:   100vh;
-	  
-	  scroll-padding-top:    3em;
+      
+      scroll-padding-top:    3em;
       scroll-padding-bottom: 4em;
       scroll-behavior:       ]], OPT_SMOOTH, ';\n',[[
     }
@@ -1015,8 +1014,8 @@ local function newHtmlWriter(file, mem)
       
       display:   flex;
       flex-flow: column;
-	  
-	  scroll-padding-top:    3em;
+      
+      scroll-padding-top:    3em;
       scroll-padding-bottom: 4em;
       scroll-behavior:       ]], OPT_SMOOTH, ';\n',[[
     }
@@ -1054,9 +1053,9 @@ local function newHtmlWriter(file, mem)
       background-color: lightgray;
       border-bottom:    1px solid #ddd;
     }
-	tr {
-	  height: 1em;
-	}
+    tr {
+      height: 1em;
+    }
     table tr:hover {
       background-color: lightgray;
     }
@@ -1111,6 +1110,7 @@ local function newHtmlWriter(file, mem)
       text-decoration: none; 
       cursor:          default;
     }
+    .memmap tr            {height: inherit;}
     .memmap a:hover       {text-decoration:  none;}
     .memmap td.c7         {cursor: not-allowed}
     .memmap td.c0>a:hover {background-color:white;}
@@ -1130,12 +1130,12 @@ local function newHtmlWriter(file, mem)
 '      width:      ', 100/OPT_COLS, 'vmin;\n',
 '      height:     ', 100/OPT_COLS, 'vmin;\n',
 '    }\n', self._style_, [[
-	.caption {
-		align:   center;
-		display: inline-block;
-		width:   1em; 
-		height:  1em;
-	}
+    .caption {
+        align:   center;
+        display: inline-block;
+        width:   1em; 
+        height:  1em;
+    }
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #1c1c1e;
@@ -1371,10 +1371,10 @@ local function newHtmlWriter(file, mem)
             if i==2 then
                 local c = self._memmap_color[trim(columns[1])]
                 local d = (c==0 or c==4) and "white" or "black";
-				v = '<span class="caption c' .. c .. 
-					'" style="color: ' .. d .. ';">' ..
-					'<noscript>' .. esc(v) .. '</noscript>' ..
-					'</span>'
+                v = '<span class="caption c' .. c .. 
+                    '" style="color: ' .. d .. ';">' ..
+                    '<noscript>' .. esc(v) .. '</noscript>' ..
+                    '</span>'
             else
                 v = esc(v)
             end
@@ -1416,7 +1416,7 @@ local function findHotspots(mem)
                 local i = self.i
                 local asm = mem[i].asm
                 local jmp,addr = asm:match('(%a+)%s+%$(%x%x%x%x)')
-				table.insert(self.p, hex(i))
+                table.insert(self.p, hex(i))
                 self.i = nil
                 if not(asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$')) then
                     repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
@@ -1460,41 +1460,41 @@ local function findHotspots(mem)
         -- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
         -- out('>>%s\n', type(hot.j))
         
-		-- choix de la branche la plus lourde
-		local j = hot and spots[hot.j]
-		if j and hot.b then
-			local b = spots[hot.b]
-			if b and j.x<b.x then j = b end
-		end
+        -- choix de la branche la plus lourde
+        local j = hot and spots[hot.j]
+        if j and hot.b then
+            local b = spots[hot.b]
+            if b and j.x<b.x then j = b end
+        end
         
-		-- on vire les trucs auto-bloquants
-		if j and j==hot then j=nil end
-		
-		if j then
-			-- fusion
-			-- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
-			if hot.a>j.a then hot,j = j,hot end
-			
-			if hot.b == nil then hot.p[#hot.p] = nil end
-			if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
-			for _,x in ipairs(j.p) do table.insert(hot.p,x)	end
-			
-			-- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
-			-- retrait 
-			pool [hot.a],pool [j.a] = nil,nil
-			spots[hot.a],spots[j.a] = nil,nil
-			-- fusion
-			hot.x = math.max(hot.x, j.x)
-			hot.t = hot.t + j.t
-			hot.j = j.j
-			hot.b = j.b
-			j.a,j.b,j.x,j.t = nil
-			-- rajout avec la nouvelle adresse
-			pool [hot.a] = hot
-			spots[hot.a] = hot
-		else
+        -- on vire les trucs auto-bloquants
+        if j and j==hot then j=nil end
+        
+        if j then
+            -- fusion
+            -- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
+            if hot.a>j.a then hot,j = j,hot end
+            
+            if hot.b == nil then hot.p[#hot.p] = nil end
+            if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
+            for _,x in ipairs(j.p) do table.insert(hot.p,x) end
+            
+            -- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
+            -- retrait 
+            pool [hot.a],pool [j.a] = nil,nil
+            spots[hot.a],spots[j.a] = nil,nil
+            -- fusion
+            hot.x = math.max(hot.x, j.x)
+            hot.t = hot.t + j.t
+            hot.j = j.j
+            hot.b = j.b
+            j.a,j.b,j.x,j.t = nil
+            -- rajout avec la nouvelle adresse
+            pool [hot.a] = hot
+            spots[hot.a] = hot
+        else
             -- out('Remove %s\n', hot.a)
-			pool[hot.a] = nil
+            pool[hot.a] = nil
         end
     end
     -- cee une liste ordonnée
