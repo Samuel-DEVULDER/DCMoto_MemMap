@@ -148,15 +148,55 @@ local memoize = {
                 end
             end
         end
+        if info.nparams==2 and not info.isvararg then
+			size = -65535
+			-- do local function set(k, v)
+				-- size = size+1
+				-- if size>0 then size,cache = -65535,{} end
+				-- cache[k] = v
+				-- return v
+			-- end			
+			-- return function(a1,a2)
+				-- local k = a1..a2
+				-- return cache[k] or set(k,fcn(a1,a2)) 
+            -- end end
+			-- do return function(a1,a2)
+				-- local k = a1..a2
+                -- local v = cache[k]
+                -- if v then
+                    -- return v
+                -- else
+                    -- size,v = size+1,fcn(a1,a2)
+                    -- if size>0 then size,cache = -65535,{} end
+                    -- cache[k] = v
+                    -- return v
+                -- end
+            -- end end
+			local VOID={}
+            return function(a1,a2)
+				local k = cache[a1]; if not k then k={}; cache[a1] = k end
+                local v = k[a2]
+                if v then
+                    return v~=VOID and v or nil
+                else
+                    size,v = size+1,fcn(a1,a2)
+                    if size>0 then size,cache,k = -65535,{},{}; cache[a1]=k end
+                    k[a2] = v or VOID
+                    return v
+                end
+            end
+        end
+		size = -65535
         return function(...)
-            local k = concat(arg,'')
+			local function f(x, ...) return x and x..f(...) or '' end
+            local k = f(...)
             local v = cache[k]
             if v then
                 return v
             else
-                v = fcn(...)
-                if size>=65536 then size,cache = 0,{} end
-                cache[k], size = v, size+1
+                size,v = size+1,fcn(...)
+                if size>0 then size,cache = -65535,{} end
+                cache[k] = v
                 return v
             end
         end
@@ -1807,7 +1847,7 @@ function getaddr(args, regs)
 
     -- extension de signe
     local function sex(a) return a>=128 and a-256 or a end
-
+	
     -- DP & Extended
     x = args:match('<%$(%x%x)$')     if x then return tonumber(x,16)+reg('DP')*256 end
     x = args:match('^%$(%x%x%x%x)$') if x then return tonumber(x,16) end
@@ -1902,12 +1942,19 @@ if not OPT_RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
 local function wait_for_file(filename)
     out('Waiting for %s...', filename)
     profile:_()
-    while not os.rename(filename,filename) do
+	local function ok(filename)
+		local ret, msg = os.rename(filename,filename.."_")
+		ret = ret and os.rename(filename.."_",filename)
+		return ret
+	end
+    while not ok(filename) do
         if os.getenv('COMSPEC') then -- windows
             os.execute('ping -n 1 127.0.0.1 >NUL')
         else
             local t=os.clock() + 1
-            repeat until os.clock()>=t
+            repeat 
+				os.execute('ping -n 1 127.0.0.1 >nil')
+			until os.clock()>=t
         end
     end
     profile:_()
