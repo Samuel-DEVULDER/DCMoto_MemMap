@@ -1395,7 +1395,7 @@ local function newHtmlWriter(file, mem)
             if m then
                 local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
                 if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
-                add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title), '">',
+                add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title):gsub('<BR>',''), '">',
                     '<a href="#', m.x>0 and self._memmap_last_asm_addr or a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
