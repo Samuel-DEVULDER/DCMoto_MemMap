@@ -9,7 +9,7 @@
 -----------------------------------------------------------------------------
 
 local NOADDR = '----'                  -- marqueur d'absence
-local NOCYCL = '-'                     -- marqueur d'absence
+local NOCYCL = ''                      -- marqueur d'absence
 local TRACE  = 'dcmoto_trace.txt'      -- fichier trace
 local RESULT = 'memmap'                -- racine des fichiers résultats
 local BRAKET = {' <-',''}              -- pour décorer les equates
@@ -796,22 +796,22 @@ local function newHtmlWriter(file, mem)
     end
     
     -- descrit le contenu d'une adresse
-    local function describe(addr, opt_asm, opt_asm_addr, opt_from)
-        local function code(where)
+    local function describe(addr, opt_last, opt_from)
+        local function code(kind, where)
             if where~=NOADDR then
                 local i = tonumber(where,16)
                 local m = mem[i]
-                return m and m.asm and '\n' .. m.asm .. ' (from $' .. where .. ')' or ''
+                return m and m.asm and kind .. m.asm:gsub('%s+',' ') .. ' (from $' .. where .. ')' or ''
             else
                 return ''
             end
         end
         local m = mem[tonumber(addr,16)]
         if m then
-            opt_asm      = m.x>0 and (m.asm or opt_asm)
-            opt_asm_addr = m.x>0 and (m.asm and addr or opt_asm_addr)
-            local RWX = mem:RWX(m)
-            
+			local RWX = mem:RWX(m)
+			local opt_asm_addr, opt_asm = m.x>0 and addr, m.asm 
+			-- on utilise opt_last si l'adresse n'est pas pile sur le début de l'instruction
+			if opt_asm_addr and not opt_asm and opt_last then opt_asm_addr, opt_asm = hex(opt_last), mem[opt_last].asm end            
             --
             local anchor = ''
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
@@ -825,9 +825,11 @@ local function newHtmlWriter(file, mem)
             local equate = EQUATES:t(addr)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
             local title  = '$' .. addr .. ' : ' .. RWX .. equate .. 
-                           (opt_asm and '\n' .. opt_asm:gsub(equate_ptn,'') or '') ..
-                           code(m.r):gsub(equate_ptn,'')
-            if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
+                           (opt_asm and '\nX = ' .. opt_asm:gsub(equate_ptn,'') or '') ..
+                           code('\n R = ', m.r):gsub(equate_ptn,'')..
+						   code('\nW = ',  m.w):gsub(equate_ptn,'')
+						   
+            -- if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
 
             return title, RWX, anchor
         else
@@ -872,7 +874,7 @@ local function newHtmlWriter(file, mem)
     -- retourne le code html pour un hyperlien sur "addr" avec le texte
     -- "txt" (le tout pour l'adresse "from")
     local function ahref(from, addr, txt)
-        local title, RWX, anchor = describe(addr,nil,nil,from)
+        local title, RWX, anchor = describe(addr,nil,from)
         -- ajoute des petites flèches pour dire où va le lien par
         -- rapport à l'adresse courante
         local function esc2(title)
@@ -1325,12 +1327,12 @@ local function newHtmlWriter(file, mem)
             v = trim(tostring(v)) or ' '
             if i==2 or i==3 then
                 v = ahref(ADDR,v,v)
-            elseif i==5 then
+            elseif i==7 then
                 local back = code2mem[ADDR]
                 if back then
                     local before,arg,after = v:match('(.*%$)'..self.HEXADDR..'(.*)')
-                    if not arg then before,arg,after = v:match('^(%([%d/]+%)%s*%S+%s+[%[<]?)(%-?%$?[%w_,]+)(.*)$') end
-                    if not arg then before,arg,after = v:match('^(%([%d/]+%)%s*)([%w_,]+)(.*)$') end
+                    if not arg then before,arg,after = v:match('^(%S+%s+[%[<]?)(%-?%$?[%w_,]+)(.*)$') end
+                    if not arg then before,arg,after = v:match('^(%s*)([%w_,]+)(.*)$') end
                     if not arg then error(v) end
                     v = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
                 else
@@ -1393,10 +1395,10 @@ local function newHtmlWriter(file, mem)
         for i=1,cols[2]:len() do
             local m,a = mem[BASE+i],hex(BASE+i)
             if m then
-                local title, RWX, anchor = describe(a, self._memmap_last_asm, self._memmap_last_asm_addr)
-                if m.asm then self._memmap_last_asm, self._memmap_last_asm_addr = m.asm, a end
+                local title, RWX, anchor = describe(a, self._memmap_last_asm_addr)
+                if m.asm then self._memmap_last_asm_addr = BASE+i end
                 add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title):gsub('<BR>',''), '">',
-                    '<a href="#', m.x>0 and self._memmap_last_asm_addr or a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
+                    '<a href="#', m.x>0 and hex(self._memmap_last_asm_addr) or a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
             end
@@ -1446,10 +1448,13 @@ local function findHotspots(mem)
                 return math.abs(m.x - self.x)<=1
             end,
             add = function(self,m,i)
-                local cycles = tonumber(m.asm:match('%((%d+)')) or 0
-                self.x = m.x
-                self.t = self.t + m.x * cycles
-                self.i = i -- dernière adresse du bloc
+			if m.asm and not m.cycles then error(m.asm) end
+				if m.cycles then
+					local cycles = tonumber(m.cycles) or 0
+					self.x = m.x
+					self.t = self.t + m.x * cycles
+					self.i = i -- dernière adresse du bloc
+				end
                 return self
             end,
             push = function(self, spots)
@@ -1563,15 +1568,16 @@ local mem = {
         return self
     end,
     -- assigne un code asm au PC courrant
-    a = function(self, asm)
+    a = function(self, asm, cycles)
         local pc = tonumber(self.PC,16)
         asm = trim(asm)
-        if asm then self:_get(pc).asm = asm end
+        if asm then local m = self:_get(pc); m.asm,m.cycles = asm,cycles end
         return self
     end,
     -- marque les octets "hexa" comme executés "num" fois
     x = function(self,hexa,num)
         local pc = tonumber(self.PC,16)
+		self:_get(pc).hex = hexa
         for i=0,hexa:len()/2-1 do local m = self:_get(pc+i); m.x = m.x + num end
         return self
     end,
@@ -1614,7 +1620,7 @@ local mem = {
     loadTSV = function(self, f)
         if f then
             profile:_()
-            local _stkop = self._stkop
+            local _stkop,stkop = self._stkop
             for s in f:lines() do
                 local t = {}
                 -- s:gsub('([^\t]*)\t?', function(v) table.insert(t, trim(v) or '') return '' end) i=#t
@@ -1624,14 +1630,14 @@ local mem = {
                 -- for v in s:gmatch('([^\t]*)\t?') do rawset(t, #t+1, trim(v) or '') end
                 if t[1] == self._cycles_hd then
                     self.cycles = tonumber(t[2]:match('^(%d+)')) or self.cycles
-                elseif t[5] and t[1]:match('^%x%x%x%x$') then
-                    local pc,r,w,x,a,stkop = unpack(t)
+                elseif t[3] and t[1]:match('^%x%x%x%x$') then
+                    local pc,r,w,x,h,c,a = unpack(t)
                     -- print(table.concat(t,','))
                     pc = tonumber(pc,16)
-                    if a==_stkop      then a,stkop = '',true else stkop = nil end
-                    if x:match('%d+') then self:pc(pc):x('12',tonumber(x)):a(a)  end
-                    if r~=NOADDR      then self:pc(tonumber(r,16)):r(pc,1,stkop) end
-                    if w~=NOADDR      then self:pc(tonumber(w,16)):w(pc,1,stkop)     end
+                    if a==_stkop then a,stkop = '',true else stkop = nil    end
+                    if h         then self:pc(pc):x(h,tonumber(x)):a(a,c)   end
+                    if r~=NOADDR then self:pc(tonumber(r,16)):r(pc,1,stkop) end
+                    if w~=NOADDR then self:pc(tonumber(w,16)):w(pc,1,stkop) end
                 end
             end
             profile:_()
@@ -1693,7 +1699,7 @@ local mem = {
 
         writer:id("flatmap")
         writer:title("Collected addresses")
-        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Asm code         "}
+        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Hex code", ">uSec", "<*Asm code         "}
 
         local n,curr,first=0,-1,true
         local function u()
@@ -1722,7 +1728,11 @@ local mem = {
                 local lbl = m.asm
                 if not lbl and EQUATES[adr] and OPT_EQU then lbl = '* ' .. EQUATES[adr] end
                 if mask~=4 or lbl then
-                    writer:row{adr, m.r, m.w, m.x>0 and m.x or NOCYCL,lbl or (m.s and self._stkop) or VOID}
+                    writer:row{adr, m.r, m.w, m.x>0 and m.asm and m.x or NOCYCL,
+						m.hex or VOID,
+						m.cycles or VOID,
+						lbl or (m.s and self._stkop) or VOID,
+						nil}
                     first = false
                 end
             else
@@ -2028,7 +2038,7 @@ local function read_trace(filename)
             end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             if nomem_asm[sig] then
-                mem:a(nomem_asm[sig])
+                mem:a(nomem_asm[sig][1],nomem_asm[sig][2])
             else
                 regs = s:sub(61,106)
                 local f = DISPATCH[opcode] 
@@ -2036,18 +2046,17 @@ local function read_trace(filename)
                 -- on ne connait le code asm vraiment qu'à la fin
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
-                    "(" .. trim(s:sub(43,46)) .. ")"
+                    trim(s:sub(43,46))
                 local addr   = args:match('%$(%x%x%x%x)')
                 local equate = addr and EQUATES:t(addr, pc) or ''
                 if equate~='' then -- remore duplicate
                     -- protect special chars
                     local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
-                    asm = asm:gsub(equate_ptn, '')
+                    asm = asm:gsub(equate_ptn, '') .. equate
                 end
-                asm = sprintf("%-5s%s%s", cycles, asm, equate)
-                mem:pc(curr_pc):a(asm)
+                mem:pc(curr_pc):a(asm,cycles)
                 -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
-                if nomem then nomem_asm[sig] = asm end
+                if nomem then nomem_asm[sig] = {asm,cycles} end
             end
         else
             jmp = nil
@@ -2080,7 +2089,7 @@ local function read_trace(filename)
     end
     
     local mb, time = size/1024/1024, (os.clock() -start_time)
-    log('Analyzed %.3g Mb of trace (%.3g Mb/s).', mb, mb / time)
+    log('Analyzed %6.3f Mb of trace (%6.3f Mb/s).', mb, mb / time)
 end
 
 -- essaye de deviner le type de machine en analysant la valeur de DP dans

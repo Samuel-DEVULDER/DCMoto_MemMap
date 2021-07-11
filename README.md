@@ -15,16 +15,18 @@ Le programme attends que le fichier `dcmoto_trace.txt` apparaisse dans le repert
 
 Chaque ligne est de la forme:
 
->```NNNN <tab> RRRR <tab> WWWW <tab> NUM <tab> ASM```
+>```ADDR <tab> RRRR <tab> WWWW <tab> EXEC <tab> HEXA <tab> CYCLES <tab> ASM```
 
-où:
+La remière forme ne concerne que les où:
 - `<tab>` est une tabulation, ainsi le fichier au format CSV peut être lu et correctement affiché par un tableur, ou même un simple éditeur de texte.
-- `NNNN` est une adresse mémoire en hexadécimal. 
+- `ADDR` est une adresse mémoire en hexadécimal. 
 - `RRRR` est l'adresse (hexadécimal) de la dernière instruction cpu qui a lu cette adresse. 
 - `WWWW` est l'adresse de la dernière instruction cpu qui l'a modifié.
 Si aucune instruction n'a lu (ou écrit à) ces adresses alors un `----` est présent.
-- `NUM` contient un nombre ("-" représente un 0). Il indique le nombre de fois où le CPU a executé cet octet.
-- `ASM` contient le code ASM ainsi que le nombre de cycles pour l'instruction correspondante au `NUM` précédent. Il peut aussi contenir quelques informations utiles fournies par les "equates".
+- `EXEC` contient un nombre qui indique le nombre de fois où le CPU a executé du code machine (ou vide s'il n'y a pas d'instruction machine à cette addresse).
+- `HEXA` le code machine executé.
+- `CYCLES`le nomnbre de cycle utilisé par le code machine.
+- `ASM` contient le code assembleur du code machine. Il peut aussi contenir quelques informations utiles fournies par les "equates".
 	
 Une zone mémoire que le cpu n'a ni lu, ni écrit, ni executé quoi que ce soit est indiquée par un message du type:
 
