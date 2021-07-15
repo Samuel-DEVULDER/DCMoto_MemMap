@@ -2101,8 +2101,8 @@ local function guess_MACH(TRACE)
     profile:_()
     local f = assert(io.open(TRACE,'r'))
     for l in f:lines() do
-        if     l:match('DP=[2A]') then _guess_MACH.MO = _guess_MACH.MO + 1 
-        elseif l:match('DP=[6E]') then _guess_MACH.TO = _guess_MACH.TO + 1 end
+        if     l:match('DP=20') or l:match('DP=A7') then _guess_MACH.MO = _guess_MACH.MO + 1 
+        elseif l:match('DP=60') or l:match('DP=E7') then _guess_MACH.TO = _guess_MACH.TO + 1 end
         if _guess_MACH.MO + _guess_MACH.TO > THR then 
             if _guess_MACH.MO > 2*_guess_MACH.TO then TYPE='MO'; break; end
             if _guess_MACH.TO > 2*_guess_MACH.MO then TYPE='TO'; break; end
