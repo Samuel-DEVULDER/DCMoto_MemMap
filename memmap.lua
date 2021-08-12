@@ -666,6 +666,14 @@ local EQUATES = {
         local setTO = set{MACH_XX, MACH_TO}
         if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
         if setTO[OPT_MACH or MACH_XX] then self:iniTO() end
+		local f = io.open('codes.lst','r')
+		if f then
+			for l in f:lines() do
+				local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
+				if lbl then	self:d(a,lbl) end
+			end
+			f:close()
+		end
     end,
 nil} EQUATES:ini()
 
