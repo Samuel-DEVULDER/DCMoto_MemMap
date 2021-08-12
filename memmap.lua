@@ -1584,14 +1584,14 @@ local mem = {
     -- marque "addr" comme lue depuis le compteur programme courant
     r = function(self, addr, len, stack)
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
-            m.r, m.s = self.PC, stack
+            m.r, m.s = self.PC, m.s or stack
         end
         return self
     end,
     -- marque "addr" comme écrite depuis le compteur programme courant
     w = function(self, addr, len, stack)
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
-            m.w, m.s = self.PC, stack 
+            m.w, m.s = self.PC, m.s or stack 
         end
         return self
     end,
