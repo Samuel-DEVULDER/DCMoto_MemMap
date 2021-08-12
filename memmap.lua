@@ -1705,48 +1705,76 @@ local mem = {
     _saveFlatMap = function(self, writer)
         profile:_()
 
+        local VOID=''
         writer:id("flatmap")
         writer:title("Collected addresses")
         writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Hex code", ">uSec", "<*Asm code         "}
 
-        local n,curr,first=0,-1,true
-        local function u()
-            if n>0 then
-                if not first then writer:row{} end first = false
-                writer:row{sprintf('%d byte%s untouched', n, n>1 and 's' or '')}
-                n,curr = 0,-1
+        local n,curr,last_was_blank=0,-1,true
+		local function blk() 
+			if not last_was_blank then
+				writer:row{}
+				last_was_blank = true
+			end
              end
+		local function row(row)
+			writer:row(row)
+			last_was_blank = false
+		end
+		local function lbl(adr)
+			if OPT_EQU and EQUATES[adr] then row{'*** ' .. EQUATES[adr] .. ' ***'} end
+		end
+        local function u(i)
+			if n<=0 then return end
+			if n<=3 then
+				for i=i-n,i-1 do
+					local adr = hex(i)
+					lbl(adr)
+					row{adr, NOADDR, NOADDR, NOCYCL,
+						VOID,
+						VOID,
+						--EQUATES[adr] and OPT_EQU and '* ' .. EQUATES[adr] or 
+						VOID,
+						nil}
+				end
+				n = 0
+				return
+			end
+            blk()
+            row{sprintf('%d byte%s untouched', n, n>1 and 's' or '')}
+			if i<=OPT_MAX then blk() end
+            n = 0
         end
         
         if OPT_EQU and not self[OPT_MIN] then self:pc(OPT_MIN):a('* Start of range') end
         if OPT_EQU and not self[OPT_MAX] then self:pc(OPT_MAX):a('* End of range')   end
         
-        local VOID=''
         for i=OPT_MIN,OPT_MAX do
             local m=self[i]
-            if m then u()
+            if m then 
                 -- local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
-                local mask = ((m.r..m.w==NOADDR..NOADDR or m.asm) and 0 or 1) + (m.x==0 and 0 or 4)
+                local mask = ((m.r..m.w==NOADDR..NOADDR or m.asm) and 0 or 1)*0 + (m.x==0 and 0 or 4)
 
                 if mask ~= curr 
-                or (m.asm and m.r~=NOADDR and nil==self[tonumber(m.r,16)].rel_jmp) 
-                then if not first then writer:row{} end end curr = mask
+                or (m.asm and m.r~=NOADDR) -- and nil==self[tonumber(m.r,16)].rel_jmp) 
+                then blk() end curr = mask
+                u(i)
                 
                 local adr = hex(i)
-                local lbl = m.asm
-                if not lbl and EQUATES[adr] and OPT_EQU then lbl = '* ' .. EQUATES[adr] end
-                if mask~=4 or lbl then
-                    writer:row{adr, m.r, m.w, m.x>0 and m.asm and m.x or NOCYCL,
+                -- local lbl = m.asm
+                -- if not lbl and EQUATES[adr] and OPT_EQU then lbl = '* ' .. EQUATES[adr] end
+				lbl(adr)
+                if m.r~=NOADDR or m.w~=NOADDR or m.asm or (m.s and self._stkop) then
+                    row{adr, m.r, m.w, m.x>0 and m.asm and m.x or NOCYCL,
 						m.hex or VOID,
 						m.cycles or VOID,
-						lbl or (m.s and self._stkop) or VOID,
+						m.asm or (m.s and self._stkop) or VOID,
 						nil}
-                    first = false
                 end
             else
-                n, curr = n + 1,-1
+                n = n + 1
             end
-        end u()
+        end u(OPT_MAX+1)
         writer:footer()
         profile:_()
     end,
@@ -2056,7 +2084,7 @@ local function read_trace(filename)
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     trim(s:sub(43,46))
                 local addr   = args:match('%$(%x%x%x%x)')
-                local equate = addr and EQUATES:t(addr, pc) or ''
+                local equate = addr and EQUATES:t(addr) or ''
                 if equate~='' then -- remore duplicate
                     -- protect special chars
                     local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
