@@ -1,6 +1,6 @@
 sep=\t	(use a tabulation of 8)
 
-Current Date	2021-07-11 13:44:44
+Current Date	2021-08-12 09:46:04
 Total Cycles	31999999 (~32s) 
 Machine Type	TO7(70)/TO8/TO9(+)
 Stack (guessed)	$6114           
@@ -53,9 +53,8 @@ Collected addresses:
  4164	 ----	 6BAF	       	        	       	* VRAM.L8+36    
  4165	 ----	 6BAF	       	        	       	* VRAM.L8+37    
  4166	 ----	 6BB4	       	        	       	* VRAM.L8+38    
-
-2 bytes untouched
-
+ 4167	 ----	 ----	       	        	       	* VRAM.L8+39    
+ 4168	 ----	 ----	       	        	       	* VRAM.L9       
  4169	 ----	 6B0E	       	        	       	* VRAM.L9+1     
  416A	 ----	 6B7E	       	        	       	* VRAM.L9+2     
  416B	 ----	 6B7E	       	        	       	* VRAM.L9+3     
@@ -94,9 +93,8 @@ Collected addresses:
  418C	 ----	 6BAF	       	        	       	* VRAM.L9+36    
  418D	 ----	 6BAF	       	        	       	* VRAM.L9+37    
  418E	 ----	 6BB4	       	        	       	* VRAM.L9+38    
-
-2 bytes untouched
-
+ 418F	 ----	 ----	       	        	       	* VRAM.L9+39    
+ 4190	 ----	 ----	       	        	       	* VRAM.L10      
  4191	 ----	 6B0E	       	        	       	* VRAM.L10+1    
  4192	 ----	 6B7E	       	        	       	* VRAM.L10+2    
  4193	 ----	 6B7E	       	        	       	* VRAM.L10+3    
@@ -135,9 +133,8 @@ Collected addresses:
  41B4	 ----	 6BAF	       	        	       	* VRAM.L10+36   
  41B5	 ----	 6BAF	       	        	       	* VRAM.L10+37   
  41B6	 ----	 6BB4	       	        	       	* VRAM.L10+38   
-
-2 bytes untouched
-
+ 41B7	 ----	 ----	       	        	       	* VRAM.L10+39   
+ 41B8	 ----	 ----	       	        	       	* VRAM.L11      
  41B9	 ----	 6B0E	       	        	       	* VRAM.L11+1    
  41BA	 ----	 6B7E	       	        	       	* VRAM.L11+2    
  41BB	 ----	 6B7E	       	        	       	* VRAM.L11+3    
@@ -176,9 +173,8 @@ Collected addresses:
  41DC	 ----	 6BAF	       	        	       	* VRAM.L11+36   
  41DD	 ----	 6BAF	       	        	       	* VRAM.L11+37   
  41DE	 ----	 6BB4	       	        	       	* VRAM.L11+38   
-
-2 bytes untouched
-
+ 41DF	 ----	 ----	       	        	       	* VRAM.L11+39   
+ 41E0	 ----	 ----	       	        	       	* VRAM.L12      
  41E1	 ----	 6B0E	       	        	       	* VRAM.L12+1    
  41E2	 ----	 6B7E	       	        	       	* VRAM.L12+2    
  41E3	 ----	 6B7E	       	        	       	* VRAM.L12+3    
@@ -217,9 +213,8 @@ Collected addresses:
  4204	 ----	 6BAF	       	        	       	* VRAM.L12+36   
  4205	 ----	 6BAF	       	        	       	* VRAM.L12+37   
  4206	 ----	 6BB4	       	        	       	* VRAM.L12+38   
-
-2 bytes untouched
-
+ 4207	 ----	 ----	       	        	       	* VRAM.L12+39   
+ 4208	 ----	 ----	       	        	       	* VRAM.L13      
  4209	 ----	 6B0E	       	        	       	* VRAM.L13+1    
  420A	 ----	 6B7E	       	        	       	* VRAM.L13+2    
  420B	 ----	 6B7E	       	        	       	* VRAM.L13+3    
@@ -258,9 +253,8 @@ Collected addresses:
  422C	 ----	 6BAF	       	        	       	* VRAM.L13+36   
  422D	 ----	 6BAF	       	        	       	* VRAM.L13+37   
  422E	 ----	 6BB4	       	        	       	* VRAM.L13+38   
-
-2 bytes untouched
-
+ 422F	 ----	 ----	       	        	       	* VRAM.L13+39   
+ 4230	 ----	 ----	       	        	       	* VRAM.L14      
  4231	 ----	 6B0E	       	        	       	* VRAM.L14+1    
  4232	 ----	 6B7E	       	        	       	* VRAM.L14+2    
  4233	 ----	 6B7E	       	        	       	* VRAM.L14+3    
@@ -299,9 +293,8 @@ Collected addresses:
  4254	 ----	 6BAF	       	        	       	* VRAM.L14+36   
  4255	 ----	 6BAF	       	        	       	* VRAM.L14+37   
  4256	 ----	 6BB4	       	        	       	* VRAM.L14+38   
-
-2 bytes untouched
-
+ 4257	 ----	 ----	       	        	       	* VRAM.L14+39   
+ 4258	 ----	 ----	       	        	       	* VRAM.L15      
  4259	 ----	 6B0E	       	        	       	* VRAM.L15+1    
  425A	 ----	 6B7E	       	        	       	* VRAM.L15+2    
  425B	 ----	 6B7E	       	        	       	* VRAM.L15+3    
@@ -340,9 +333,8 @@ Collected addresses:
  427C	 ----	 6BAF	       	        	       	* VRAM.L15+36   
  427D	 ----	 6BAF	       	        	       	* VRAM.L15+37   
  427E	 ----	 6BB4	       	        	       	* VRAM.L15+38   
-
-2 bytes untouched
-
+ 427F	 ----	 ----	       	        	       	* VRAM.L15+39   
+ 4280	 ----	 ----	       	        	       	* VRAM.L16      
  4281	 ----	 6B0E	       	        	       	* VRAM.L16+1    
  4282	 ----	 6B7E	       	        	       	* VRAM.L16+2    
  4283	 ----	 6B7E	       	        	       	* VRAM.L16+3    
@@ -381,9 +373,8 @@ Collected addresses:
  42A4	 ----	 6BAF	       	        	       	* VRAM.L16+36   
  42A5	 ----	 6BAF	       	        	       	* VRAM.L16+37   
  42A6	 ----	 6BB4	       	        	       	* VRAM.L16+38   
-
-2 bytes untouched
-
+ 42A7	 ----	 ----	       	        	       	* VRAM.L16+39   
+ 42A8	 ----	 ----	       	        	       	* VRAM.L17      
  42A9	 ----	 6B0E	       	        	       	* VRAM.L17+1    
  42AA	 ----	 6B7E	       	        	       	* VRAM.L17+2    
  42AB	 ----	 6B7E	       	        	       	* VRAM.L17+3    
@@ -422,9 +413,8 @@ Collected addresses:
  42CC	 ----	 6BAF	       	        	       	* VRAM.L17+36   
  42CD	 ----	 6BAF	       	        	       	* VRAM.L17+37   
  42CE	 ----	 6BB4	       	        	       	* VRAM.L17+38   
-
-2 bytes untouched
-
+ 42CF	 ----	 ----	       	        	       	* VRAM.L17+39   
+ 42D0	 ----	 ----	       	        	       	* VRAM.L18      
  42D1	 ----	 6B0E	       	        	       	* VRAM.L18+1    
  42D2	 ----	 6B7E	       	        	       	* VRAM.L18+2    
  42D3	 ----	 6B7E	       	        	       	* VRAM.L18+3    
@@ -463,9 +453,8 @@ Collected addresses:
  42F4	 ----	 6BAF	       	        	       	* VRAM.L18+36   
  42F5	 ----	 6BAF	       	        	       	* VRAM.L18+37   
  42F6	 ----	 6BB4	       	        	       	* VRAM.L18+38   
-
-2 bytes untouched
-
+ 42F7	 ----	 ----	       	        	       	* VRAM.L18+39   
+ 42F8	 ----	 ----	       	        	       	* VRAM.L19      
  42F9	 ----	 6B0E	       	        	       	* VRAM.L19+1    
  42FA	 ----	 6B7E	       	        	       	* VRAM.L19+2    
  42FB	 ----	 6B7E	       	        	       	* VRAM.L19+3    
@@ -504,9 +493,8 @@ Collected addresses:
  431C	 ----	 6BAF	       	        	       	* VRAM.L19+36   
  431D	 ----	 6BAF	       	        	       	* VRAM.L19+37   
  431E	 ----	 6BB4	       	        	       	* VRAM.L19+38   
-
-2 bytes untouched
-
+ 431F	 ----	 ----	       	        	       	* VRAM.L19+39   
+ 4320	 ----	 ----	       	        	       	* VRAM.L20      
  4321	 ----	 6B0E	       	        	       	* VRAM.L20+1    
  4322	 ----	 6B7E	       	        	       	* VRAM.L20+2    
  4323	 ----	 6B7E	       	        	       	* VRAM.L20+3    
@@ -545,9 +533,8 @@ Collected addresses:
  4344	 ----	 6BAF	       	        	       	* VRAM.L20+36   
  4345	 ----	 6BAF	       	        	       	* VRAM.L20+37   
  4346	 ----	 6BB4	       	        	       	* VRAM.L20+38   
-
-2 bytes untouched
-
+ 4347	 ----	 ----	       	        	       	* VRAM.L20+39   
+ 4348	 ----	 ----	       	        	       	* VRAM.L21      
  4349	 ----	 6B0E	       	        	       	* VRAM.L21+1    
  434A	 ----	 6B7E	       	        	       	* VRAM.L21+2    
  434B	 ----	 6B7E	       	        	       	* VRAM.L21+3    
@@ -586,9 +573,8 @@ Collected addresses:
  436C	 ----	 6BAF	       	        	       	* VRAM.L21+36   
  436D	 ----	 6BAF	       	        	       	* VRAM.L21+37   
  436E	 ----	 6BB4	       	        	       	* VRAM.L21+38   
-
-2 bytes untouched
-
+ 436F	 ----	 ----	       	        	       	* VRAM.L21+39   
+ 4370	 ----	 ----	       	        	       	* VRAM.L22      
  4371	 ----	 6B0E	       	        	       	* VRAM.L22+1    
  4372	 ----	 6B7E	       	        	       	* VRAM.L22+2    
  4373	 ----	 6B7E	       	        	       	* VRAM.L22+3    
@@ -627,9 +613,8 @@ Collected addresses:
  4394	 ----	 6BAF	       	        	       	* VRAM.L22+36   
  4395	 ----	 6BAF	       	        	       	* VRAM.L22+37   
  4396	 ----	 6BB4	       	        	       	* VRAM.L22+38   
-
-2 bytes untouched
-
+ 4397	 ----	 ----	       	        	       	* VRAM.L22+39   
+ 4398	 ----	 ----	       	        	       	* VRAM.L23      
  4399	 ----	 6B0E	       	        	       	* VRAM.L23+1    
  439A	 ----	 6B7E	       	        	       	* VRAM.L23+2    
  439B	 ----	 6B7E	       	        	       	* VRAM.L23+3    
@@ -668,9 +653,8 @@ Collected addresses:
  43BC	 ----	 6BAF	       	        	       	* VRAM.L23+36   
  43BD	 ----	 6BAF	       	        	       	* VRAM.L23+37   
  43BE	 ----	 6BB4	       	        	       	* VRAM.L23+38   
-
-2 bytes untouched
-
+ 43BF	 ----	 ----	       	        	       	* VRAM.L23+39   
+ 43C0	 ----	 ----	       	        	       	* VRAM.L24      
  43C1	 ----	 6B0E	       	        	       	* VRAM.L24+1    
  43C2	 ----	 6B7E	       	        	       	* VRAM.L24+2    
  43C3	 ----	 6B7E	       	        	       	* VRAM.L24+3    
@@ -709,9 +693,8 @@ Collected addresses:
  43E4	 ----	 6BAF	       	        	       	* VRAM.L24+36   
  43E5	 ----	 6BAF	       	        	       	* VRAM.L24+37   
  43E6	 ----	 6BB4	       	        	       	* VRAM.L24+38   
-
-2 bytes untouched
-
+ 43E7	 ----	 ----	       	        	       	* VRAM.L24+39   
+ 43E8	 ----	 ----	       	        	       	* VRAM.L25      
  43E9	 ----	 6B0E	       	        	       	* VRAM.L25+1    
  43EA	 ----	 6B7E	       	        	       	* VRAM.L25+2    
  43EB	 ----	 6B7E	       	        	       	* VRAM.L25+3    
@@ -750,9 +733,8 @@ Collected addresses:
  440C	 ----	 6BAF	       	        	       	* VRAM.L25+36   
  440D	 ----	 6BAF	       	        	       	* VRAM.L25+37   
  440E	 ----	 6BB4	       	        	       	* VRAM.L25+38   
-
-2 bytes untouched
-
+ 440F	 ----	 ----	       	        	       	* VRAM.L25+39   
+ 4410	 ----	 ----	       	        	       	* VRAM.L26      
  4411	 ----	 6B0E	       	        	       	* VRAM.L26+1    
  4412	 ----	 6B7E	       	        	       	* VRAM.L26+2    
  4413	 ----	 6B7E	       	        	       	* VRAM.L26+3    
@@ -791,9 +773,8 @@ Collected addresses:
  4434	 ----	 6BAF	       	        	       	* VRAM.L26+36   
  4435	 ----	 6BAF	       	        	       	* VRAM.L26+37   
  4436	 ----	 6BB4	       	        	       	* VRAM.L26+38   
-
-2 bytes untouched
-
+ 4437	 ----	 ----	       	        	       	* VRAM.L26+39   
+ 4438	 ----	 ----	       	        	       	* VRAM.L27      
  4439	 ----	 6B0E	       	        	       	* VRAM.L27+1    
  443A	 ----	 6B7E	       	        	       	* VRAM.L27+2    
  443B	 ----	 6B7E	       	        	       	* VRAM.L27+3    
@@ -832,9 +813,8 @@ Collected addresses:
  445C	 ----	 6BAF	       	        	       	* VRAM.L27+36   
  445D	 ----	 6BAF	       	        	       	* VRAM.L27+37   
  445E	 ----	 6BB4	       	        	       	* VRAM.L27+38   
-
-2 bytes untouched
-
+ 445F	 ----	 ----	       	        	       	* VRAM.L27+39   
+ 4460	 ----	 ----	       	        	       	* VRAM.L28      
  4461	 ----	 6B0E	       	        	       	* VRAM.L28+1    
  4462	 ----	 6B7E	       	        	       	* VRAM.L28+2    
  4463	 ----	 6B7E	       	        	       	* VRAM.L28+3    
@@ -873,9 +853,8 @@ Collected addresses:
  4484	 ----	 6BAF	       	        	       	* VRAM.L28+36   
  4485	 ----	 6BAF	       	        	       	* VRAM.L28+37   
  4486	 ----	 6BB4	       	        	       	* VRAM.L28+38   
-
-2 bytes untouched
-
+ 4487	 ----	 ----	       	        	       	* VRAM.L28+39   
+ 4488	 ----	 ----	       	        	       	* VRAM.L29      
  4489	 ----	 6B0E	       	        	       	* VRAM.L29+1    
  448A	 ----	 6B7E	       	        	       	* VRAM.L29+2    
  448B	 ----	 6B7E	       	        	       	* VRAM.L29+3    
@@ -914,9 +893,8 @@ Collected addresses:
  44AC	 ----	 6BAF	       	        	       	* VRAM.L29+36   
  44AD	 ----	 6BAF	       	        	       	* VRAM.L29+37   
  44AE	 ----	 6BB4	       	        	       	* VRAM.L29+38   
-
-2 bytes untouched
-
+ 44AF	 ----	 ----	       	        	       	* VRAM.L29+39   
+ 44B0	 ----	 ----	       	        	       	* VRAM.L30      
  44B1	 ----	 6B0E	       	        	       	* VRAM.L30+1    
  44B2	 ----	 6B7E	       	        	       	* VRAM.L30+2    
  44B3	 ----	 6B7E	       	        	       	* VRAM.L30+3    
@@ -955,9 +933,8 @@ Collected addresses:
  44D4	 ----	 6BAF	       	        	       	* VRAM.L30+36   
  44D5	 ----	 6BAF	       	        	       	* VRAM.L30+37   
  44D6	 ----	 6BB4	       	        	       	* VRAM.L30+38   
-
-2 bytes untouched
-
+ 44D7	 ----	 ----	       	        	       	* VRAM.L30+39   
+ 44D8	 ----	 ----	       	        	       	* VRAM.L31      
  44D9	 ----	 6B0E	       	        	       	* VRAM.L31+1    
  44DA	 ----	 6B7E	       	        	       	* VRAM.L31+2    
  44DB	 ----	 6B7E	       	        	       	* VRAM.L31+3    
@@ -996,9 +973,8 @@ Collected addresses:
  44FC	 ----	 6BAF	       	        	       	* VRAM.L31+36   
  44FD	 ----	 6BAF	       	        	       	* VRAM.L31+37   
  44FE	 ----	 6BB4	       	        	       	* VRAM.L31+38   
-
-2 bytes untouched
-
+ 44FF	 ----	 ----	       	        	       	* VRAM.L31+39   
+ 4500	 ----	 ----	       	        	       	* VRAM.L32      
  4501	 ----	 6B0E	       	        	       	* VRAM.L32+1    
  4502	 ----	 6B7E	       	        	       	* VRAM.L32+2    
  4503	 ----	 6B7E	       	        	       	* VRAM.L32+3    
@@ -1037,9 +1013,8 @@ Collected addresses:
  4524	 ----	 6BAF	       	        	       	* VRAM.L32+36   
  4525	 ----	 6BAF	       	        	       	* VRAM.L32+37   
  4526	 ----	 6BB4	       	        	       	* VRAM.L32+38   
-
-2 bytes untouched
-
+ 4527	 ----	 ----	       	        	       	* VRAM.L32+39   
+ 4528	 ----	 ----	       	        	       	* VRAM.L33      
  4529	 ----	 6B0E	       	        	       	* VRAM.L33+1    
  452A	 ----	 6B7E	       	        	       	* VRAM.L33+2    
  452B	 ----	 6B7E	       	        	       	* VRAM.L33+3    
@@ -1078,9 +1053,8 @@ Collected addresses:
  454C	 ----	 6BAF	       	        	       	* VRAM.L33+36   
  454D	 ----	 6BAF	       	        	       	* VRAM.L33+37   
  454E	 ----	 6BB4	       	        	       	* VRAM.L33+38   
-
-2 bytes untouched
-
+ 454F	 ----	 ----	       	        	       	* VRAM.L33+39   
+ 4550	 ----	 ----	       	        	       	* VRAM.L34      
  4551	 ----	 6B0E	       	        	       	* VRAM.L34+1    
  4552	 ----	 6B7E	       	        	       	* VRAM.L34+2    
  4553	 ----	 6B7E	       	        	       	* VRAM.L34+3    
@@ -1119,9 +1093,8 @@ Collected addresses:
  4574	 ----	 6BAF	       	        	       	* VRAM.L34+36   
  4575	 ----	 6BAF	       	        	       	* VRAM.L34+37   
  4576	 ----	 6BB4	       	        	       	* VRAM.L34+38   
-
-2 bytes untouched
-
+ 4577	 ----	 ----	       	        	       	* VRAM.L34+39   
+ 4578	 ----	 ----	       	        	       	* VRAM.L35      
  4579	 ----	 6B0E	       	        	       	* VRAM.L35+1    
  457A	 ----	 6B7E	       	        	       	* VRAM.L35+2    
  457B	 ----	 6B7E	       	        	       	* VRAM.L35+3    
@@ -1160,9 +1133,8 @@ Collected addresses:
  459C	 ----	 6BAF	       	        	       	* VRAM.L35+36   
  459D	 ----	 6BAF	       	        	       	* VRAM.L35+37   
  459E	 ----	 6BB4	       	        	       	* VRAM.L35+38   
-
-2 bytes untouched
-
+ 459F	 ----	 ----	       	        	       	* VRAM.L35+39   
+ 45A0	 ----	 ----	       	        	       	* VRAM.L36      
  45A1	 ----	 6B0E	       	        	       	* VRAM.L36+1    
  45A2	 ----	 6B7E	       	        	       	* VRAM.L36+2    
  45A3	 ----	 6B7E	       	        	       	* VRAM.L36+3    
@@ -1201,9 +1173,8 @@ Collected addresses:
  45C4	 ----	 6BAF	       	        	       	* VRAM.L36+36   
  45C5	 ----	 6BAF	       	        	       	* VRAM.L36+37   
  45C6	 ----	 6BB4	       	        	       	* VRAM.L36+38   
-
-2 bytes untouched
-
+ 45C7	 ----	 ----	       	        	       	* VRAM.L36+39   
+ 45C8	 ----	 ----	       	        	       	* VRAM.L37      
  45C9	 ----	 6B0E	       	        	       	* VRAM.L37+1    
  45CA	 ----	 6B7E	       	        	       	* VRAM.L37+2    
  45CB	 ----	 6B7E	       	        	       	* VRAM.L37+3    
@@ -1242,9 +1213,8 @@ Collected addresses:
  45EC	 ----	 6BAF	       	        	       	* VRAM.L37+36   
  45ED	 ----	 6BAF	       	        	       	* VRAM.L37+37   
  45EE	 ----	 6BB4	       	        	       	* VRAM.L37+38   
-
-2 bytes untouched
-
+ 45EF	 ----	 ----	       	        	       	* VRAM.L37+39   
+ 45F0	 ----	 ----	       	        	       	* VRAM.L38      
  45F1	 ----	 6B0E	       	        	       	* VRAM.L38+1    
  45F2	 ----	 6B7E	       	        	       	* VRAM.L38+2    
  45F3	 ----	 6B7E	       	        	       	* VRAM.L38+3    
@@ -1283,9 +1253,8 @@ Collected addresses:
  4614	 ----	 6BAF	       	        	       	* VRAM.L38+36   
  4615	 ----	 6BAF	       	        	       	* VRAM.L38+37   
  4616	 ----	 6BB4	       	        	       	* VRAM.L38+38   
-
-2 bytes untouched
-
+ 4617	 ----	 ----	       	        	       	* VRAM.L38+39   
+ 4618	 ----	 ----	       	        	       	* VRAM.L39      
  4619	 ----	 6B0E	       	        	       	* VRAM.L39+1    
  461A	 ----	 6B7E	       	        	       	* VRAM.L39+2    
  461B	 ----	 6B7E	       	        	       	* VRAM.L39+3    
@@ -1324,9 +1293,8 @@ Collected addresses:
  463C	 ----	 6BAF	       	        	       	* VRAM.L39+36   
  463D	 ----	 6BAF	       	        	       	* VRAM.L39+37   
  463E	 ----	 6BB4	       	        	       	* VRAM.L39+38   
-
-2 bytes untouched
-
+ 463F	 ----	 ----	       	        	       	* VRAM.L39+39   
+ 4640	 ----	 ----	       	        	       	* VRAM.L40      
  4641	 ----	 6B0E	       	        	       	* VRAM.L40+1    
  4642	 ----	 6B7E	       	        	       	* VRAM.L40+2    
  4643	 ----	 6B7E	       	        	       	* VRAM.L40+3    
@@ -1365,9 +1333,8 @@ Collected addresses:
  4664	 ----	 6BAF	       	        	       	* VRAM.L40+36   
  4665	 ----	 6BAF	       	        	       	* VRAM.L40+37   
  4666	 ----	 6BB4	       	        	       	* VRAM.L40+38   
-
-2 bytes untouched
-
+ 4667	 ----	 ----	       	        	       	* VRAM.L40+39   
+ 4668	 ----	 ----	       	        	       	* VRAM.L41      
  4669	 ----	 6B0E	       	        	       	* VRAM.L41+1    
  466A	 ----	 6B7E	       	        	       	* VRAM.L41+2    
  466B	 ----	 6B7E	       	        	       	* VRAM.L41+3    
@@ -1406,9 +1373,8 @@ Collected addresses:
  468C	 ----	 6BAF	       	        	       	* VRAM.L41+36   
  468D	 ----	 6BAF	       	        	       	* VRAM.L41+37   
  468E	 ----	 6BB4	       	        	       	* VRAM.L41+38   
-
-2 bytes untouched
-
+ 468F	 ----	 ----	       	        	       	* VRAM.L41+39   
+ 4690	 ----	 ----	       	        	       	* VRAM.L42      
  4691	 ----	 6B0E	       	        	       	* VRAM.L42+1    
  4692	 ----	 6B7E	       	        	       	* VRAM.L42+2    
  4693	 ----	 6B7E	       	        	       	* VRAM.L42+3    
@@ -1447,9 +1413,8 @@ Collected addresses:
  46B4	 ----	 6BAF	       	        	       	* VRAM.L42+36   
  46B5	 ----	 6BAF	       	        	       	* VRAM.L42+37   
  46B6	 ----	 6BB4	       	        	       	* VRAM.L42+38   
-
-2 bytes untouched
-
+ 46B7	 ----	 ----	       	        	       	* VRAM.L42+39   
+ 46B8	 ----	 ----	       	        	       	* VRAM.L43      
  46B9	 ----	 6B0E	       	        	       	* VRAM.L43+1    
  46BA	 ----	 6B7E	       	        	       	* VRAM.L43+2    
  46BB	 ----	 6B7E	       	        	       	* VRAM.L43+3    
@@ -1488,9 +1453,8 @@ Collected addresses:
  46DC	 ----	 6BAF	       	        	       	* VRAM.L43+36   
  46DD	 ----	 6BAF	       	        	       	* VRAM.L43+37   
  46DE	 ----	 6BB4	       	        	       	* VRAM.L43+38   
-
-2 bytes untouched
-
+ 46DF	 ----	 ----	       	        	       	* VRAM.L43+39   
+ 46E0	 ----	 ----	       	        	       	* VRAM.L44      
  46E1	 ----	 6B0E	       	        	       	* VRAM.L44+1    
  46E2	 ----	 6B7E	       	        	       	* VRAM.L44+2    
  46E3	 ----	 6B7E	       	        	       	* VRAM.L44+3    
@@ -1529,9 +1493,8 @@ Collected addresses:
  4704	 ----	 6BAF	       	        	       	* VRAM.L44+36   
  4705	 ----	 6BAF	       	        	       	* VRAM.L44+37   
  4706	 ----	 6BB4	       	        	       	* VRAM.L44+38   
-
-2 bytes untouched
-
+ 4707	 ----	 ----	       	        	       	* VRAM.L44+39   
+ 4708	 ----	 ----	       	        	       	* VRAM.L45      
  4709	 ----	 6B0E	       	        	       	* VRAM.L45+1    
  470A	 ----	 6B7E	       	        	       	* VRAM.L45+2    
  470B	 ----	 6B7E	       	        	       	* VRAM.L45+3    
@@ -1570,9 +1533,8 @@ Collected addresses:
  472C	 ----	 6BAF	       	        	       	* VRAM.L45+36   
  472D	 ----	 6BAF	       	        	       	* VRAM.L45+37   
  472E	 ----	 6BB4	       	        	       	* VRAM.L45+38   
-
-2 bytes untouched
-
+ 472F	 ----	 ----	       	        	       	* VRAM.L45+39   
+ 4730	 ----	 ----	       	        	       	* VRAM.L46      
  4731	 ----	 6B0E	       	        	       	* VRAM.L46+1    
  4732	 ----	 6B7E	       	        	       	* VRAM.L46+2    
  4733	 ----	 6B7E	       	        	       	* VRAM.L46+3    
@@ -1611,9 +1573,8 @@ Collected addresses:
  4754	 ----	 6BAF	       	        	       	* VRAM.L46+36   
  4755	 ----	 6BAF	       	        	       	* VRAM.L46+37   
  4756	 ----	 6BB4	       	        	       	* VRAM.L46+38   
-
-2 bytes untouched
-
+ 4757	 ----	 ----	       	        	       	* VRAM.L46+39   
+ 4758	 ----	 ----	       	        	       	* VRAM.L47      
  4759	 ----	 6B0E	       	        	       	* VRAM.L47+1    
  475A	 ----	 6B7E	       	        	       	* VRAM.L47+2    
  475B	 ----	 6B7E	       	        	       	* VRAM.L47+3    
@@ -1652,9 +1613,8 @@ Collected addresses:
  477C	 ----	 6BAF	       	        	       	* VRAM.L47+36   
  477D	 ----	 6BAF	       	        	       	* VRAM.L47+37   
  477E	 ----	 6BB4	       	        	       	* VRAM.L47+38   
-
-2 bytes untouched
-
+ 477F	 ----	 ----	       	        	       	* VRAM.L47+39   
+ 4780	 ----	 ----	       	        	       	* VRAM.L48      
  4781	 ----	 6B0E	       	        	       	* VRAM.L48+1    
  4782	 ----	 6B7E	       	        	       	* VRAM.L48+2    
  4783	 ----	 6B7E	       	        	       	* VRAM.L48+3    
@@ -1693,9 +1653,8 @@ Collected addresses:
  47A4	 ----	 6BAF	       	        	       	* VRAM.L48+36   
  47A5	 ----	 6BAF	       	        	       	* VRAM.L48+37   
  47A6	 ----	 6BB4	       	        	       	* VRAM.L48+38   
-
-2 bytes untouched
-
+ 47A7	 ----	 ----	       	        	       	* VRAM.L48+39   
+ 47A8	 ----	 ----	       	        	       	* VRAM.L49      
  47A9	 ----	 6B0E	       	        	       	* VRAM.L49+1    
  47AA	 ----	 6B7E	       	        	       	* VRAM.L49+2    
  47AB	 ----	 6B7E	       	        	       	* VRAM.L49+3    
@@ -1734,9 +1693,8 @@ Collected addresses:
  47CC	 ----	 6BAF	       	        	       	* VRAM.L49+36   
  47CD	 ----	 6BAF	       	        	       	* VRAM.L49+37   
  47CE	 ----	 6BB4	       	        	       	* VRAM.L49+38   
-
-2 bytes untouched
-
+ 47CF	 ----	 ----	       	        	       	* VRAM.L49+39   
+ 47D0	 ----	 ----	       	        	       	* VRAM.L50      
  47D1	 ----	 6B0E	       	        	       	* VRAM.L50+1    
  47D2	 ----	 6B7E	       	        	       	* VRAM.L50+2    
  47D3	 ----	 6B7E	       	        	       	* VRAM.L50+3    
@@ -1775,9 +1733,8 @@ Collected addresses:
  47F4	 ----	 6BAF	       	        	       	* VRAM.L50+36   
  47F5	 ----	 6BAF	       	        	       	* VRAM.L50+37   
  47F6	 ----	 6BB4	       	        	       	* VRAM.L50+38   
-
-2 bytes untouched
-
+ 47F7	 ----	 ----	       	        	       	* VRAM.L50+39   
+ 47F8	 ----	 ----	       	        	       	* VRAM.L51      
  47F9	 ----	 6B0E	       	        	       	* VRAM.L51+1    
  47FA	 ----	 6B7E	       	        	       	* VRAM.L51+2    
  47FB	 ----	 6B7E	       	        	       	* VRAM.L51+3    
@@ -1816,9 +1773,8 @@ Collected addresses:
  481C	 ----	 6BAF	       	        	       	* VRAM.L51+36   
  481D	 ----	 6BAF	       	        	       	* VRAM.L51+37   
  481E	 ----	 6BB4	       	        	       	* VRAM.L51+38   
-
-2 bytes untouched
-
+ 481F	 ----	 ----	       	        	       	* VRAM.L51+39   
+ 4820	 ----	 ----	       	        	       	* VRAM.L52      
  4821	 ----	 6B0E	       	        	       	* VRAM.L52+1    
  4822	 ----	 6B7E	       	        	       	* VRAM.L52+2    
  4823	 ----	 6B7E	       	        	       	* VRAM.L52+3    
@@ -1857,9 +1813,8 @@ Collected addresses:
  4844	 ----	 6BAF	       	        	       	* VRAM.L52+36   
  4845	 ----	 6BAF	       	        	       	* VRAM.L52+37   
  4846	 ----	 6BB4	       	        	       	* VRAM.L52+38   
-
-2 bytes untouched
-
+ 4847	 ----	 ----	       	        	       	* VRAM.L52+39   
+ 4848	 ----	 ----	       	        	       	* VRAM.L53      
  4849	 ----	 6B0E	       	        	       	* VRAM.L53+1    
  484A	 ----	 6B7E	       	        	       	* VRAM.L53+2    
  484B	 ----	 6B7E	       	        	       	* VRAM.L53+3    
@@ -1898,9 +1853,8 @@ Collected addresses:
  486C	 ----	 6BAF	       	        	       	* VRAM.L53+36   
  486D	 ----	 6BAF	       	        	       	* VRAM.L53+37   
  486E	 ----	 6BB4	       	        	       	* VRAM.L53+38   
-
-2 bytes untouched
-
+ 486F	 ----	 ----	       	        	       	* VRAM.L53+39   
+ 4870	 ----	 ----	       	        	       	* VRAM.L54      
  4871	 ----	 6B0E	       	        	       	* VRAM.L54+1    
  4872	 ----	 6B7E	       	        	       	* VRAM.L54+2    
  4873	 ----	 6B7E	       	        	       	* VRAM.L54+3    
@@ -1939,9 +1893,8 @@ Collected addresses:
  4894	 ----	 6BAF	       	        	       	* VRAM.L54+36   
  4895	 ----	 6BAF	       	        	       	* VRAM.L54+37   
  4896	 ----	 6BB4	       	        	       	* VRAM.L54+38   
-
-2 bytes untouched
-
+ 4897	 ----	 ----	       	        	       	* VRAM.L54+39   
+ 4898	 ----	 ----	       	        	       	* VRAM.L55      
  4899	 ----	 6B0E	       	        	       	* VRAM.L55+1    
  489A	 ----	 6B7E	       	        	       	* VRAM.L55+2    
  489B	 ----	 6B7E	       	        	       	* VRAM.L55+3    
@@ -1980,9 +1933,8 @@ Collected addresses:
  48BC	 ----	 6BAF	       	        	       	* VRAM.L55+36   
  48BD	 ----	 6BAF	       	        	       	* VRAM.L55+37   
  48BE	 ----	 6BB4	       	        	       	* VRAM.L55+38   
-
-2 bytes untouched
-
+ 48BF	 ----	 ----	       	        	       	* VRAM.L55+39   
+ 48C0	 ----	 ----	       	        	       	* VRAM.L56      
  48C1	 ----	 6B0E	       	        	       	* VRAM.L56+1    
  48C2	 ----	 6B7E	       	        	       	* VRAM.L56+2    
  48C3	 ----	 6B7E	       	        	       	* VRAM.L56+3    
@@ -2021,9 +1973,8 @@ Collected addresses:
  48E4	 ----	 6BAF	       	        	       	* VRAM.L56+36   
  48E5	 ----	 6BAF	       	        	       	* VRAM.L56+37   
  48E6	 ----	 6BB4	       	        	       	* VRAM.L56+38   
-
-2 bytes untouched
-
+ 48E7	 ----	 ----	       	        	       	* VRAM.L56+39   
+ 48E8	 ----	 ----	       	        	       	* VRAM.L57      
  48E9	 ----	 6B0E	       	        	       	* VRAM.L57+1    
  48EA	 ----	 6B7E	       	        	       	* VRAM.L57+2    
  48EB	 ----	 6B7E	       	        	       	* VRAM.L57+3    
@@ -2062,9 +2013,8 @@ Collected addresses:
  490C	 ----	 6BAF	       	        	       	* VRAM.L57+36   
  490D	 ----	 6BAF	       	        	       	* VRAM.L57+37   
  490E	 ----	 6BB4	       	        	       	* VRAM.L57+38   
-
-2 bytes untouched
-
+ 490F	 ----	 ----	       	        	       	* VRAM.L57+39   
+ 4910	 ----	 ----	       	        	       	* VRAM.L58      
  4911	 ----	 6B0E	       	        	       	* VRAM.L58+1    
  4912	 ----	 6B7E	       	        	       	* VRAM.L58+2    
  4913	 ----	 6B7E	       	        	       	* VRAM.L58+3    
@@ -2103,9 +2053,8 @@ Collected addresses:
  4934	 ----	 6BAF	       	        	       	* VRAM.L58+36   
  4935	 ----	 6BAF	       	        	       	* VRAM.L58+37   
  4936	 ----	 6BB4	       	        	       	* VRAM.L58+38   
-
-2 bytes untouched
-
+ 4937	 ----	 ----	       	        	       	* VRAM.L58+39   
+ 4938	 ----	 ----	       	        	       	* VRAM.L59      
  4939	 ----	 6B0E	       	        	       	* VRAM.L59+1    
  493A	 ----	 6B7E	       	        	       	* VRAM.L59+2    
  493B	 ----	 6B7E	       	        	       	* VRAM.L59+3    
@@ -2144,9 +2093,8 @@ Collected addresses:
  495C	 ----	 6BAF	       	        	       	* VRAM.L59+36   
  495D	 ----	 6BAF	       	        	       	* VRAM.L59+37   
  495E	 ----	 6BB4	       	        	       	* VRAM.L59+38   
-
-2 bytes untouched
-
+ 495F	 ----	 ----	       	        	       	* VRAM.L59+39   
+ 4960	 ----	 ----	       	        	       	* VRAM.L60      
  4961	 ----	 6B0E	       	        	       	* VRAM.L60+1    
  4962	 ----	 6B7E	       	        	       	* VRAM.L60+2    
  4963	 ----	 6B7E	       	        	       	* VRAM.L60+3    
@@ -2185,9 +2133,8 @@ Collected addresses:
  4984	 ----	 6BAF	       	        	       	* VRAM.L60+36   
  4985	 ----	 6BAF	       	        	       	* VRAM.L60+37   
  4986	 ----	 6BB4	       	        	       	* VRAM.L60+38   
-
-2 bytes untouched
-
+ 4987	 ----	 ----	       	        	       	* VRAM.L60+39   
+ 4988	 ----	 ----	       	        	       	* VRAM.L61      
  4989	 ----	 6B0E	       	        	       	* VRAM.L61+1    
  498A	 ----	 6B7E	       	        	       	* VRAM.L61+2    
  498B	 ----	 6B7E	       	        	       	* VRAM.L61+3    
@@ -2226,9 +2173,8 @@ Collected addresses:
  49AC	 ----	 6BAF	       	        	       	* VRAM.L61+36   
  49AD	 ----	 6BAF	       	        	       	* VRAM.L61+37   
  49AE	 ----	 6BB4	       	        	       	* VRAM.L61+38   
-
-2 bytes untouched
-
+ 49AF	 ----	 ----	       	        	       	* VRAM.L61+39   
+ 49B0	 ----	 ----	       	        	       	* VRAM.L62      
  49B1	 ----	 6B0E	       	        	       	* VRAM.L62+1    
  49B2	 ----	 6B7E	       	        	       	* VRAM.L62+2    
  49B3	 ----	 6B7E	       	        	       	* VRAM.L62+3    
@@ -2267,9 +2213,8 @@ Collected addresses:
  49D4	 ----	 6BAF	       	        	       	* VRAM.L62+36   
  49D5	 ----	 6BAF	       	        	       	* VRAM.L62+37   
  49D6	 ----	 6BB4	       	        	       	* VRAM.L62+38   
-
-2 bytes untouched
-
+ 49D7	 ----	 ----	       	        	       	* VRAM.L62+39   
+ 49D8	 ----	 ----	       	        	       	* VRAM.L63      
  49D9	 ----	 6B0E	       	        	       	* VRAM.L63+1    
  49DA	 ----	 6B7E	       	        	       	* VRAM.L63+2    
  49DB	 ----	 6B7E	       	        	       	* VRAM.L63+3    
@@ -2308,9 +2253,8 @@ Collected addresses:
  49FC	 ----	 6BAF	       	        	       	* VRAM.L63+36   
  49FD	 ----	 6BAF	       	        	       	* VRAM.L63+37   
  49FE	 ----	 6BB4	       	        	       	* VRAM.L63+38   
-
-2 bytes untouched
-
+ 49FF	 ----	 ----	       	        	       	* VRAM.L63+39   
+ 4A00	 ----	 ----	       	        	       	* VRAM.L64      
  4A01	 ----	 6B0E	       	        	       	* VRAM.L64+1    
  4A02	 ----	 6B7E	       	        	       	* VRAM.L64+2    
  4A03	 ----	 6B7E	       	        	       	* VRAM.L64+3    
@@ -2349,9 +2293,8 @@ Collected addresses:
  4A24	 ----	 6BAF	       	        	       	* VRAM.L64+36   
  4A25	 ----	 6BAF	       	        	       	* VRAM.L64+37   
  4A26	 ----	 6BB4	       	        	       	* VRAM.L64+38   
-
-2 bytes untouched
-
+ 4A27	 ----	 ----	       	        	       	* VRAM.L64+39   
+ 4A28	 ----	 ----	       	        	       	* VRAM.L65      
  4A29	 ----	 6B0E	       	        	       	* VRAM.L65+1    
  4A2A	 ----	 6B7E	       	        	       	* VRAM.L65+2    
  4A2B	 ----	 6B7E	       	        	       	* VRAM.L65+3    
@@ -2390,9 +2333,8 @@ Collected addresses:
  4A4C	 ----	 6BAF	       	        	       	* VRAM.L65+36   
  4A4D	 ----	 6BAF	       	        	       	* VRAM.L65+37   
  4A4E	 ----	 6BB4	       	        	       	* VRAM.L65+38   
-
-2 bytes untouched
-
+ 4A4F	 ----	 ----	       	        	       	* VRAM.L65+39   
+ 4A50	 ----	 ----	       	        	       	* VRAM.L66      
  4A51	 ----	 6B0E	       	        	       	* VRAM.L66+1    
  4A52	 ----	 6B7E	       	        	       	* VRAM.L66+2    
  4A53	 ----	 6B7E	       	        	       	* VRAM.L66+3    
@@ -2431,9 +2373,8 @@ Collected addresses:
  4A74	 ----	 6BAF	       	        	       	* VRAM.L66+36   
  4A75	 ----	 6BAF	       	        	       	* VRAM.L66+37   
  4A76	 ----	 6BB4	       	        	       	* VRAM.L66+38   
-
-2 bytes untouched
-
+ 4A77	 ----	 ----	       	        	       	* VRAM.L66+39   
+ 4A78	 ----	 ----	       	        	       	* VRAM.L67      
  4A79	 ----	 6B0E	       	        	       	* VRAM.L67+1    
  4A7A	 ----	 6B7E	       	        	       	* VRAM.L67+2    
  4A7B	 ----	 6B7E	       	        	       	* VRAM.L67+3    
@@ -2472,9 +2413,8 @@ Collected addresses:
  4A9C	 ----	 6BAF	       	        	       	* VRAM.L67+36   
  4A9D	 ----	 6BAF	       	        	       	* VRAM.L67+37   
  4A9E	 ----	 6BB4	       	        	       	* VRAM.L67+38   
-
-2 bytes untouched
-
+ 4A9F	 ----	 ----	       	        	       	* VRAM.L67+39   
+ 4AA0	 ----	 ----	       	        	       	* VRAM.L68      
  4AA1	 ----	 6B0E	       	        	       	* VRAM.L68+1    
  4AA2	 ----	 6B7E	       	        	       	* VRAM.L68+2    
  4AA3	 ----	 6B7E	       	        	       	* VRAM.L68+3    
@@ -2513,9 +2453,8 @@ Collected addresses:
  4AC4	 ----	 6BAF	       	        	       	* VRAM.L68+36   
  4AC5	 ----	 6BAF	       	        	       	* VRAM.L68+37   
  4AC6	 ----	 6BB4	       	        	       	* VRAM.L68+38   
-
-2 bytes untouched
-
+ 4AC7	 ----	 ----	       	        	       	* VRAM.L68+39   
+ 4AC8	 ----	 ----	       	        	       	* VRAM.L69      
  4AC9	 ----	 6B0E	       	        	       	* VRAM.L69+1    
  4ACA	 ----	 6B7E	       	        	       	* VRAM.L69+2    
  4ACB	 ----	 6B7E	       	        	       	* VRAM.L69+3    
@@ -2554,9 +2493,8 @@ Collected addresses:
  4AEC	 ----	 6BAF	       	        	       	* VRAM.L69+36   
  4AED	 ----	 6BAF	       	        	       	* VRAM.L69+37   
  4AEE	 ----	 6BB4	       	        	       	* VRAM.L69+38   
-
-2 bytes untouched
-
+ 4AEF	 ----	 ----	       	        	       	* VRAM.L69+39   
+ 4AF0	 ----	 ----	       	        	       	* VRAM.L70      
  4AF1	 ----	 6B0E	       	        	       	* VRAM.L70+1    
  4AF2	 ----	 6B7E	       	        	       	* VRAM.L70+2    
  4AF3	 ----	 6B7E	       	        	       	* VRAM.L70+3    
@@ -2595,9 +2533,8 @@ Collected addresses:
  4B14	 ----	 6BAF	       	        	       	* VRAM.L70+36   
  4B15	 ----	 6BAF	       	        	       	* VRAM.L70+37   
  4B16	 ----	 6BB4	       	        	       	* VRAM.L70+38   
-
-2 bytes untouched
-
+ 4B17	 ----	 ----	       	        	       	* VRAM.L70+39   
+ 4B18	 ----	 ----	       	        	       	* VRAM.L71      
  4B19	 ----	 6B0E	       	        	       	* VRAM.L71+1    
  4B1A	 ----	 6B7E	       	        	       	* VRAM.L71+2    
  4B1B	 ----	 6B7E	       	        	       	* VRAM.L71+3    
@@ -2636,9 +2573,8 @@ Collected addresses:
  4B3C	 ----	 6BAF	       	        	       	* VRAM.L71+36   
  4B3D	 ----	 6BAF	       	        	       	* VRAM.L71+37   
  4B3E	 ----	 6BB4	       	        	       	* VRAM.L71+38   
-
-2 bytes untouched
-
+ 4B3F	 ----	 ----	       	        	       	* VRAM.L71+39   
+ 4B40	 ----	 ----	       	        	       	* VRAM.L72      
  4B41	 ----	 6B0E	       	        	       	* VRAM.L72+1    
  4B42	 ----	 6B7E	       	        	       	* VRAM.L72+2    
  4B43	 ----	 6B7E	       	        	       	* VRAM.L72+3    
@@ -2677,9 +2613,8 @@ Collected addresses:
  4B64	 ----	 6BAF	       	        	       	* VRAM.L72+36   
  4B65	 ----	 6BAF	       	        	       	* VRAM.L72+37   
  4B66	 ----	 6BB4	       	        	       	* VRAM.L72+38   
-
-2 bytes untouched
-
+ 4B67	 ----	 ----	       	        	       	* VRAM.L72+39   
+ 4B68	 ----	 ----	       	        	       	* VRAM.L73      
  4B69	 ----	 6B0E	       	        	       	* VRAM.L73+1    
  4B6A	 ----	 6B7E	       	        	       	* VRAM.L73+2    
  4B6B	 ----	 6B7E	       	        	       	* VRAM.L73+3    
@@ -2718,9 +2653,8 @@ Collected addresses:
  4B8C	 ----	 6BAF	       	        	       	* VRAM.L73+36   
  4B8D	 ----	 6BAF	       	        	       	* VRAM.L73+37   
  4B8E	 ----	 6BB4	       	        	       	* VRAM.L73+38   
-
-2 bytes untouched
-
+ 4B8F	 ----	 ----	       	        	       	* VRAM.L73+39   
+ 4B90	 ----	 ----	       	        	       	* VRAM.L74      
  4B91	 ----	 6B0E	       	        	       	* VRAM.L74+1    
  4B92	 ----	 6B7E	       	        	       	* VRAM.L74+2    
  4B93	 ----	 6B7E	       	        	       	* VRAM.L74+3    
@@ -2759,9 +2693,8 @@ Collected addresses:
  4BB4	 ----	 6BAF	       	        	       	* VRAM.L74+36   
  4BB5	 ----	 6BAF	       	        	       	* VRAM.L74+37   
  4BB6	 ----	 6BB4	       	        	       	* VRAM.L74+38   
-
-2 bytes untouched
-
+ 4BB7	 ----	 ----	       	        	       	* VRAM.L74+39   
+ 4BB8	 ----	 ----	       	        	       	* VRAM.L75      
  4BB9	 ----	 6B0E	       	        	       	* VRAM.L75+1    
  4BBA	 ----	 6B7E	       	        	       	* VRAM.L75+2    
  4BBB	 ----	 6B7E	       	        	       	* VRAM.L75+3    
@@ -2800,9 +2733,8 @@ Collected addresses:
  4BDC	 ----	 6BAF	       	        	       	* VRAM.L75+36   
  4BDD	 ----	 6BAF	       	        	       	* VRAM.L75+37   
  4BDE	 ----	 6BB4	       	        	       	* VRAM.L75+38   
-
-2 bytes untouched
-
+ 4BDF	 ----	 ----	       	        	       	* VRAM.L75+39   
+ 4BE0	 ----	 ----	       	        	       	* VRAM.L76      
  4BE1	 ----	 6B0E	       	        	       	* VRAM.L76+1    
  4BE2	 ----	 6B7E	       	        	       	* VRAM.L76+2    
  4BE3	 ----	 6B7E	       	        	       	* VRAM.L76+3    
@@ -2841,9 +2773,8 @@ Collected addresses:
  4C04	 ----	 6BAF	       	        	       	* VRAM.L76+36   
  4C05	 ----	 6BAF	       	        	       	* VRAM.L76+37   
  4C06	 ----	 6BB4	       	        	       	* VRAM.L76+38   
-
-2 bytes untouched
-
+ 4C07	 ----	 ----	       	        	       	* VRAM.L76+39   
+ 4C08	 ----	 ----	       	        	       	* VRAM.L77      
  4C09	 ----	 6B0E	       	        	       	* VRAM.L77+1    
  4C0A	 ----	 6B7E	       	        	       	* VRAM.L77+2    
  4C0B	 ----	 6B7E	       	        	       	* VRAM.L77+3    
@@ -2882,9 +2813,8 @@ Collected addresses:
  4C2C	 ----	 6BAF	       	        	       	* VRAM.L77+36   
  4C2D	 ----	 6BAF	       	        	       	* VRAM.L77+37   
  4C2E	 ----	 6BB4	       	        	       	* VRAM.L77+38   
-
-2 bytes untouched
-
+ 4C2F	 ----	 ----	       	        	       	* VRAM.L77+39   
+ 4C30	 ----	 ----	       	        	       	* VRAM.L78      
  4C31	 ----	 6B0E	       	        	       	* VRAM.L78+1    
  4C32	 ----	 6B7E	       	        	       	* VRAM.L78+2    
  4C33	 ----	 6B7E	       	        	       	* VRAM.L78+3    
@@ -2923,9 +2853,8 @@ Collected addresses:
  4C54	 ----	 6BAF	       	        	       	* VRAM.L78+36   
  4C55	 ----	 6BAF	       	        	       	* VRAM.L78+37   
  4C56	 ----	 6BB4	       	        	       	* VRAM.L78+38   
-
-2 bytes untouched
-
+ 4C57	 ----	 ----	       	        	       	* VRAM.L78+39   
+ 4C58	 ----	 ----	       	        	       	* VRAM.L79      
  4C59	 ----	 6B0E	       	        	       	* VRAM.L79+1    
  4C5A	 ----	 6B7E	       	        	       	* VRAM.L79+2    
  4C5B	 ----	 6B7E	       	        	       	* VRAM.L79+3    
@@ -2964,9 +2893,8 @@ Collected addresses:
  4C7C	 ----	 6BAF	       	        	       	* VRAM.L79+36   
  4C7D	 ----	 6BAF	       	        	       	* VRAM.L79+37   
  4C7E	 ----	 6BB4	       	        	       	* VRAM.L79+38   
-
-2 bytes untouched
-
+ 4C7F	 ----	 ----	       	        	       	* VRAM.L79+39   
+ 4C80	 ----	 ----	       	        	       	* VRAM.L80      
  4C81	 ----	 6B0E	       	        	       	* VRAM.L80+1    
  4C82	 ----	 6B7E	       	        	       	* VRAM.L80+2    
  4C83	 ----	 6B7E	       	        	       	* VRAM.L80+3    
@@ -3005,9 +2933,8 @@ Collected addresses:
  4CA4	 ----	 6BAF	       	        	       	* VRAM.L80+36   
  4CA5	 ----	 6BAF	       	        	       	* VRAM.L80+37   
  4CA6	 ----	 6BB4	       	        	       	* VRAM.L80+38   
-
-2 bytes untouched
-
+ 4CA7	 ----	 ----	       	        	       	* VRAM.L80+39   
+ 4CA8	 ----	 ----	       	        	       	* VRAM.L81      
  4CA9	 ----	 6B0E	       	        	       	* VRAM.L81+1    
  4CAA	 ----	 6B7E	       	        	       	* VRAM.L81+2    
  4CAB	 ----	 6B7E	       	        	       	* VRAM.L81+3    
@@ -3046,9 +2973,8 @@ Collected addresses:
  4CCC	 ----	 6BAF	       	        	       	* VRAM.L81+36   
  4CCD	 ----	 6BAF	       	        	       	* VRAM.L81+37   
  4CCE	 ----	 6BB4	       	        	       	* VRAM.L81+38   
-
-2 bytes untouched
-
+ 4CCF	 ----	 ----	       	        	       	* VRAM.L81+39   
+ 4CD0	 ----	 ----	       	        	       	* VRAM.L82      
  4CD1	 ----	 6B0E	       	        	       	* VRAM.L82+1    
  4CD2	 ----	 6B7E	       	        	       	* VRAM.L82+2    
  4CD3	 ----	 6B7E	       	        	       	* VRAM.L82+3    
@@ -3087,9 +3013,8 @@ Collected addresses:
  4CF4	 ----	 6BAF	       	        	       	* VRAM.L82+36   
  4CF5	 ----	 6BAF	       	        	       	* VRAM.L82+37   
  4CF6	 ----	 6BB4	       	        	       	* VRAM.L82+38   
-
-2 bytes untouched
-
+ 4CF7	 ----	 ----	       	        	       	* VRAM.L82+39   
+ 4CF8	 ----	 ----	       	        	       	* VRAM.L83      
  4CF9	 ----	 6B0E	       	        	       	* VRAM.L83+1    
  4CFA	 ----	 6B7E	       	        	       	* VRAM.L83+2    
  4CFB	 ----	 6B7E	       	        	       	* VRAM.L83+3    
@@ -3128,9 +3053,8 @@ Collected addresses:
  4D1C	 ----	 6BAF	       	        	       	* VRAM.L83+36   
  4D1D	 ----	 6BAF	       	        	       	* VRAM.L83+37   
  4D1E	 ----	 6BB4	       	        	       	* VRAM.L83+38   
-
-2 bytes untouched
-
+ 4D1F	 ----	 ----	       	        	       	* VRAM.L83+39   
+ 4D20	 ----	 ----	       	        	       	* VRAM.L84      
  4D21	 ----	 6B0E	       	        	       	* VRAM.L84+1    
  4D22	 ----	 6B7E	       	        	       	* VRAM.L84+2    
  4D23	 ----	 6B7E	       	        	       	* VRAM.L84+3    
@@ -3169,9 +3093,8 @@ Collected addresses:
  4D44	 ----	 6BAF	       	        	       	* VRAM.L84+36   
  4D45	 ----	 6BAF	       	        	       	* VRAM.L84+37   
  4D46	 ----	 6BB4	       	        	       	* VRAM.L84+38   
-
-2 bytes untouched
-
+ 4D47	 ----	 ----	       	        	       	* VRAM.L84+39   
+ 4D48	 ----	 ----	       	        	       	* VRAM.L85      
  4D49	 ----	 6B0E	       	        	       	* VRAM.L85+1    
  4D4A	 ----	 6B7E	       	        	       	* VRAM.L85+2    
  4D4B	 ----	 6B7E	       	        	       	* VRAM.L85+3    
@@ -3210,9 +3133,8 @@ Collected addresses:
  4D6C	 ----	 6BAF	       	        	       	* VRAM.L85+36   
  4D6D	 ----	 6BAF	       	        	       	* VRAM.L85+37   
  4D6E	 ----	 6BB4	       	        	       	* VRAM.L85+38   
-
-2 bytes untouched
-
+ 4D6F	 ----	 ----	       	        	       	* VRAM.L85+39   
+ 4D70	 ----	 ----	       	        	       	* VRAM.L86      
  4D71	 ----	 6B0E	       	        	       	* VRAM.L86+1    
  4D72	 ----	 6B7E	       	        	       	* VRAM.L86+2    
  4D73	 ----	 6B7E	       	        	       	* VRAM.L86+3    
@@ -3251,9 +3173,8 @@ Collected addresses:
  4D94	 ----	 6BAF	       	        	       	* VRAM.L86+36   
  4D95	 ----	 6BAF	       	        	       	* VRAM.L86+37   
  4D96	 ----	 6BB4	       	        	       	* VRAM.L86+38   
-
-2 bytes untouched
-
+ 4D97	 ----	 ----	       	        	       	* VRAM.L86+39   
+ 4D98	 ----	 ----	       	        	       	* VRAM.L87      
  4D99	 ----	 6B0E	       	        	       	* VRAM.L87+1    
  4D9A	 ----	 6B7E	       	        	       	* VRAM.L87+2    
  4D9B	 ----	 6B7E	       	        	       	* VRAM.L87+3    
@@ -3292,9 +3213,8 @@ Collected addresses:
  4DBC	 ----	 6BAF	       	        	       	* VRAM.L87+36   
  4DBD	 ----	 6BAF	       	        	       	* VRAM.L87+37   
  4DBE	 ----	 6BB4	       	        	       	* VRAM.L87+38   
-
-2 bytes untouched
-
+ 4DBF	 ----	 ----	       	        	       	* VRAM.L87+39   
+ 4DC0	 ----	 ----	       	        	       	* VRAM.L88      
  4DC1	 ----	 6B0E	       	        	       	* VRAM.L88+1    
  4DC2	 ----	 6B7E	       	        	       	* VRAM.L88+2    
  4DC3	 ----	 6B7E	       	        	       	* VRAM.L88+3    
@@ -3333,9 +3253,8 @@ Collected addresses:
  4DE4	 ----	 6BAF	       	        	       	* VRAM.L88+36   
  4DE5	 ----	 6BAF	       	        	       	* VRAM.L88+37   
  4DE6	 ----	 6BB4	       	        	       	* VRAM.L88+38   
-
-2 bytes untouched
-
+ 4DE7	 ----	 ----	       	        	       	* VRAM.L88+39   
+ 4DE8	 ----	 ----	       	        	       	* VRAM.L89      
  4DE9	 ----	 6B0E	       	        	       	* VRAM.L89+1    
  4DEA	 ----	 6B7E	       	        	       	* VRAM.L89+2    
  4DEB	 ----	 6B7E	       	        	       	* VRAM.L89+3    
@@ -3374,9 +3293,8 @@ Collected addresses:
  4E0C	 ----	 6BAF	       	        	       	* VRAM.L89+36   
  4E0D	 ----	 6BAF	       	        	       	* VRAM.L89+37   
  4E0E	 ----	 6BB4	       	        	       	* VRAM.L89+38   
-
-2 bytes untouched
-
+ 4E0F	 ----	 ----	       	        	       	* VRAM.L89+39   
+ 4E10	 ----	 ----	       	        	       	* VRAM.L90      
  4E11	 ----	 6B0E	       	        	       	* VRAM.L90+1    
  4E12	 ----	 6B7E	       	        	       	* VRAM.L90+2    
  4E13	 ----	 6B7E	       	        	       	* VRAM.L90+3    
@@ -3415,9 +3333,8 @@ Collected addresses:
  4E34	 ----	 6BAF	       	        	       	* VRAM.L90+36   
  4E35	 ----	 6BAF	       	        	       	* VRAM.L90+37   
  4E36	 ----	 6BB4	       	        	       	* VRAM.L90+38   
-
-2 bytes untouched
-
+ 4E37	 ----	 ----	       	        	       	* VRAM.L90+39   
+ 4E38	 ----	 ----	       	        	       	* VRAM.L91      
  4E39	 ----	 6B0E	       	        	       	* VRAM.L91+1    
  4E3A	 ----	 6B7E	       	        	       	* VRAM.L91+2    
  4E3B	 ----	 6B7E	       	        	       	* VRAM.L91+3    
@@ -3456,9 +3373,8 @@ Collected addresses:
  4E5C	 ----	 6BAF	       	        	       	* VRAM.L91+36   
  4E5D	 ----	 6BAF	       	        	       	* VRAM.L91+37   
  4E5E	 ----	 6BB4	       	        	       	* VRAM.L91+38   
-
-2 bytes untouched
-
+ 4E5F	 ----	 ----	       	        	       	* VRAM.L91+39   
+ 4E60	 ----	 ----	       	        	       	* VRAM.L92      
  4E61	 ----	 6B0E	       	        	       	* VRAM.L92+1    
  4E62	 ----	 6B7E	       	        	       	* VRAM.L92+2    
  4E63	 ----	 6B7E	       	        	       	* VRAM.L92+3    
@@ -3497,9 +3413,8 @@ Collected addresses:
  4E84	 ----	 6BAF	       	        	       	* VRAM.L92+36   
  4E85	 ----	 6BAF	       	        	       	* VRAM.L92+37   
  4E86	 ----	 6BB4	       	        	       	* VRAM.L92+38   
-
-2 bytes untouched
-
+ 4E87	 ----	 ----	       	        	       	* VRAM.L92+39   
+ 4E88	 ----	 ----	       	        	       	* VRAM.L93      
  4E89	 ----	 6B0E	       	        	       	* VRAM.L93+1    
  4E8A	 ----	 6B7E	       	        	       	* VRAM.L93+2    
  4E8B	 ----	 6B7E	       	        	       	* VRAM.L93+3    
@@ -3538,9 +3453,8 @@ Collected addresses:
  4EAC	 ----	 6BAF	       	        	       	* VRAM.L93+36   
  4EAD	 ----	 6BAF	       	        	       	* VRAM.L93+37   
  4EAE	 ----	 6BB4	       	        	       	* VRAM.L93+38   
-
-2 bytes untouched
-
+ 4EAF	 ----	 ----	       	        	       	* VRAM.L93+39   
+ 4EB0	 ----	 ----	       	        	       	* VRAM.L94      
  4EB1	 ----	 6B0E	       	        	       	* VRAM.L94+1    
  4EB2	 ----	 6B7E	       	        	       	* VRAM.L94+2    
  4EB3	 ----	 6B7E	       	        	       	* VRAM.L94+3    
@@ -3579,9 +3493,8 @@ Collected addresses:
  4ED4	 ----	 6BAF	       	        	       	* VRAM.L94+36   
  4ED5	 ----	 6BAF	       	        	       	* VRAM.L94+37   
  4ED6	 ----	 6BB4	       	        	       	* VRAM.L94+38   
-
-2 bytes untouched
-
+ 4ED7	 ----	 ----	       	        	       	* VRAM.L94+39   
+ 4ED8	 ----	 ----	       	        	       	* VRAM.L95      
  4ED9	 ----	 6B0E	       	        	       	* VRAM.L95+1    
  4EDA	 ----	 6B7E	       	        	       	* VRAM.L95+2    
  4EDB	 ----	 6B7E	       	        	       	* VRAM.L95+3    
@@ -3620,9 +3533,8 @@ Collected addresses:
  4EFC	 ----	 6BAF	       	        	       	* VRAM.L95+36   
  4EFD	 ----	 6BAF	       	        	       	* VRAM.L95+37   
  4EFE	 ----	 6BB4	       	        	       	* VRAM.L95+38   
-
-2 bytes untouched
-
+ 4EFF	 ----	 ----	       	        	       	* VRAM.L95+39   
+ 4F00	 ----	 ----	       	        	       	* VRAM.L96      
  4F01	 ----	 6B0E	       	        	       	* VRAM.L96+1    
  4F02	 ----	 6B7E	       	        	       	* VRAM.L96+2    
  4F03	 ----	 6B7E	       	        	       	* VRAM.L96+3    
@@ -3661,9 +3573,8 @@ Collected addresses:
  4F24	 ----	 6BAF	       	        	       	* VRAM.L96+36   
  4F25	 ----	 6BAF	       	        	       	* VRAM.L96+37   
  4F26	 ----	 6BB4	       	        	       	* VRAM.L96+38   
-
-2 bytes untouched
-
+ 4F27	 ----	 ----	       	        	       	* VRAM.L96+39   
+ 4F28	 ----	 ----	       	        	       	* VRAM.L97      
  4F29	 ----	 6B0E	       	        	       	* VRAM.L97+1    
  4F2A	 ----	 6B7E	       	        	       	* VRAM.L97+2    
  4F2B	 ----	 6B7E	       	        	       	* VRAM.L97+3    
@@ -3702,9 +3613,8 @@ Collected addresses:
  4F4C	 ----	 6BAF	       	        	       	* VRAM.L97+36   
  4F4D	 ----	 6BAF	       	        	       	* VRAM.L97+37   
  4F4E	 ----	 6BB4	       	        	       	* VRAM.L97+38   
-
-2 bytes untouched
-
+ 4F4F	 ----	 ----	       	        	       	* VRAM.L97+39   
+ 4F50	 ----	 ----	       	        	       	* VRAM.L98      
  4F51	 ----	 6B0E	       	        	       	* VRAM.L98+1    
  4F52	 ----	 6B7E	       	        	       	* VRAM.L98+2    
  4F53	 ----	 6B7E	       	        	       	* VRAM.L98+3    
@@ -3743,9 +3653,8 @@ Collected addresses:
  4F74	 ----	 6BAF	       	        	       	* VRAM.L98+36   
  4F75	 ----	 6BAF	       	        	       	* VRAM.L98+37   
  4F76	 ----	 6BB4	       	        	       	* VRAM.L98+38   
-
-2 bytes untouched
-
+ 4F77	 ----	 ----	       	        	       	* VRAM.L98+39   
+ 4F78	 ----	 ----	       	        	       	* VRAM.L99      
  4F79	 ----	 6B0E	       	        	       	* VRAM.L99+1    
  4F7A	 ----	 6B7E	       	        	       	* VRAM.L99+2    
  4F7B	 ----	 6B7E	       	        	       	* VRAM.L99+3    
@@ -3784,9 +3693,8 @@ Collected addresses:
  4F9C	 ----	 6BAF	       	        	       	* VRAM.L99+36   
  4F9D	 ----	 6BAF	       	        	       	* VRAM.L99+37   
  4F9E	 ----	 6BB4	       	        	       	* VRAM.L99+38   
-
-2 bytes untouched
-
+ 4F9F	 ----	 ----	       	        	       	* VRAM.L99+39   
+ 4FA0	 ----	 ----	       	        	       	* VRAM.L100     
  4FA1	 ----	 6B0E	       	        	       	* VRAM.L100+1   
  4FA2	 ----	 6B7E	       	        	       	* VRAM.L100+2   
  4FA3	 ----	 6B7E	       	        	       	* VRAM.L100+3   
@@ -3825,9 +3733,8 @@ Collected addresses:
  4FC4	 ----	 6BAF	       	        	       	* VRAM.L100+36  
  4FC5	 ----	 6BAF	       	        	       	* VRAM.L100+37  
  4FC6	 ----	 6BB4	       	        	       	* VRAM.L100+38  
-
-2 bytes untouched
-
+ 4FC7	 ----	 ----	       	        	       	* VRAM.L100+39  
+ 4FC8	 ----	 ----	       	        	       	* VRAM.L101     
  4FC9	 ----	 6B0E	       	        	       	* VRAM.L101+1   
  4FCA	 ----	 6B7E	       	        	       	* VRAM.L101+2   
  4FCB	 ----	 6B7E	       	        	       	* VRAM.L101+3   
@@ -3866,9 +3773,8 @@ Collected addresses:
  4FEC	 ----	 6BAF	       	        	       	* VRAM.L101+36  
  4FED	 ----	 6BAF	       	        	       	* VRAM.L101+37  
  4FEE	 ----	 6BB4	       	        	       	* VRAM.L101+38  
-
-2 bytes untouched
-
+ 4FEF	 ----	 ----	       	        	       	* VRAM.L101+39  
+ 4FF0	 ----	 ----	       	        	       	* VRAM.L102     
  4FF1	 ----	 6B0E	       	        	       	* VRAM.L102+1   
  4FF2	 ----	 6B7E	       	        	       	* VRAM.L102+2   
  4FF3	 ----	 6B7E	       	        	       	* VRAM.L102+3   
@@ -3907,9 +3813,8 @@ Collected addresses:
  5014	 ----	 6BAF	       	        	       	* VRAM.L102+36  
  5015	 ----	 6BAF	       	        	       	* VRAM.L102+37  
  5016	 ----	 6BB4	       	        	       	* VRAM.L102+38  
-
-2 bytes untouched
-
+ 5017	 ----	 ----	       	        	       	* VRAM.L102+39  
+ 5018	 ----	 ----	       	        	       	* VRAM.L103     
  5019	 ----	 6B0E	       	        	       	* VRAM.L103+1   
  501A	 ----	 6B7E	       	        	       	* VRAM.L103+2   
  501B	 ----	 6B7E	       	        	       	* VRAM.L103+3   
@@ -3948,9 +3853,8 @@ Collected addresses:
  503C	 ----	 6BAF	       	        	       	* VRAM.L103+36  
  503D	 ----	 6BAF	       	        	       	* VRAM.L103+37  
  503E	 ----	 6BB4	       	        	       	* VRAM.L103+38  
-
-2 bytes untouched
-
+ 503F	 ----	 ----	       	        	       	* VRAM.L103+39  
+ 5040	 ----	 ----	       	        	       	* VRAM.L104     
  5041	 ----	 6B0E	       	        	       	* VRAM.L104+1   
  5042	 ----	 6B7E	       	        	       	* VRAM.L104+2   
  5043	 ----	 6B7E	       	        	       	* VRAM.L104+3   
@@ -3989,9 +3893,8 @@ Collected addresses:
  5064	 ----	 6BAF	       	        	       	* VRAM.L104+36  
  5065	 ----	 6BAF	       	        	       	* VRAM.L104+37  
  5066	 ----	 6BB4	       	        	       	* VRAM.L104+38  
-
-2 bytes untouched
-
+ 5067	 ----	 ----	       	        	       	* VRAM.L104+39  
+ 5068	 ----	 ----	       	        	       	* VRAM.L105     
  5069	 ----	 6B0E	       	        	       	* VRAM.L105+1   
  506A	 ----	 6B7E	       	        	       	* VRAM.L105+2   
  506B	 ----	 6B7E	       	        	       	* VRAM.L105+3   
@@ -4030,9 +3933,8 @@ Collected addresses:
  508C	 ----	 6BAF	       	        	       	* VRAM.L105+36  
  508D	 ----	 6BAF	       	        	       	* VRAM.L105+37  
  508E	 ----	 6BB4	       	        	       	* VRAM.L105+38  
-
-2 bytes untouched
-
+ 508F	 ----	 ----	       	        	       	* VRAM.L105+39  
+ 5090	 ----	 ----	       	        	       	* VRAM.L106     
  5091	 ----	 6B0E	       	        	       	* VRAM.L106+1   
  5092	 ----	 6B7E	       	        	       	* VRAM.L106+2   
  5093	 ----	 6B7E	       	        	       	* VRAM.L106+3   
@@ -4071,9 +3973,8 @@ Collected addresses:
  50B4	 ----	 6BAF	       	        	       	* VRAM.L106+36  
  50B5	 ----	 6BAF	       	        	       	* VRAM.L106+37  
  50B6	 ----	 6BB4	       	        	       	* VRAM.L106+38  
-
-2 bytes untouched
-
+ 50B7	 ----	 ----	       	        	       	* VRAM.L106+39  
+ 50B8	 ----	 ----	       	        	       	* VRAM.L107     
  50B9	 ----	 6B0E	       	        	       	* VRAM.L107+1   
  50BA	 ----	 6B7E	       	        	       	* VRAM.L107+2   
  50BB	 ----	 6B7E	       	        	       	* VRAM.L107+3   
@@ -4112,9 +4013,8 @@ Collected addresses:
  50DC	 ----	 6BAF	       	        	       	* VRAM.L107+36  
  50DD	 ----	 6BAF	       	        	       	* VRAM.L107+37  
  50DE	 ----	 6BB4	       	        	       	* VRAM.L107+38  
-
-2 bytes untouched
-
+ 50DF	 ----	 ----	       	        	       	* VRAM.L107+39  
+ 50E0	 ----	 ----	       	        	       	* VRAM.L108     
  50E1	 ----	 6B0E	       	        	       	* VRAM.L108+1   
  50E2	 ----	 6B7E	       	        	       	* VRAM.L108+2   
  50E3	 ----	 6B7E	       	        	       	* VRAM.L108+3   
@@ -4153,9 +4053,8 @@ Collected addresses:
  5104	 ----	 6BAF	       	        	       	* VRAM.L108+36  
  5105	 ----	 6BAF	       	        	       	* VRAM.L108+37  
  5106	 ----	 6BB4	       	        	       	* VRAM.L108+38  
-
-2 bytes untouched
-
+ 5107	 ----	 ----	       	        	       	* VRAM.L108+39  
+ 5108	 ----	 ----	       	        	       	* VRAM.L109     
  5109	 ----	 6B0E	       	        	       	* VRAM.L109+1   
  510A	 ----	 6B7E	       	        	       	* VRAM.L109+2   
  510B	 ----	 6B7E	       	        	       	* VRAM.L109+3   
@@ -4194,9 +4093,8 @@ Collected addresses:
  512C	 ----	 6BAF	       	        	       	* VRAM.L109+36  
  512D	 ----	 6BAF	       	        	       	* VRAM.L109+37  
  512E	 ----	 6BB4	       	        	       	* VRAM.L109+38  
-
-2 bytes untouched
-
+ 512F	 ----	 ----	       	        	       	* VRAM.L109+39  
+ 5130	 ----	 ----	       	        	       	* VRAM.L110     
  5131	 ----	 6B0E	       	        	       	* VRAM.L110+1   
  5132	 ----	 6B7E	       	        	       	* VRAM.L110+2   
  5133	 ----	 6B7E	       	        	       	* VRAM.L110+3   
@@ -4235,9 +4133,8 @@ Collected addresses:
  5154	 ----	 6BAF	       	        	       	* VRAM.L110+36  
  5155	 ----	 6BAF	       	        	       	* VRAM.L110+37  
  5156	 ----	 6BB4	       	        	       	* VRAM.L110+38  
-
-2 bytes untouched
-
+ 5157	 ----	 ----	       	        	       	* VRAM.L110+39  
+ 5158	 ----	 ----	       	        	       	* VRAM.L111     
  5159	 ----	 6B0E	       	        	       	* VRAM.L111+1   
  515A	 ----	 6B7E	       	        	       	* VRAM.L111+2   
  515B	 ----	 6B7E	       	        	       	* VRAM.L111+3   
@@ -4276,9 +4173,8 @@ Collected addresses:
  517C	 ----	 6BAF	       	        	       	* VRAM.L111+36  
  517D	 ----	 6BAF	       	        	       	* VRAM.L111+37  
  517E	 ----	 6BB4	       	        	       	* VRAM.L111+38  
-
-2 bytes untouched
-
+ 517F	 ----	 ----	       	        	       	* VRAM.L111+39  
+ 5180	 ----	 ----	       	        	       	* VRAM.L112     
  5181	 ----	 6B0E	       	        	       	* VRAM.L112+1   
  5182	 ----	 6B7E	       	        	       	* VRAM.L112+2   
  5183	 ----	 6B7E	       	        	       	* VRAM.L112+3   
@@ -4317,9 +4213,8 @@ Collected addresses:
  51A4	 ----	 6BAF	       	        	       	* VRAM.L112+36  
  51A5	 ----	 6BAF	       	        	       	* VRAM.L112+37  
  51A6	 ----	 6BB4	       	        	       	* VRAM.L112+38  
-
-2 bytes untouched
-
+ 51A7	 ----	 ----	       	        	       	* VRAM.L112+39  
+ 51A8	 ----	 ----	       	        	       	* VRAM.L113     
  51A9	 ----	 6B0E	       	        	       	* VRAM.L113+1   
  51AA	 ----	 6B7E	       	        	       	* VRAM.L113+2   
  51AB	 ----	 6B7E	       	        	       	* VRAM.L113+3   
@@ -4358,9 +4253,8 @@ Collected addresses:
  51CC	 ----	 6BAF	       	        	       	* VRAM.L113+36  
  51CD	 ----	 6BAF	       	        	       	* VRAM.L113+37  
  51CE	 ----	 6BB4	       	        	       	* VRAM.L113+38  
-
-2 bytes untouched
-
+ 51CF	 ----	 ----	       	        	       	* VRAM.L113+39  
+ 51D0	 ----	 ----	       	        	       	* VRAM.L114     
  51D1	 ----	 6B0E	       	        	       	* VRAM.L114+1   
  51D2	 ----	 6B7E	       	        	       	* VRAM.L114+2   
  51D3	 ----	 6B7E	       	        	       	* VRAM.L114+3   
@@ -4399,9 +4293,8 @@ Collected addresses:
  51F4	 ----	 6BAF	       	        	       	* VRAM.L114+36  
  51F5	 ----	 6BAF	       	        	       	* VRAM.L114+37  
  51F6	 ----	 6BB4	       	        	       	* VRAM.L114+38  
-
-2 bytes untouched
-
+ 51F7	 ----	 ----	       	        	       	* VRAM.L114+39  
+ 51F8	 ----	 ----	       	        	       	* VRAM.L115     
  51F9	 ----	 6B0E	       	        	       	* VRAM.L115+1   
  51FA	 ----	 6B7E	       	        	       	* VRAM.L115+2   
  51FB	 ----	 6B7E	       	        	       	* VRAM.L115+3   
@@ -4440,9 +4333,8 @@ Collected addresses:
  521C	 ----	 6BAF	       	        	       	* VRAM.L115+36  
  521D	 ----	 6BAF	       	        	       	* VRAM.L115+37  
  521E	 ----	 6BB4	       	        	       	* VRAM.L115+38  
-
-2 bytes untouched
-
+ 521F	 ----	 ----	       	        	       	* VRAM.L115+39  
+ 5220	 ----	 ----	       	        	       	* VRAM.L116     
  5221	 ----	 6B0E	       	        	       	* VRAM.L116+1   
  5222	 ----	 6B7E	       	        	       	* VRAM.L116+2   
  5223	 ----	 6B7E	       	        	       	* VRAM.L116+3   
@@ -4481,9 +4373,8 @@ Collected addresses:
  5244	 ----	 6BAF	       	        	       	* VRAM.L116+36  
  5245	 ----	 6BAF	       	        	       	* VRAM.L116+37  
  5246	 ----	 6BB4	       	        	       	* VRAM.L116+38  
-
-2 bytes untouched
-
+ 5247	 ----	 ----	       	        	       	* VRAM.L116+39  
+ 5248	 ----	 ----	       	        	       	* VRAM.L117     
  5249	 ----	 6B0E	       	        	       	* VRAM.L117+1   
  524A	 ----	 6B7E	       	        	       	* VRAM.L117+2   
  524B	 ----	 6B7E	       	        	       	* VRAM.L117+3   
@@ -4522,9 +4413,8 @@ Collected addresses:
  526C	 ----	 6BAF	       	        	       	* VRAM.L117+36  
  526D	 ----	 6BAF	       	        	       	* VRAM.L117+37  
  526E	 ----	 6BB4	       	        	       	* VRAM.L117+38  
-
-2 bytes untouched
-
+ 526F	 ----	 ----	       	        	       	* VRAM.L117+39  
+ 5270	 ----	 ----	       	        	       	* VRAM.L118     
  5271	 ----	 6B0E	       	        	       	* VRAM.L118+1   
  5272	 ----	 6B7E	       	        	       	* VRAM.L118+2   
  5273	 ----	 6B7E	       	        	       	* VRAM.L118+3   
@@ -4563,9 +4453,8 @@ Collected addresses:
  5294	 ----	 6BAF	       	        	       	* VRAM.L118+36  
  5295	 ----	 6BAF	       	        	       	* VRAM.L118+37  
  5296	 ----	 6BB4	       	        	       	* VRAM.L118+38  
-
-2 bytes untouched
-
+ 5297	 ----	 ----	       	        	       	* VRAM.L118+39  
+ 5298	 ----	 ----	       	        	       	* VRAM.L119     
  5299	 ----	 6B0E	       	        	       	* VRAM.L119+1   
  529A	 ----	 6B7E	       	        	       	* VRAM.L119+2   
  529B	 ----	 6B7E	       	        	       	* VRAM.L119+3   
@@ -4604,9 +4493,8 @@ Collected addresses:
  52BC	 ----	 6BAF	       	        	       	* VRAM.L119+36  
  52BD	 ----	 6BAF	       	        	       	* VRAM.L119+37  
  52BE	 ----	 6BB4	       	        	       	* VRAM.L119+38  
-
-2 bytes untouched
-
+ 52BF	 ----	 ----	       	        	       	* VRAM.L119+39  
+ 52C0	 ----	 ----	       	        	       	* VRAM.L120     
  52C1	 ----	 6B0E	       	        	       	* VRAM.L120+1   
  52C2	 ----	 6B7E	       	        	       	* VRAM.L120+2   
  52C3	 ----	 6B7E	       	        	       	* VRAM.L120+3   
@@ -4645,9 +4533,8 @@ Collected addresses:
  52E4	 ----	 6BAF	       	        	       	* VRAM.L120+36  
  52E5	 ----	 6BAF	       	        	       	* VRAM.L120+37  
  52E6	 ----	 6BB4	       	        	       	* VRAM.L120+38  
-
-2 bytes untouched
-
+ 52E7	 ----	 ----	       	        	       	* VRAM.L120+39  
+ 52E8	 ----	 ----	       	        	       	* VRAM.L121     
  52E9	 ----	 6B0E	       	        	       	* VRAM.L121+1   
  52EA	 ----	 6B7E	       	        	       	* VRAM.L121+2   
  52EB	 ----	 6B7E	       	        	       	* VRAM.L121+3   
@@ -4686,9 +4573,8 @@ Collected addresses:
  530C	 ----	 6BAF	       	        	       	* VRAM.L121+36  
  530D	 ----	 6BAF	       	        	       	* VRAM.L121+37  
  530E	 ----	 6BB4	       	        	       	* VRAM.L121+38  
-
-2 bytes untouched
-
+ 530F	 ----	 ----	       	        	       	* VRAM.L121+39  
+ 5310	 ----	 ----	       	        	       	* VRAM.L122     
  5311	 ----	 6B0E	       	        	       	* VRAM.L122+1   
  5312	 ----	 6B7E	       	        	       	* VRAM.L122+2   
  5313	 ----	 6B7E	       	        	       	* VRAM.L122+3   
@@ -4727,9 +4613,8 @@ Collected addresses:
  5334	 ----	 6BAF	       	        	       	* VRAM.L122+36  
  5335	 ----	 6BAF	       	        	       	* VRAM.L122+37  
  5336	 ----	 6BB4	       	        	       	* VRAM.L122+38  
-
-2 bytes untouched
-
+ 5337	 ----	 ----	       	        	       	* VRAM.L122+39  
+ 5338	 ----	 ----	       	        	       	* VRAM.L123     
  5339	 ----	 6B0E	       	        	       	* VRAM.L123+1   
  533A	 ----	 6B7E	       	        	       	* VRAM.L123+2   
  533B	 ----	 6B7E	       	        	       	* VRAM.L123+3   
@@ -4768,9 +4653,8 @@ Collected addresses:
  535C	 ----	 6BAF	       	        	       	* VRAM.L123+36  
  535D	 ----	 6BAF	       	        	       	* VRAM.L123+37  
  535E	 ----	 6BB4	       	        	       	* VRAM.L123+38  
-
-2 bytes untouched
-
+ 535F	 ----	 ----	       	        	       	* VRAM.L123+39  
+ 5360	 ----	 ----	       	        	       	* VRAM.L124     
  5361	 ----	 6B0E	       	        	       	* VRAM.L124+1   
  5362	 ----	 6B7E	       	        	       	* VRAM.L124+2   
  5363	 ----	 6B7E	       	        	       	* VRAM.L124+3   
@@ -4809,9 +4693,8 @@ Collected addresses:
  5384	 ----	 6BAF	       	        	       	* VRAM.L124+36  
  5385	 ----	 6BAF	       	        	       	* VRAM.L124+37  
  5386	 ----	 6BB4	       	        	       	* VRAM.L124+38  
-
-2 bytes untouched
-
+ 5387	 ----	 ----	       	        	       	* VRAM.L124+39  
+ 5388	 ----	 ----	       	        	       	* VRAM.L125     
  5389	 ----	 6B0E	       	        	       	* VRAM.L125+1   
  538A	 ----	 6B7E	       	        	       	* VRAM.L125+2   
  538B	 ----	 6B7E	       	        	       	* VRAM.L125+3   
@@ -4850,9 +4733,8 @@ Collected addresses:
  53AC	 ----	 6BAF	       	        	       	* VRAM.L125+36  
  53AD	 ----	 6BAF	       	        	       	* VRAM.L125+37  
  53AE	 ----	 6BB4	       	        	       	* VRAM.L125+38  
-
-2 bytes untouched
-
+ 53AF	 ----	 ----	       	        	       	* VRAM.L125+39  
+ 53B0	 ----	 ----	       	        	       	* VRAM.L126     
  53B1	 ----	 6B0E	       	        	       	* VRAM.L126+1   
  53B2	 ----	 6B7E	       	        	       	* VRAM.L126+2   
  53B3	 ----	 6B7E	       	        	       	* VRAM.L126+3   
@@ -4891,9 +4773,8 @@ Collected addresses:
  53D4	 ----	 6BAF	       	        	       	* VRAM.L126+36  
  53D5	 ----	 6BAF	       	        	       	* VRAM.L126+37  
  53D6	 ----	 6BB4	       	        	       	* VRAM.L126+38  
-
-2 bytes untouched
-
+ 53D7	 ----	 ----	       	        	       	* VRAM.L126+39  
+ 53D8	 ----	 ----	       	        	       	* VRAM.L127     
  53D9	 ----	 6B0E	       	        	       	* VRAM.L127+1   
  53DA	 ----	 6B7E	       	        	       	* VRAM.L127+2   
  53DB	 ----	 6B7E	       	        	       	* VRAM.L127+3   
@@ -4932,9 +4813,8 @@ Collected addresses:
  53FC	 ----	 6BAF	       	        	       	* VRAM.L127+36  
  53FD	 ----	 6BAF	       	        	       	* VRAM.L127+37  
  53FE	 ----	 6BB4	       	        	       	* VRAM.L127+38  
-
-2 bytes untouched
-
+ 53FF	 ----	 ----	       	        	       	* VRAM.L127+39  
+ 5400	 ----	 ----	       	        	       	* VRAM.L128     
  5401	 ----	 6B0E	       	        	       	* VRAM.L128+1   
  5402	 ----	 A00E	       	        	       	* VRAM.L128+2   
  5403	 ----	 A00E	       	        	       	* VRAM.L128+3   
@@ -4973,9 +4853,8 @@ Collected addresses:
  5424	 ----	 6BAF	       	        	       	* VRAM.L128+36  
  5425	 ----	 6BAF	       	        	       	* VRAM.L128+37  
  5426	 ----	 6BB4	       	        	       	* VRAM.L128+38  
-
-2 bytes untouched
-
+ 5427	 ----	 ----	       	        	       	* VRAM.L128+39  
+ 5428	 ----	 ----	       	        	       	* VRAM.L129     
  5429	 ----	 6B0E	       	        	       	* VRAM.L129+1   
  542A	 ----	 A00E	       	        	       	* VRAM.L129+2   
  542B	 ----	 A00E	       	        	       	* VRAM.L129+3   
@@ -5014,9 +4893,8 @@ Collected addresses:
  544C	 ----	 6BAF	       	        	       	* VRAM.L129+36  
  544D	 ----	 6BAF	       	        	       	* VRAM.L129+37  
  544E	 ----	 6BB4	       	        	       	* VRAM.L129+38  
-
-2 bytes untouched
-
+ 544F	 ----	 ----	       	        	       	* VRAM.L129+39  
+ 5450	 ----	 ----	       	        	       	* VRAM.L130     
  5451	 ----	 6B0E	       	        	       	* VRAM.L130+1   
  5452	 ----	 A00E	       	        	       	* VRAM.L130+2   
  5453	 ----	 A00E	       	        	       	* VRAM.L130+3   
@@ -5055,9 +4933,8 @@ Collected addresses:
  5474	 ----	 6BAF	       	        	       	* VRAM.L130+36  
  5475	 ----	 6BAF	       	        	       	* VRAM.L130+37  
  5476	 ----	 6BB4	       	        	       	* VRAM.L130+38  
-
-2 bytes untouched
-
+ 5477	 ----	 ----	       	        	       	* VRAM.L130+39  
+ 5478	 ----	 ----	       	        	       	* VRAM.L131     
  5479	 ----	 6B0E	       	        	       	* VRAM.L131+1   
  547A	 ----	 A00E	       	        	       	* VRAM.L131+2   
  547B	 ----	 A00E	       	        	       	* VRAM.L131+3   
@@ -5096,9 +4973,8 @@ Collected addresses:
  549C	 ----	 6BAF	       	        	       	* VRAM.L131+36  
  549D	 ----	 6BAF	       	        	       	* VRAM.L131+37  
  549E	 ----	 6BB4	       	        	       	* VRAM.L131+38  
-
-2 bytes untouched
-
+ 549F	 ----	 ----	       	        	       	* VRAM.L131+39  
+ 54A0	 ----	 ----	       	        	       	* VRAM.L132     
  54A1	 ----	 6B0E	       	        	       	* VRAM.L132+1   
  54A2	 ----	 A00E	       	        	       	* VRAM.L132+2   
  54A3	 ----	 A00E	       	        	       	* VRAM.L132+3   
@@ -5137,9 +5013,8 @@ Collected addresses:
  54C4	 ----	 6BAF	       	        	       	* VRAM.L132+36  
  54C5	 ----	 6BAF	       	        	       	* VRAM.L132+37  
  54C6	 ----	 6BB4	       	        	       	* VRAM.L132+38  
-
-2 bytes untouched
-
+ 54C7	 ----	 ----	       	        	       	* VRAM.L132+39  
+ 54C8	 ----	 ----	       	        	       	* VRAM.L133     
  54C9	 ----	 6B0E	       	        	       	* VRAM.L133+1   
  54CA	 ----	 A00E	       	        	       	* VRAM.L133+2   
  54CB	 ----	 A00E	       	        	       	* VRAM.L133+3   
@@ -5178,9 +5053,8 @@ Collected addresses:
  54EC	 ----	 6BAF	       	        	       	* VRAM.L133+36  
  54ED	 ----	 6BAF	       	        	       	* VRAM.L133+37  
  54EE	 ----	 6BB4	       	        	       	* VRAM.L133+38  
-
-2 bytes untouched
-
+ 54EF	 ----	 ----	       	        	       	* VRAM.L133+39  
+ 54F0	 ----	 ----	       	        	       	* VRAM.L134     
  54F1	 ----	 6B0E	       	        	       	* VRAM.L134+1   
  54F2	 ----	 A00E	       	        	       	* VRAM.L134+2   
  54F3	 ----	 A00E	       	        	       	* VRAM.L134+3   
@@ -5219,9 +5093,8 @@ Collected addresses:
  5514	 ----	 6BAF	       	        	       	* VRAM.L134+36  
  5515	 ----	 6BAF	       	        	       	* VRAM.L134+37  
  5516	 ----	 6BB4	       	        	       	* VRAM.L134+38  
-
-2 bytes untouched
-
+ 5517	 ----	 ----	       	        	       	* VRAM.L134+39  
+ 5518	 ----	 ----	       	        	       	* VRAM.L135     
  5519	 ----	 6B0E	       	        	       	* VRAM.L135+1   
  551A	 ----	 A00E	       	        	       	* VRAM.L135+2   
  551B	 ----	 A00E	       	        	       	* VRAM.L135+3   
@@ -5260,9 +5133,8 @@ Collected addresses:
  553C	 ----	 6BAF	       	        	       	* VRAM.L135+36  
  553D	 ----	 6BAF	       	        	       	* VRAM.L135+37  
  553E	 ----	 6BB4	       	        	       	* VRAM.L135+38  
-
-2 bytes untouched
-
+ 553F	 ----	 ----	       	        	       	* VRAM.L135+39  
+ 5540	 ----	 ----	       	        	       	* VRAM.L136     
  5541	 ----	 6B0E	       	        	       	* VRAM.L136+1   
  5542	 ----	 A00E	       	        	       	* VRAM.L136+2   
  5543	 ----	 A00E	       	        	       	* VRAM.L136+3   
@@ -5301,9 +5173,8 @@ Collected addresses:
  5564	 ----	 6BAF	       	        	       	* VRAM.L136+36  
  5565	 ----	 6BAF	       	        	       	* VRAM.L136+37  
  5566	 ----	 6BB4	       	        	       	* VRAM.L136+38  
-
-2 bytes untouched
-
+ 5567	 ----	 ----	       	        	       	* VRAM.L136+39  
+ 5568	 ----	 ----	       	        	       	* VRAM.L137     
  5569	 ----	 6B0E	       	        	       	* VRAM.L137+1   
  556A	 ----	 A00E	       	        	       	* VRAM.L137+2   
  556B	 ----	 A00E	       	        	       	* VRAM.L137+3   
@@ -5342,9 +5213,8 @@ Collected addresses:
  558C	 ----	 6BAF	       	        	       	* VRAM.L137+36  
  558D	 ----	 6BAF	       	        	       	* VRAM.L137+37  
  558E	 ----	 6BB4	       	        	       	* VRAM.L137+38  
-
-2 bytes untouched
-
+ 558F	 ----	 ----	       	        	       	* VRAM.L137+39  
+ 5590	 ----	 ----	       	        	       	* VRAM.L138     
  5591	 ----	 6B0E	       	        	       	* VRAM.L138+1   
  5592	 ----	 A00E	       	        	       	* VRAM.L138+2   
  5593	 ----	 A00E	       	        	       	* VRAM.L138+3   
@@ -5383,9 +5253,8 @@ Collected addresses:
  55B4	 ----	 6BAF	       	        	       	* VRAM.L138+36  
  55B5	 ----	 6BAF	       	        	       	* VRAM.L138+37  
  55B6	 ----	 6BB4	       	        	       	* VRAM.L138+38  
-
-2 bytes untouched
-
+ 55B7	 ----	 ----	       	        	       	* VRAM.L138+39  
+ 55B8	 ----	 ----	       	        	       	* VRAM.L139     
  55B9	 ----	 6B0E	       	        	       	* VRAM.L139+1   
  55BA	 ----	 A00E	       	        	       	* VRAM.L139+2   
  55BB	 ----	 A00E	       	        	       	* VRAM.L139+3   
@@ -5424,9 +5293,8 @@ Collected addresses:
  55DC	 ----	 6BAF	       	        	       	* VRAM.L139+36  
  55DD	 ----	 6BAF	       	        	       	* VRAM.L139+37  
  55DE	 ----	 6BB4	       	        	       	* VRAM.L139+38  
-
-2 bytes untouched
-
+ 55DF	 ----	 ----	       	        	       	* VRAM.L139+39  
+ 55E0	 ----	 ----	       	        	       	* VRAM.L140     
  55E1	 ----	 6B0E	       	        	       	* VRAM.L140+1   
  55E2	 ----	 A00E	       	        	       	* VRAM.L140+2   
  55E3	 ----	 A00E	       	        	       	* VRAM.L140+3   
@@ -5465,9 +5333,8 @@ Collected addresses:
  5604	 ----	 6BAF	       	        	       	* VRAM.L140+36  
  5605	 ----	 6BAF	       	        	       	* VRAM.L140+37  
  5606	 ----	 6BB4	       	        	       	* VRAM.L140+38  
-
-2 bytes untouched
-
+ 5607	 ----	 ----	       	        	       	* VRAM.L140+39  
+ 5608	 ----	 ----	       	        	       	* VRAM.L141     
  5609	 ----	 6B0E	       	        	       	* VRAM.L141+1   
  560A	 ----	 A00E	       	        	       	* VRAM.L141+2   
  560B	 ----	 A00E	       	        	       	* VRAM.L141+3   
@@ -5506,9 +5373,8 @@ Collected addresses:
  562C	 ----	 6BAF	       	        	       	* VRAM.L141+36  
  562D	 ----	 6BAF	       	        	       	* VRAM.L141+37  
  562E	 ----	 6BB4	       	        	       	* VRAM.L141+38  
-
-2 bytes untouched
-
+ 562F	 ----	 ----	       	        	       	* VRAM.L141+39  
+ 5630	 ----	 ----	       	        	       	* VRAM.L142     
  5631	 ----	 6B0E	       	        	       	* VRAM.L142+1   
  5632	 ----	 A00E	       	        	       	* VRAM.L142+2   
  5633	 ----	 A00E	       	        	       	* VRAM.L142+3   
@@ -5547,9 +5413,8 @@ Collected addresses:
  5654	 ----	 6BAF	       	        	       	* VRAM.L142+36  
  5655	 ----	 6BAF	       	        	       	* VRAM.L142+37  
  5656	 ----	 6BB4	       	        	       	* VRAM.L142+38  
-
-2 bytes untouched
-
+ 5657	 ----	 ----	       	        	       	* VRAM.L142+39  
+ 5658	 ----	 ----	       	        	       	* VRAM.L143     
  5659	 ----	 6B0E	       	        	       	* VRAM.L143+1   
  565A	 ----	 A00E	       	        	       	* VRAM.L143+2   
  565B	 ----	 A00E	       	        	       	* VRAM.L143+3   
@@ -5588,9 +5453,8 @@ Collected addresses:
  567C	 ----	 6BAF	       	        	       	* VRAM.L143+36  
  567D	 ----	 6BAF	       	        	       	* VRAM.L143+37  
  567E	 ----	 6BB4	       	        	       	* VRAM.L143+38  
-
-2 bytes untouched
-
+ 567F	 ----	 ----	       	        	       	* VRAM.L143+39  
+ 5680	 ----	 ----	       	        	       	* VRAM.L144     
  5681	 ----	 6B0E	       	        	       	* VRAM.L144+1   
  5682	 ----	 A00E	       	        	       	* VRAM.L144+2   
  5683	 ----	 A00E	       	        	       	* VRAM.L144+3   
@@ -5629,9 +5493,8 @@ Collected addresses:
  56A4	 ----	 6BAF	       	        	       	* VRAM.L144+36  
  56A5	 ----	 6BAF	       	        	       	* VRAM.L144+37  
  56A6	 ----	 6BB4	       	        	       	* VRAM.L144+38  
-
-2 bytes untouched
-
+ 56A7	 ----	 ----	       	        	       	* VRAM.L144+39  
+ 56A8	 ----	 ----	       	        	       	* VRAM.L145     
  56A9	 ----	 6B0E	       	        	       	* VRAM.L145+1   
  56AA	 ----	 A00E	       	        	       	* VRAM.L145+2   
  56AB	 ----	 A00E	       	        	       	* VRAM.L145+3   
@@ -5670,9 +5533,8 @@ Collected addresses:
  56CC	 ----	 6BAF	       	        	       	* VRAM.L145+36  
  56CD	 ----	 6BAF	       	        	       	* VRAM.L145+37  
  56CE	 ----	 6BB4	       	        	       	* VRAM.L145+38  
-
-2 bytes untouched
-
+ 56CF	 ----	 ----	       	        	       	* VRAM.L145+39  
+ 56D0	 ----	 ----	       	        	       	* VRAM.L146     
  56D1	 ----	 6B0E	       	        	       	* VRAM.L146+1   
  56D2	 ----	 A00E	       	        	       	* VRAM.L146+2   
  56D3	 ----	 A00E	       	        	       	* VRAM.L146+3   
@@ -5711,9 +5573,8 @@ Collected addresses:
  56F4	 ----	 6BAF	       	        	       	* VRAM.L146+36  
  56F5	 ----	 6BAF	       	        	       	* VRAM.L146+37  
  56F6	 ----	 6BB4	       	        	       	* VRAM.L146+38  
-
-2 bytes untouched
-
+ 56F7	 ----	 ----	       	        	       	* VRAM.L146+39  
+ 56F8	 ----	 ----	       	        	       	* VRAM.L147     
  56F9	 ----	 6B0E	       	        	       	* VRAM.L147+1   
  56FA	 ----	 A00E	       	        	       	* VRAM.L147+2   
  56FB	 ----	 A00E	       	        	       	* VRAM.L147+3   
@@ -5752,9 +5613,8 @@ Collected addresses:
  571C	 ----	 6BAF	       	        	       	* VRAM.L147+36  
  571D	 ----	 6BAF	       	        	       	* VRAM.L147+37  
  571E	 ----	 6BB4	       	        	       	* VRAM.L147+38  
-
-2 bytes untouched
-
+ 571F	 ----	 ----	       	        	       	* VRAM.L147+39  
+ 5720	 ----	 ----	       	        	       	* VRAM.L148     
  5721	 ----	 6B0E	       	        	       	* VRAM.L148+1   
  5722	 ----	 A00E	       	        	       	* VRAM.L148+2   
  5723	 ----	 A00E	       	        	       	* VRAM.L148+3   
@@ -5793,9 +5653,8 @@ Collected addresses:
  5744	 ----	 6BAF	       	        	       	* VRAM.L148+36  
  5745	 ----	 6BAF	       	        	       	* VRAM.L148+37  
  5746	 ----	 6BB4	       	        	       	* VRAM.L148+38  
-
-2 bytes untouched
-
+ 5747	 ----	 ----	       	        	       	* VRAM.L148+39  
+ 5748	 ----	 ----	       	        	       	* VRAM.L149     
  5749	 ----	 6B0E	       	        	       	* VRAM.L149+1   
  574A	 ----	 A00E	       	        	       	* VRAM.L149+2   
  574B	 ----	 A00E	       	        	       	* VRAM.L149+3   
@@ -5834,9 +5693,8 @@ Collected addresses:
  576C	 ----	 6BAF	       	        	       	* VRAM.L149+36  
  576D	 ----	 6BAF	       	        	       	* VRAM.L149+37  
  576E	 ----	 6BB4	       	        	       	* VRAM.L149+38  
-
-2 bytes untouched
-
+ 576F	 ----	 ----	       	        	       	* VRAM.L149+39  
+ 5770	 ----	 ----	       	        	       	* VRAM.L150     
  5771	 ----	 6B0E	       	        	       	* VRAM.L150+1   
  5772	 ----	 A00E	       	        	       	* VRAM.L150+2   
  5773	 ----	 A00E	       	        	       	* VRAM.L150+3   
@@ -5875,9 +5733,8 @@ Collected addresses:
  5794	 ----	 6BAF	       	        	       	* VRAM.L150+36  
  5795	 ----	 6BAF	       	        	       	* VRAM.L150+37  
  5796	 ----	 6BB4	       	        	       	* VRAM.L150+38  
-
-2 bytes untouched
-
+ 5797	 ----	 ----	       	        	       	* VRAM.L150+39  
+ 5798	 ----	 ----	       	        	       	* VRAM.L151     
  5799	 ----	 6B0E	       	        	       	* VRAM.L151+1   
  579A	 ----	 A00E	       	        	       	* VRAM.L151+2   
  579B	 ----	 A00E	       	        	       	* VRAM.L151+3   
@@ -5916,9 +5773,8 @@ Collected addresses:
  57BC	 ----	 6BAF	       	        	       	* VRAM.L151+36  
  57BD	 ----	 6BAF	       	        	       	* VRAM.L151+37  
  57BE	 ----	 6BB4	       	        	       	* VRAM.L151+38  
-
-2 bytes untouched
-
+ 57BF	 ----	 ----	       	        	       	* VRAM.L151+39  
+ 57C0	 ----	 ----	       	        	       	* VRAM.L152     
  57C1	 ----	 6B0E	       	        	       	* VRAM.L152+1   
  57C2	 ----	 A00E	       	        	       	* VRAM.L152+2   
  57C3	 99DD	 A00E	       	        	       	* VRAM.L152+3   
@@ -5957,9 +5813,8 @@ Collected addresses:
  57E4	 ----	 A00E	       	        	       	* VRAM.L152+36  
  57E5	 ----	 6BAF	       	        	       	* VRAM.L152+37  
  57E6	 ----	 6BB4	       	        	       	* VRAM.L152+38  
-
-2 bytes untouched
-
+ 57E7	 ----	 ----	       	        	       	* VRAM.L152+39  
+ 57E8	 ----	 ----	       	        	       	* VRAM.L153     
  57E9	 ----	 6B0E	       	        	       	* VRAM.L153+1   
  57EA	 ----	 A00E	       	        	       	* VRAM.L153+2   
  57EB	 99DD	 A00E	       	        	       	* VRAM.L153+3   
@@ -5998,9 +5853,8 @@ Collected addresses:
  580C	 ----	 A00E	       	        	       	* VRAM.L153+36  
  580D	 ----	 6BAF	       	        	       	* VRAM.L153+37  
  580E	 ----	 6BB4	       	        	       	* VRAM.L153+38  
-
-2 bytes untouched
-
+ 580F	 ----	 ----	       	        	       	* VRAM.L153+39  
+ 5810	 ----	 ----	       	        	       	* VRAM.L154     
  5811	 ----	 6B0E	       	        	       	* VRAM.L154+1   
  5812	 ----	 A00E	       	        	       	* VRAM.L154+2   
  5813	 99DD	 A00E	       	        	       	* VRAM.L154+3   
@@ -6039,9 +5893,8 @@ Collected addresses:
  5834	 ----	 A00E	       	        	       	* VRAM.L154+36  
  5835	 ----	 6BAF	       	        	       	* VRAM.L154+37  
  5836	 ----	 6BB4	       	        	       	* VRAM.L154+38  
-
-2 bytes untouched
-
+ 5837	 ----	 ----	       	        	       	* VRAM.L154+39  
+ 5838	 ----	 ----	       	        	       	* VRAM.L155     
  5839	 ----	 6B0E	       	        	       	* VRAM.L155+1   
  583A	 ----	 A00E	       	        	       	* VRAM.L155+2   
  583B	 99DD	 A00E	       	        	       	* VRAM.L155+3   
@@ -6080,9 +5933,8 @@ Collected addresses:
  585C	 ----	 A00E	       	        	       	* VRAM.L155+36  
  585D	 ----	 6BAF	       	        	       	* VRAM.L155+37  
  585E	 ----	 6BB4	       	        	       	* VRAM.L155+38  
-
-2 bytes untouched
-
+ 585F	 ----	 ----	       	        	       	* VRAM.L155+39  
+ 5860	 ----	 ----	       	        	       	* VRAM.L156     
  5861	 ----	 6B0E	       	        	       	* VRAM.L156+1   
  5862	 ----	 A00E	       	        	       	* VRAM.L156+2   
  5863	 99DD	 99DF	       	        	       	* VRAM.L156+3   
@@ -6121,9 +5973,8 @@ Collected addresses:
  5884	 ----	 A00E	       	        	       	* VRAM.L156+36  
  5885	 ----	 6BAF	       	        	       	* VRAM.L156+37  
  5886	 ----	 6BB4	       	        	       	* VRAM.L156+38  
-
-2 bytes untouched
-
+ 5887	 ----	 ----	       	        	       	* VRAM.L156+39  
+ 5888	 ----	 ----	       	        	       	* VRAM.L157     
  5889	 ----	 6B0E	       	        	       	* VRAM.L157+1   
  588A	 ----	 A00E	       	        	       	* VRAM.L157+2   
  588B	 99DD	 A00E	       	        	       	* VRAM.L157+3   
@@ -6162,9 +6013,8 @@ Collected addresses:
  58AC	 ----	 A00E	       	        	       	* VRAM.L157+36  
  58AD	 ----	 6BAF	       	        	       	* VRAM.L157+37  
  58AE	 ----	 6BB4	       	        	       	* VRAM.L157+38  
-
-2 bytes untouched
-
+ 58AF	 ----	 ----	       	        	       	* VRAM.L157+39  
+ 58B0	 ----	 ----	       	        	       	* VRAM.L158     
  58B1	 ----	 6B0E	       	        	       	* VRAM.L158+1   
  58B2	 ----	 A00E	       	        	       	* VRAM.L158+2   
  58B3	 99DD	 A00E	       	        	       	* VRAM.L158+3   
@@ -6203,9 +6053,8 @@ Collected addresses:
  58D4	 ----	 A00E	       	        	       	* VRAM.L158+36  
  58D5	 ----	 6BAF	       	        	       	* VRAM.L158+37  
  58D6	 ----	 6BB4	       	        	       	* VRAM.L158+38  
-
-2 bytes untouched
-
+ 58D7	 ----	 ----	       	        	       	* VRAM.L158+39  
+ 58D8	 ----	 ----	       	        	       	* VRAM.L159     
  58D9	 ----	 6B0E	       	        	       	* VRAM.L159+1   
  58DA	 ----	 A00E	       	        	       	* VRAM.L159+2   
  58DB	 99DD	 A00E	       	        	       	* VRAM.L159+3   
@@ -6244,9 +6093,8 @@ Collected addresses:
  58FC	 ----	 A00E	       	        	       	* VRAM.L159+36  
  58FD	 ----	 6BAF	       	        	       	* VRAM.L159+37  
  58FE	 ----	 6BB4	       	        	       	* VRAM.L159+38  
-
-2 bytes untouched
-
+ 58FF	 ----	 ----	       	        	       	* VRAM.L159+39  
+ 5900	 ----	 ----	       	        	       	* VRAM.L160     
  5901	 ----	 6B0E	       	        	       	* VRAM.L160+1   
  5902	 ----	 A00E	       	        	       	* VRAM.L160+2   
  5903	 99DD	 A00E	       	        	       	* VRAM.L160+3   
@@ -6285,9 +6133,8 @@ Collected addresses:
  5924	 ----	 A00E	       	        	       	* VRAM.L160+36  
  5925	 ----	 6BAF	       	        	       	* VRAM.L160+37  
  5926	 ----	 6BB4	       	        	       	* VRAM.L160+38  
-
-2 bytes untouched
-
+ 5927	 ----	 ----	       	        	       	* VRAM.L160+39  
+ 5928	 ----	 ----	       	        	       	* VRAM.L161     
  5929	 ----	 6B0E	       	        	       	* VRAM.L161+1   
  592A	 ----	 A00E	       	        	       	* VRAM.L161+2   
  592B	 ----	 A00E	       	        	       	* VRAM.L161+3   
@@ -6326,9 +6173,8 @@ Collected addresses:
  594C	 ----	 A00E	       	        	       	* VRAM.L161+36  
  594D	 ----	 6BAF	       	        	       	* VRAM.L161+37  
  594E	 ----	 6BB4	       	        	       	* VRAM.L161+38  
-
-2 bytes untouched
-
+ 594F	 ----	 ----	       	        	       	* VRAM.L161+39  
+ 5950	 ----	 ----	       	        	       	* VRAM.L162     
  5951	 ----	 6B0E	       	        	       	* VRAM.L162+1   
  5952	 ----	 A00E	       	        	       	* VRAM.L162+2   
  5953	 ----	 A00E	       	        	       	* VRAM.L162+3   
@@ -6367,9 +6213,8 @@ Collected addresses:
  5974	 ----	 A00E	       	        	       	* VRAM.L162+36  
  5975	 ----	 6BAF	       	        	       	* VRAM.L162+37  
  5976	 ----	 6BB4	       	        	       	* VRAM.L162+38  
-
-2 bytes untouched
-
+ 5977	 ----	 ----	       	        	       	* VRAM.L162+39  
+ 5978	 ----	 ----	       	        	       	* VRAM.L163     
  5979	 ----	 6B0E	       	        	       	* VRAM.L163+1   
  597A	 ----	 A00E	       	        	       	* VRAM.L163+2   
  597B	 ----	 A00E	       	        	       	* VRAM.L163+3   
@@ -6408,9 +6253,8 @@ Collected addresses:
  599C	 ----	 A00E	       	        	       	* VRAM.L163+36  
  599D	 ----	 6BAF	       	        	       	* VRAM.L163+37  
  599E	 ----	 6BB4	       	        	       	* VRAM.L163+38  
-
-2 bytes untouched
-
+ 599F	 ----	 ----	       	        	       	* VRAM.L163+39  
+ 59A0	 ----	 ----	       	        	       	* VRAM.L164     
  59A1	 ----	 6B0E	       	        	       	* VRAM.L164+1   
  59A2	 ----	 A00E	       	        	       	* VRAM.L164+2   
  59A3	 ----	 A00E	       	        	       	* VRAM.L164+3   
@@ -6449,9 +6293,8 @@ Collected addresses:
  59C4	 ----	 A00E	       	        	       	* VRAM.L164+36  
  59C5	 ----	 6BAF	       	        	       	* VRAM.L164+37  
  59C6	 ----	 6BB4	       	        	       	* VRAM.L164+38  
-
-2 bytes untouched
-
+ 59C7	 ----	 ----	       	        	       	* VRAM.L164+39  
+ 59C8	 ----	 ----	       	        	       	* VRAM.L165     
  59C9	 ----	 6B0E	       	        	       	* VRAM.L165+1   
  59CA	 ----	 A00E	       	        	       	* VRAM.L165+2   
  59CB	 ----	 A00E	       	        	       	* VRAM.L165+3   
@@ -6490,9 +6333,8 @@ Collected addresses:
  59EC	 ----	 A00E	       	        	       	* VRAM.L165+36  
  59ED	 ----	 6BAF	       	        	       	* VRAM.L165+37  
  59EE	 ----	 6BB4	       	        	       	* VRAM.L165+38  
-
-2 bytes untouched
-
+ 59EF	 ----	 ----	       	        	       	* VRAM.L165+39  
+ 59F0	 ----	 ----	       	        	       	* VRAM.L166     
  59F1	 ----	 6B0E	       	        	       	* VRAM.L166+1   
  59F2	 ----	 A00E	       	        	       	* VRAM.L166+2   
  59F3	 ----	 A00E	       	        	       	* VRAM.L166+3   
@@ -6531,9 +6373,8 @@ Collected addresses:
  5A14	 ----	 A00E	       	        	       	* VRAM.L166+36  
  5A15	 ----	 6BAF	       	        	       	* VRAM.L166+37  
  5A16	 ----	 6BB4	       	        	       	* VRAM.L166+38  
-
-2 bytes untouched
-
+ 5A17	 ----	 ----	       	        	       	* VRAM.L166+39  
+ 5A18	 ----	 ----	       	        	       	* VRAM.L167     
  5A19	 ----	 6B0E	       	        	       	* VRAM.L167+1   
  5A1A	 ----	 A00E	       	        	       	* VRAM.L167+2   
  5A1B	 ----	 A00E	       	        	       	* VRAM.L167+3   
@@ -6572,9 +6413,8 @@ Collected addresses:
  5A3C	 ----	 A00E	       	        	       	* VRAM.L167+36  
  5A3D	 ----	 6BAF	       	        	       	* VRAM.L167+37  
  5A3E	 ----	 6BB4	       	        	       	* VRAM.L167+38  
-
-2 bytes untouched
-
+ 5A3F	 ----	 ----	       	        	       	* VRAM.L167+39  
+ 5A40	 ----	 ----	       	        	       	* VRAM.L168     
  5A41	 ----	 6B0E	       	        	       	* VRAM.L168+1   
  5A42	 ----	 6B7E	       	        	       	* VRAM.L168+2   
  5A43	 ----	 6B7E	       	        	       	* VRAM.L168+3   
@@ -6613,9 +6453,9 @@ Collected addresses:
  5A64	 ----	 6BAF	       	        	       	* VRAM.L168+36  
  5A65	 ----	 6BAF	       	        	       	* VRAM.L168+37  
  5A66	 ----	 6BB4	       	        	       	* VRAM.L168+38  
-
-3 bytes untouched
-
+ 5A67	 ----	 ----	       	        	       	* VRAM.L168+39  
+ 5A68	 ----	 ----	       	        	       	* VRAM.L169     
+ 5A69	 ----	 ----	       	        	       	* VRAM.L169+1   
  5A6A	 ----	 6B7E	       	        	       	* VRAM.L169+2   
  5A6B	 ----	 6B7E	       	        	       	* VRAM.L169+3   
  5A6C	 ----	 6B80	       	        	       	* VRAM.L169+4   
@@ -6653,9 +6493,9 @@ Collected addresses:
  5A8C	 ----	 6BAF	       	        	       	* VRAM.L169+36  
  5A8D	 ----	 6BAF	       	        	       	* VRAM.L169+37  
  5A8E	 ----	 6BB4	       	        	       	* VRAM.L169+38  
-
-3 bytes untouched
-
+ 5A8F	 ----	 ----	       	        	       	* VRAM.L169+39  
+ 5A90	 ----	 ----	       	        	       	* VRAM.L170     
+ 5A91	 ----	 ----	       	        	       	* VRAM.L170+1   
  5A92	 ----	 6B7E	       	        	       	* VRAM.L170+2   
  5A93	 ----	 6B7E	       	        	       	* VRAM.L170+3   
  5A94	 ----	 6B80	       	        	       	* VRAM.L170+4   
@@ -6693,9 +6533,9 @@ Collected addresses:
  5AB4	 ----	 6BAF	       	        	       	* VRAM.L170+36  
  5AB5	 ----	 6BAF	       	        	       	* VRAM.L170+37  
  5AB6	 ----	 6BB4	       	        	       	* VRAM.L170+38  
-
-3 bytes untouched
-
+ 5AB7	 ----	 ----	       	        	       	* VRAM.L170+39  
+ 5AB8	 ----	 ----	       	        	       	* VRAM.L171     
+ 5AB9	 ----	 ----	       	        	       	* VRAM.L171+1   
  5ABA	 ----	 6B7E	       	        	       	* VRAM.L171+2   
  5ABB	 ----	 6B7E	       	        	       	* VRAM.L171+3   
  5ABC	 ----	 6B80	       	        	       	* VRAM.L171+4   
@@ -6733,9 +6573,9 @@ Collected addresses:
  5ADC	 ----	 6BAF	       	        	       	* VRAM.L171+36  
  5ADD	 ----	 6BAF	       	        	       	* VRAM.L171+37  
  5ADE	 ----	 6BB4	       	        	       	* VRAM.L171+38  
-
-3 bytes untouched
-
+ 5ADF	 ----	 ----	       	        	       	* VRAM.L171+39  
+ 5AE0	 ----	 ----	       	        	       	* VRAM.L172     
+ 5AE1	 ----	 ----	       	        	       	* VRAM.L172+1   
  5AE2	 ----	 6B7E	       	        	       	* VRAM.L172+2   
  5AE3	 ----	 6B7E	       	        	       	* VRAM.L172+3   
  5AE4	 ----	 6B80	       	        	       	* VRAM.L172+4   
@@ -6773,9 +6613,9 @@ Collected addresses:
  5B04	 ----	 6BAF	       	        	       	* VRAM.L172+36  
  5B05	 ----	 6BAF	       	        	       	* VRAM.L172+37  
  5B06	 ----	 6BB4	       	        	       	* VRAM.L172+38  
-
-3 bytes untouched
-
+ 5B07	 ----	 ----	       	        	       	* VRAM.L172+39  
+ 5B08	 ----	 ----	       	        	       	* VRAM.L173     
+ 5B09	 ----	 ----	       	        	       	* VRAM.L173+1   
  5B0A	 ----	 6B7E	       	        	       	* VRAM.L173+2   
  5B0B	 ----	 6B7E	       	        	       	* VRAM.L173+3   
  5B0C	 ----	 6B80	       	        	       	* VRAM.L173+4   
@@ -6813,9 +6653,9 @@ Collected addresses:
  5B2C	 ----	 6BAF	       	        	       	* VRAM.L173+36  
  5B2D	 ----	 6BAF	       	        	       	* VRAM.L173+37  
  5B2E	 ----	 6BB4	       	        	       	* VRAM.L173+38  
-
-3 bytes untouched
-
+ 5B2F	 ----	 ----	       	        	       	* VRAM.L173+39  
+ 5B30	 ----	 ----	       	        	       	* VRAM.L174     
+ 5B31	 ----	 ----	       	        	       	* VRAM.L174+1   
  5B32	 ----	 6B7E	       	        	       	* VRAM.L174+2   
  5B33	 ----	 6B7E	       	        	       	* VRAM.L174+3   
  5B34	 ----	 6B80	       	        	       	* VRAM.L174+4   
@@ -6853,9 +6693,9 @@ Collected addresses:
  5B54	 ----	 6BAF	       	        	       	* VRAM.L174+36  
  5B55	 ----	 6BAF	       	        	       	* VRAM.L174+37  
  5B56	 ----	 6BB4	       	        	       	* VRAM.L174+38  
-
-3 bytes untouched
-
+ 5B57	 ----	 ----	       	        	       	* VRAM.L174+39  
+ 5B58	 ----	 ----	       	        	       	* VRAM.L175     
+ 5B59	 ----	 ----	       	        	       	* VRAM.L175+1   
  5B5A	 ----	 6B7E	       	        	       	* VRAM.L175+2   
  5B5B	 ----	 6B7E	       	        	       	* VRAM.L175+3   
  5B5C	 ----	 6B80	       	        	       	* VRAM.L175+4   
@@ -6893,9 +6733,9 @@ Collected addresses:
  5B7C	 ----	 6BAF	       	        	       	* VRAM.L175+36  
  5B7D	 ----	 6BAF	       	        	       	* VRAM.L175+37  
  5B7E	 ----	 6BB4	       	        	       	* VRAM.L175+38  
-
-3 bytes untouched
-
+ 5B7F	 ----	 ----	       	        	       	* VRAM.L175+39  
+ 5B80	 ----	 ----	       	        	       	* VRAM.L176     
+ 5B81	 ----	 ----	       	        	       	* VRAM.L176+1   
  5B82	 ----	 6B7E	       	        	       	* VRAM.L176+2   
  5B83	 ----	 6B7E	       	        	       	* VRAM.L176+3   
  5B84	 ----	 6B80	       	        	       	* VRAM.L176+4   
@@ -7107,32 +6947,32 @@ Collected addresses:
  611E	 7134	 7101	       	        	       	                
  611F	 713D	 7101	       	        	       	                
  6120	 7152	 7101	       	        	       	                
- 6121	 7166	 7101	       	        	       	                
- 6122	 70C4	 7101	       	        	       	                
- 6123	 707E	 7056	       	        	       	                
- 6124	 707E	 7056	       	        	       	                
+ 6121	 7166	 7101	       	        	       	* STACK-ZONE *  
+ 6122	 70C4	 7101	       	        	       	* STACK-ZONE *  
+ 6123	 707E	 7056	       	        	       	* STACK-ZONE *  
+ 6124	 707E	 7056	       	        	       	* STACK-ZONE *  
  6125	 7011	 7014	       	        	       	* STACK-ZONE *  
  6126	 7011	 7014	       	        	       	* STACK-ZONE *  
- 6127	 7019	 7012	       	        	       	                
+ 6127	 7019	 7012	       	        	       	* STACK-ZONE *  
  6128	 7134	 6FF9	       	        	       	* STACK-ZONE *  
  6129	 7134	 6FF9	       	        	       	* STACK-ZONE *  
- 612A	 7134	 6FF0	       	        	       	                
- 612B	 71A0	 6FF0	       	        	       	                
- 612C	 71A0	 6FF0	       	        	       	                
- 612D	 6FF5	 6FEC	       	        	       	                
- 612E	 71A0	 6FEC	       	        	       	                
- 612F	 71A0	 6FEC	       	        	       	                
- 6130	 6789	 6FD1	       	        	       	                
- 6131	 6789	 6FD1	       	        	       	                
+ 612A	 7134	 6FF0	       	        	       	* STACK-ZONE *  
+ 612B	 71A0	 6FF0	       	        	       	* STACK-ZONE *  
+ 612C	 71A0	 6FF0	       	        	       	* STACK-ZONE *  
+ 612D	 6FF5	 6FEC	       	        	       	* STACK-ZONE *  
+ 612E	 71A0	 6FEC	       	        	       	* STACK-ZONE *  
+ 612F	 71A0	 6FEC	       	        	       	* STACK-ZONE *  
+ 6130	 6789	 6FD1	       	        	       	* STACK-ZONE *  
+ 6131	 6789	 6FD1	       	        	       	* STACK-ZONE *  
  6132	 6AD9	 6AE5	       	        	       	* STACK-ZONE *  
  6133	 6AD9	 6AE5	       	        	       	* STACK-ZONE *  
- 6134	 6A87	 6ADA	       	        	       	                
- 6135	 6A64	 6ADA	       	        	       	                
+ 6134	 6A87	 6ADA	       	        	       	* STACK-ZONE *  
+ 6135	 6A64	 6ADA	       	        	       	* STACK-ZONE *  
  6136	 6AD9	 6A41	       	        	       	* STACK-ZONE *  
  6137	 6AD9	 6A41	       	        	       	* STACK-ZONE *  
  6138	 6A1A	 6A37	       	        	       	* STACK-ZONE *  
  6139	 6A1A	 6A37	       	        	       	* STACK-ZONE *  
- 613A	 6A39	 6A05	       	        	       	                
+ 613A	 6A39	 6A05	       	        	       	* STACK-ZONE *  
  613B	 69A1	 6972	       	        	       	* STACK-ZONE *  
  613C	 69A1	 6972	       	        	       	* STACK-ZONE *  
  613D	 69A1	 6C9F	       	        	       	* STACK-ZONE *  
@@ -7171,6 +7011,7 @@ Collected addresses:
  618A	 ----	 ----	      2	A680    	      6	LDA   ,X+       
  618C	 ----	 ----	      2	A7C4    	      4	STA   ,U        
  618E	 ----	 ----	      2	CE7747  	      3	LDU   #$7747    
+
  6191	 61A4	 ----	    187	A680    	      6	LDA   ,X+       
  6193	 ----	 ----	    187	81FF    	      2	CMPA  #$FF      
  6195	 ----	 ----	    187	2718    	      3	BEQ   $61AF     
@@ -7178,15 +7019,18 @@ Collected addresses:
  6199	 ----	 ----	    185	270B    	      3	BEQ   $61A6     
  619B	 ----	 ----	    122	847F    	      2	ANDA  #$7F      
  619D	 ----	 ----	    122	E680    	      6	LDB   ,X+       
+
  619F	 61A2	 ----	    701	E7C0    	      6	STB   ,U+       
  61A1	 ----	 ----	    701	4A      	      2	DECA            
  61A2	 ----	 ----	    701	26FB    	      3	BNE   $619F     
  61A4	 ----	 ----	    122	20EB    	      3	BRA   $6191     
+
  61A6	 61AB	 ----	    109	E680    	      6	LDB   ,X+       
  61A8	 ----	 ----	    109	E7C0    	      6	STB   ,U+       
  61AA	 ----	 ----	    109	4A      	      2	DECA            
  61AB	 ----	 ----	    109	26F9    	      3	BNE   $61A6     
  61AD	 ----	 ----	     63	20E2    	      3	BRA   $6191     
+
  61AF	 6195	 ----	      2	BD61BD  	      8	JSR   $61BD     
  61B2	 ----	 ----	      2	10FE6154	      7	LDS   $6154     
  61B6	 ----	 ----	      2	39      	      5	RTS             
@@ -7197,6 +7041,7 @@ Collected addresses:
 
  61BD	 61AF	 ----	      4	3406    	      7	PSHS  B,A       
  61BF	 ----	 ----	      4	860F    	      2	LDA   #$0F      
+
  61C1	 61BB	 ----	      6	CEE7C0  	      3	LDU   #$E7C0 <-CSR
  61C4	 ----	 ----	      6	E64B    	      5	LDB   $0B,U     
  61C6	 ----	 ----	      6	C4FB    	      2	ANDB  #$FB      
@@ -7211,8 +7056,7 @@ Collected addresses:
  628F	 6297	 ----	       	        	       	                
  6290	 6297	 ----	       	        	       	                
 
-1 byte untouched
-
+ 6291	 ----	 ----	       	        	       	                
  6292	 72C3	 ----	      4	847F    	      2	ANDA  #$7F      
  6294	 ----	 ----	      4	CE628E  	      3	LDU   #$628E    
  6297	 ----	 ----	      4	A6C6    	      5	LDA   A,U       
@@ -7235,8 +7079,8 @@ Collected addresses:
  62F5	 ----	 ----	   1080	8181    	      2	CMPA  #$81      
  62F7	 ----	 ----	   1080	2641    	      3	BNE   $633A     
 
-2 bytes untouched
-
+ 62F9	 ----	 ----	       	        	       	                
+ 62FA	 ----	 ----	       	        	       	                
  62FB	 62F3	 ----	   1100	4D      	      2	TSTA            
  62FC	 ----	 ----	   1100	273C    	      3	BEQ   $633A     
  62FE	 ----	 ----	    668	B7982E  	      5	STA   $982E     
@@ -7274,6 +7118,7 @@ Collected addresses:
 
  6364	 6C62	 ----	      2	86FF    	      2	LDA   #$FF      
  6366	 ----	 ----	      2	8E982F  	      3	LDX   #$982F    
+
  6369	 636E	 ----	     16	A780    	      6	STA   ,X+       
  636B	 ----	 ----	     16	8C9837  	      4	CMPX  #$9837    
  636E	 ----	 ----	     16	26F9    	      3	BNE   $6369     
@@ -7320,21 +7165,25 @@ Collected addresses:
  63C6	 ----	 ----	      9	8501    	      2	BITA  #$01      
  63C8	 ----	 ----	      9	2703    	      3	BEQ   $63CD     
  63CA	 ----	 ----	      1	BD6435  	      8	JSR   $6435     
+
  63CD	 63C8	 ----	      9	8502    	      2	BITA  #$02      
  63CF	 ----	 ----	      9	2703    	      3	BEQ   $63D4     
  63D1	 ----	 ----	      8	BD6437  	      8	JSR   $6437     
+
  63D4	 63CF	 ----	      9	8504    	      2	BITA  #$04      
  63D6	 ----	 ----	      9	2703    	      3	BEQ   $63DB     
 
-3 bytes untouched
-
+ 63D8	 ----	 ----	       	        	       	                
+ 63D9	 ----	 ----	       	        	       	                
+ 63DA	 ----	 ----	       	        	       	                
  63DB	 63C4	 ----	    130	3504    	      6	PULS  B         
  63DD	 ----	 ----	    130	3502    	      6	PULS  A         
  63DF	 ----	 ----	    130	8508    	      2	BITA  #$08      
  63E1	 ----	 ----	    130	2703    	      3	BEQ   $63E6     
 
-3 bytes untouched
-
+ 63E3	 ----	 ----	       	        	       	                
+ 63E4	 ----	 ----	       	        	       	                
+ 63E5	 ----	 ----	       	        	       	                
  63E6	 63E1	 ----	    260	39      	      5	RTS             
 
 78 bytes untouched
@@ -7376,6 +7225,7 @@ Collected addresses:
  64A1	 ----	 ----	    516	EBE4    	      4	ADDB  ,S        
  64A3	 ----	 ----	    516	BD646D  	      8	JSR   $646D     
  64A6	 ----	 ----	    516	FD9808  	      6	STD   $9808     
+
  64A9	 6576	 ----	   1548	F6981A  	      5	LDB   $981A     
  64AC	 ----	 ----	   1548	E128    	      5	CMPB  $08,Y     
  64AE	 ----	 ----	   1548	102700BB	    6/5	LBEQ  $656D     
@@ -7408,6 +7258,7 @@ Collected addresses:
  64F1	 ----	 ----	    516	2A03    	      3	BPL   $64F6     
  64F3	 ----	 ----	    254	40      	      2	NEGA            
  64F4	 ----	 ----	    254	E662    	      5	LDB   $02,S     
+
  64F6	 64F1	 ----	    516	E761    	      5	STB   $01,S     
  64F8	 ----	 ----	    516	3504    	      6	PULS  B         
  64FA	 ----	 ----	    516	A1E0    	      6	CMPA  ,S+       
@@ -7417,6 +7268,7 @@ Collected addresses:
  6502	 ----	 ----	     57	2A03    	      3	BPL   $6507     
  6504	 ----	 ----	     28	50      	      2	NEGB            
  6505	 ----	 ----	     28	A661    	      5	LDA   $01,S     
+
  6507	 6502	 ----	     57	3402    	      6	PSHS  A         
  6509	 ----	 ----	     57	E1E0    	      6	CMPB  ,S+       
  650B	 ----	 ----	     57	2260    	      3	BHI   $656D     
@@ -7434,7 +7286,9 @@ Collected addresses:
  657E	 ----	 ----	    256	BD6931  	      8	JSR   $6931     
  6581	 ----	 ----	    256	BD65AC  	      8	JSR   $65AC     
  6584	 ----	 ----	    256	CC2C06  	      3	LDD   #$2C06    
+
  6587	 6596	 ----	  11264	3446    	      9	PSHS  U,B,A     
+
  6589	 658E	 ----	  67584	A6C0    	      6	LDA   ,U+       
  658B	 ----	 ----	  67584	A7A0    	      6	STA   ,Y+       
  658D	 ----	 ----	  67584	5A      	      2	DECB            
@@ -7516,8 +7370,8 @@ Collected addresses:
  6625	 ----	 ----	    516	54      	      2	LSRB            
  6626	 ----	 ----	    516	2602    	      3	BNE   $662A     
 
-2 bytes untouched
-
+ 6628	 ----	 ----	       	        	       	                
+ 6629	 ----	 ----	       	        	       	                
  662A	 6626	 ----	    516	F797FC  	      5	STB   $97FC     
  662D	 ----	 ----	    516	F67C3A  	      5	LDB   $7C3A     
  6630	 ----	 ----	    516	58      	      2	ASLB            
@@ -7525,6 +7379,7 @@ Collected addresses:
  6634	 ----	 ----	    516	58      	      2	ASLB            
  6635	 ----	 ----	    516	F79801  	      5	STB   $9801     
  6638	 ----	 ----	    516	7F9819  	      7	CLR   $9819     
+
  663B	 664C	 ----	   2064	F69819  	      5	LDB   $9819     
  663E	 ----	 ----	   2064	58      	      2	ASLB            
  663F	 ----	 ----	   2064	CE668D  	      3	LDU   #$668D    
@@ -7543,6 +7398,7 @@ Collected addresses:
  665F	 ----	 ----	    516	86FF    	      2	LDA   #$FF      
  6661	 ----	 ----	    516	B7981C  	      5	STA   $981C     
  6664	 ----	 ----	    516	5F      	      2	CLRB            
+
  6665	 6672	 ----	   2064	3404    	      6	PSHS  B         
  6667	 ----	 ----	   2064	CE668D  	      3	LDU   #$668D    
  666A	 ----	 ----	   2064	58      	      2	ASLB            
@@ -7561,8 +7417,10 @@ Collected addresses:
  6683	 ----	 ----	     38	2607    	      3	BNE   $668C     
  6685	 ----	 ----	     38	CA10    	      2	ORB   #$10      
  6687	 ----	 ----	     38	F5CA40  	      5	BITB  $CA40     
+
  6688	 6679	 ----	    495	CA40    	      2	ORB   #$40      
  668A	 ----	 ----	    495	E703    	      5	STB   $03,X     
+
  668C	 667F	 ----	    516	39      	      5	RTS             
 
  668D	 666B	 ----	       	        	       	                
@@ -7589,6 +7447,7 @@ Collected addresses:
 
  66AA	 666B	 ----	   1032	F69801  	      5	LDB   $9801     
  66AD	 ----	 ----	   1032	B69801  	      5	LDA   $9801     
+
  66B0	 66A8	 ----	   4128	3406    	      7	PSHS  B,A       
  66B2	 ----	 ----	   4128	BD6768  	      8	JSR   $6768     
  66B5	 ----	 ----	   4128	3410    	      7	PSHS  X         
@@ -7597,12 +7456,14 @@ Collected addresses:
  66BC	 ----	 ----	   4128	2403    	      3	BCC   $66C1     
  66BE	 ----	 ----	      3	3264    	      5	LEAS  $04,S     
  66C0	 ----	 ----	      3	39      	      5	RTS             
+
  66C1	 66BC	 ----	   4125	BD6DA7  	      8	JSR   $6DA7     
  66C4	 ----	 ----	   4125	1F12    	      6	TFR   X,Y       
  66C6	 ----	 ----	   4125	3510    	      7	PULS  X         
  66C8	 ----	 ----	   4125	7D9819  	      7	TST   $9819     
  66CB	 ----	 ----	   4125	2B78    	      3	BMI   $6745     
  66CD	 ----	 ----	   2061	5F      	      2	CLRB            
+
  66CE	 670B	 ----	   8244	A6A4    	      4	LDA   ,Y        
  66D0	 ----	 ----	   8244	2732    	      3	BEQ   $6704     
  66D2	 ----	 ----	    692	B6980E  	      5	LDA   $980E     
@@ -7628,6 +7489,7 @@ Collected addresses:
  66FC	 ----	 ----	    116	B7982E  	      5	STA   $982E     
  66FF	 ----	 ----	    116	BD62E4  	      8	JSR   $62E4     
  6702	 ----	 ----	    116	3504    	      6	PULS  B         
+
  6704	 66DB	 ----	   8244	31A851  	      5	LEAY  $51,Y     
  6707	 ----	 ----	   8244	5C      	      2	INCB            
  6708	 ----	 ----	   8244	F197FC  	      5	CMPB  $97FC     
@@ -7638,6 +7500,7 @@ Collected addresses:
  6711	 ----	 ----	   4128	7D9819  	      7	TST   $9819     
  6714	 ----	 ----	   4128	2B2B    	      3	BMI   $6741     
  6716	 ----	 ----	   2064	4F      	      2	CLRA            
+
  6717	 672A	 ----	   8250	3402    	      6	PSHS  A         
  6719	 ----	 ----	   8250	48      	      2	ASLA            
  671A	 ----	 ----	   8250	108E982F	      4	LDY   #$982F    
@@ -7661,8 +7524,10 @@ Collected addresses:
  673C	 ----	 ----	      3	A703    	      5	STA   $03,X     
  673E	 ----	 ----	      3	1A01    	      3	ORCC  #$01      
  6740	 ----	 ----	      3	F51CFE  	      5	BITB  $1CFE     
+
  6741	 6714	 ----	   4128	1CFE    	      3	ANDCC #$FE      
  6743	 ----	 ----	   4128	35A6    	     11	PULS  A,B,Y,PC  
+
  6745	 66CB	 ----	   2064	A606    	      5	LDA   $06,X     
  6747	 ----	 ----	   2064	2709    	      3	BEQ   $6752     
  6749	 ----	 ----	   1332	8407    	      2	ANDA  #$07      
@@ -7670,6 +7535,7 @@ Collected addresses:
  674D	 ----	 ----	   1168	A6A8AF  	      5	LDA   -$51,Y    
  6750	 ----	 ----	   1168	2703    	      3	BEQ   $6755     
  6752	 ----	 ----	   1780	7F981C  	      7	CLR   $981C     
+
  6755	 674B	 ----	   2064	847F    	      2	ANDA  #$7F      
  6757	 ----	 ----	   2064	B7982E  	      5	STA   $982E     
  675A	 ----	 ----	   2064	BD62E4  	      8	JSR   $62E4     
@@ -7721,18 +7587,16 @@ Collected addresses:
  67B1	 73DB	 ----	       	        	       	                
  67B2	 67AB	 ----	       	        	       	                
  67B3	 67AB	 ----	       	        	       	                
-
-2 bytes untouched
-
+ 67B4	 ----	 ----	       	        	       	                
+ 67B5	 ----	 ----	       	        	       	                
  67B6	 67AB	 ----	       	        	       	                
  67B7	 67AB	 ----	       	        	       	                
  67B8	 67AB	 ----	       	        	       	                
  67B9	 67AB	 ----	       	        	       	                
  67BA	 67AB	 ----	       	        	       	                
  67BB	 67AB	 ----	       	        	       	                
-
-2 bytes untouched
-
+ 67BC	 ----	 ----	       	        	       	                
+ 67BD	 ----	 ----	       	        	       	                
  67BE	 67AB	 ----	       	        	       	                
  67BF	 67AB	 ----	       	        	       	                
 
@@ -7778,18 +7642,14 @@ Collected addresses:
  6867	 ----	 ----	    260	B7E7C3  	      5	STA   $E7C3 <-PRC
  686A	 ----	 ----	    260	39      	      5	RTS             
 
-1 byte untouched
-
+ 686B	 ----	 ----	       	        	       	                
  686C	 6876	 ----	       	        	       	                
  686D	 6876	 ----	       	        	       	                
 
-1 byte untouched
-
+ 686E	 ----	 ----	       	        	       	                
  686F	 638C	 ----	    308	E604    	      5	LDB   $04,X     
  6871	 ----	 ----	    308	CE686B  	      3	LDU   #$686B    
-
  6873	 6876	 ----	       	        	       	                
-
  6874	 ----	 ----	    308	C403    	      2	ANDB  #$03      
  6876	 ----	 ----	    308	E6C5    	      5	LDB   B,U       
  6878	 ----	 ----	    308	39      	      5	RTS             
@@ -7817,7 +7677,9 @@ Collected addresses:
  68A4	 ----	 ----	     20	2605    	      3	BNE   $68AB     
  68A6	 ----	 ----	      8	8680    	      2	LDA   #$80      
  68A8	 ----	 ----	      8	B79818  	      5	STA   $9818     
+
  68AB	 68C2	 ----	     42	2067    	      3	BRA   $6914     
+
  68AD	 6881	 ----	     27	E607    	      5	LDB   $07,X     
  68AF	 ----	 ----	     27	C47F    	      2	ANDB  #$7F      
  68B1	 ----	 ----	     27	E707    	      5	STB   $07,X     
@@ -7847,12 +7709,14 @@ Collected addresses:
  68E4	 ----	 ----	     61	8601    	      2	LDA   #$01      
  68E6	 ----	 ----	     61	A705    	      5	STA   $05,X     
  68E8	 ----	 ----	     61	200D    	      3	BRA   $68F7     
+
  68EA	 68D9	 ----	     19	8501    	      2	BITA  #$01      
  68EC	 ----	 ----	     19	2727    	      3	BEQ   $6915     
  68EE	 ----	 ----	     12	6C05    	      7	INC   $05,X     
  68F0	 ----	 ----	     12	BD686F  	      8	JSR   $686F     
  68F3	 ----	 ----	     12	EA03    	      5	ORB   $03,X     
  68F5	 ----	 ----	     12	E703    	      5	STB   $03,X     
+
  68F7	 68E8	 ----	     80	BD65DF  	      8	JSR   $65DF     
  68FA	 ----	 ----	     80	A603    	      5	LDA   $03,X     
  68FC	 ----	 ----	     80	8440    	      2	ANDA  #$40      
@@ -7865,7 +7729,9 @@ Collected addresses:
  690D	 ----	 ----	     80	8540    	      2	BITA  #$40      
  690F	 ----	 ----	     80	2703    	      3	BEQ   $6914     
  6911	 ----	 ----	      9	7C9818  	      7	INC   $9818     
+
  6914	 690F	 ----	    122	39      	      5	RTS             
+
  6915	 68EC	 ----	      7	F6980F  	      5	LDB   $980F     
  6918	 ----	 ----	      7	B7980F  	      5	STA   $980F     
  691B	 ----	 ----	      7	3402    	      6	PSHS  A         
@@ -7875,6 +7741,7 @@ Collected addresses:
  6923	 ----	 ----	      7	2704    	      3	BEQ   $6929     
  6925	 ----	 ----	      5	6A04    	      7	DEC   $04,X     
  6927	 ----	 ----	      5	20CE    	      3	BRA   $68F7     
+
  6929	 6923	 ----	      2	8508    	      2	BITA  #$08      
  692B	 ----	 ----	      2	27CA    	      3	BEQ   $68F7     
  692D	 ----	 ----	      2	6C04    	      7	INC   $04,X     
@@ -7885,23 +7752,29 @@ Collected addresses:
  6935	 ----	 ----	    772	8510    	      2	BITA  #$10      
  6937	 ----	 ----	    772	2702    	      3	BEQ   $693B     
  6939	 ----	 ----	     38	C004    	      2	SUBB  #$04      
+
  693B	 6937	 ----	    772	8520    	      2	BITA  #$20      
  693D	 ----	 ----	    772	2702    	      3	BEQ   $6941     
  693F	 ----	 ----	     67	CB04    	      2	ADDB  #$04      
+
  6941	 693D	 ----	    772	E706    	      5	STB   $06,X     
  6943	 ----	 ----	    772	EE01    	      6	LDU   $01,X     
  6945	 ----	 ----	    772	8501    	      2	BITA  #$01      
  6947	 ----	 ----	    772	2704    	      3	BEQ   $694D     
  6949	 ----	 ----	    103	33C9FE04	      8	LEAU  -$01FC,U  
+
  694D	 6947	 ----	    772	8502    	      2	BITA  #$02      
  694F	 ----	 ----	    772	2704    	      3	BEQ   $6955     
  6951	 ----	 ----	    105	33C901FC	      8	LEAU  $01FC,U   
+
  6955	 694F	 ----	    772	8508    	      2	BITA  #$08      
  6957	 ----	 ----	    772	2704    	      3	BEQ   $695D     
  6959	 ----	 ----	    237	33C90204	      8	LEAU  $0204,U   
+
  695D	 6957	 ----	    772	8504    	      2	BITA  #$04      
  695F	 ----	 ----	    772	2704    	      3	BEQ   $6965     
  6961	 ----	 ----	     73	33C9FDFC	      8	LEAU  -$0204,U  
+
  6965	 695F	 ----	    772	EF01    	      6	STU   $01,X     
  6967	 ----	 ----	    772	35C4    	     10	PULS  B,U,PC    
 
@@ -7927,6 +7800,7 @@ Collected addresses:
  6981	 6970	 ----	    644	C600    	      2	LDB   #$00      
  6983	 ----	 ----	    644	F79804  	      5	STB   $9804     
  6986	 ----	 ----	    644	5F      	      2	CLRB            
+
  6987	 699F	 ----	   1932	3404    	      6	PSHS  B         
  6989	 ----	 ----	   1932	BD6AD0  	      8	JSR   $6AD0     
  698C	 ----	 ----	   1932	6D84    	      6	TST   ,X        
@@ -7935,6 +7809,7 @@ Collected addresses:
  6993	 ----	 ----	   1288	E6E4    	      4	LDB   ,S        
  6995	 ----	 ----	   1288	CE69A2  	      3	LDU   #$69A2    
  6998	 ----	 ----	   1288	ADD6    	     11	JSR   [A,U]     
+
  699A	 698E	 ----	   1932	3504    	      6	PULS  B         
  699C	 ----	 ----	   1932	5C      	      2	INCB            
  699D	 ----	 ----	   1932	C103    	      2	CMPB  #$03      
@@ -7975,10 +7850,12 @@ Collected addresses:
  69D7	 ----	 ----	    256	6D84    	      6	TST   ,X        
  69D9	 ----	 ----	    256	2A02    	      3	BPL   $69DD     
 
-2 bytes untouched
-
+ 69DB	 ----	 ----	       	        	       	                
+ 69DC	 ----	 ----	       	        	       	                
  69DD	 69D9	 ----	    256	CC2C06  	      3	LDD   #$2C06    
+
  69E0	 69F7	 ----	  11264	3446    	      9	PSHS  U,B,A     
+
  69E2	 69EF	 ----	  67584	A6A0    	      6	LDA   ,Y+       
  69E4	 ----	 ----	  67584	11834141	      5	CMPU  #$4141 <-VRAM.L8+1
  69E8	 ----	 ----	  67584	2502    	      3	BCS   $69EC     
@@ -7993,15 +7870,18 @@ Collected addresses:
  69F9	 ----	 ----	    256	39      	      5	RTS             
 
  69FA	 6972	 ----	    128	8E97F9  	      3	LDX   #$97F9    
+
  69FD	 6A02	 ----	    384	6F80    	      8	CLR   ,X+       
  69FF	 ----	 ----	    384	8C97FC  	      4	CMPX  #$97FC    
  6A02	 ----	 ----	    384	26F9    	      3	BNE   $69FD     
  6A04	 ----	 ----	    128	5F      	      2	CLRB            
+
  6A05	 6A3E	 ----	    384	3404    	      6	PSHS  B         
  6A07	 ----	 ----	    384	CE97F9  	      3	LDU   #$97F9    
  6A0A	 ----	 ----	    384	108EFFFF	      4	LDY   #$FFFF    
  6A0E	 ----	 ----	    384	5F      	      2	CLRB            
  6A0F	 ----	 ----	    384	86FF    	      2	LDA   #$FF      
+
  6A11	 6A2D	 ----	   1152	6DC5    	      7	TST   B,U       
  6A13	 ----	 ----	   1152	2B15    	      3	BMI   $6A2A     
  6A15	 ----	 ----	    768	3406    	      7	PSHS  B,A       
@@ -8013,6 +7893,7 @@ Collected addresses:
  6A23	 ----	 ----	    384	2305    	      3	BLS   $6A2A     
  6A25	 ----	 ----	    308	10AE01  	      7	LDY   $01,X     
  6A28	 ----	 ----	    308	1F98    	      6	TFR   B,A       
+
  6A2A	 6A1E	 ----	   1152	5C      	      2	INCB            
  6A2B	 ----	 ----	   1152	C103    	      2	CMPB  #$03      
  6A2D	 ----	 ----	   1152	26E2    	      3	BNE   $6A11     
@@ -8021,6 +7902,7 @@ Collected addresses:
  6A34	 ----	 ----	    384	4D      	      2	TSTA            
  6A35	 ----	 ----	    384	2B02    	      3	BMI   $6A39     
  6A37	 ----	 ----	    256	8D08    	      7	BSR   $6A41     
+
  6A39	 6A35	 ----	    384	3504    	      6	PULS  B         
  6A3B	 ----	 ----	    384	5C      	      2	INCB            
  6A3C	 ----	 ----	    384	C103    	      2	CMPB  #$03      
@@ -8032,6 +7914,7 @@ Collected addresses:
  6A47	 ----	 ----	    256	843F    	      2	ANDA  #$3F      
  6A49	 ----	 ----	    256	B79814  	      5	STA   $9814     
  6A4C	 ----	 ----	    256	C6FF    	      2	LDB   #$FF      
+
  6A4E	 6AB1	 ----	   1024	5C      	      2	INCB            
  6A4F	 ----	 ----	   1024	C103    	      2	CMPB  #$03      
  6A51	 ----	 ----	   1024	277C    	      3	BEQ   $6ACF     
@@ -8050,17 +7933,21 @@ Collected addresses:
  6A6D	 ----	 ----	    121	3D      	     11	MUL             
  6A6E	 ----	 ----	    121	33CB    	      8	LEAU  D,U       
  6A70	 ----	 ----	    121	2007    	      3	BRA   $6A79     
+
  6A72	 6A66	 ----	    391	C606    	      2	LDB   #$06      
  6A74	 ----	 ----	    391	3402    	      6	PSHS  A         
  6A76	 ----	 ----	    391	3D      	     11	MUL             
  6A77	 ----	 ----	    391	31AB    	      8	LEAY  D,Y       
+
  6A79	 6A70	 ----	    512	F697FD  	      5	LDB   $97FD     
  6A7C	 ----	 ----	    512	E062    	      5	SUBB  $02,S     
  6A7E	 ----	 ----	    512	2A05    	      3	BPL   $6A85     
  6A80	 ----	 ----	    128	50      	      2	NEGB            
  6A81	 ----	 ----	    128	33C5    	      5	LEAU  B,U       
  6A83	 ----	 ----	    128	2002    	      3	BRA   $6A87     
+
  6A85	 6A7E	 ----	    384	31A5    	      5	LEAY  B,Y       
+
  6A87	 6A83	 ----	    512	3502    	      6	PULS  A         
  6A89	 ----	 ----	    512	812C    	      2	CMPA  #$2C      
  6A8B	 ----	 ----	    512	2420    	      3	BCC   $6AAD     
@@ -8071,7 +7958,9 @@ Collected addresses:
  6A95	 ----	 ----	     86	A0E4    	      4	SUBA  ,S        
  6A97	 ----	 ----	     86	C606    	      2	LDB   #$06      
  6A99	 ----	 ----	     86	E061    	      5	SUBB  $01,S     
+
  6A9B	 6AAB	 ----	   3248	3466    	     11	PSHS  U,Y,B,A   
+
  6A9D	 6AA2	 ----	  11844	A6C0    	      6	LDA   ,U+       
  6A9F	 ----	 ----	  11844	A7A0    	      6	STA   ,Y+       
  6AA1	 ----	 ----	  11844	5A      	      2	DECB            
@@ -8081,6 +7970,7 @@ Collected addresses:
  6AA8	 ----	 ----	   3248	3346    	      5	LEAU  $06,U     
  6AAA	 ----	 ----	   3248	4A      	      2	DECA            
  6AAB	 ----	 ----	   3248	26EE    	      3	BNE   $6A9B     
+
  6AAD	 6A8B	 ----	    512	3262    	      5	LEAS  $02,S     
  6AAF	 ----	 ----	    512	3504    	      6	PULS  B         
  6AB1	 ----	 ----	    512	209B    	      3	BRA   $6A4E     
@@ -8098,6 +7988,7 @@ Collected addresses:
  6AC7	 ----	 ----	    512	B07D7B  	      5	SUBA  $7D7B     
  6ACA	 ----	 ----	    512	8B37    	      2	ADDA  #$37      
  6ACC	 ----	 ----	    512	830601  	      4	SUBD  #$0601    
+
  6ACF	 6A51	 ----	    768	39      	      5	RTS             
 
  6AD0	 6ADF	 ----	   4500	8E78DF  	      3	LDX   #$78DF    
@@ -8127,6 +8018,7 @@ Collected addresses:
  6AFB	 ----	 ----	      2	1F01    	      6	TFR   D,X       
  6AFD	 ----	 ----	      2	1F12    	      6	TFR   X,Y       
  6AFF	 ----	 ----	      2	CE5A67  	      3	LDU   #$5A67 <-VRAM.L168+39
+
  6B02	 6B16	 ----	    322	3636    	     11	PSHU  Y,X,B,A           
  6B04	 ----	 ----	    322	3636    	     11	PSHU  Y,X,B,A           
  6B06	 ----	 ----	    322	3636    	     11	PSHU  Y,X,B,A           
@@ -8140,6 +8032,7 @@ Collected addresses:
  6B18	 ----	 ----	      2	39      	      5	RTS                     
 
  6B19	 6C5F	 ----	      2	8E78E9  	      3	LDX   #$78E9            
+
  6B1C	 6B21	 ----	  16038	6F80    	      8	CLR   ,X+               
  6B1E	 ----	 ----	  16038	8C983C  	      4	CMPX  #$983C            
  6B21	 ----	 ----	  16038	26F9    	      3	BNE   $6B1C             
@@ -8153,6 +8046,7 @@ Collected addresses:
  6B70	 ----	 ----	      2	BD6862  	      8	JSR   $6862             
  6B73	 ----	 ----	      2	CE4141  	      3	LDU   #$4141 <-VRAM.L8+1
  6B76	 ----	 ----	      2	10CE7EBD	      4	LDS   #$7EBD            
+
  6B7A	 6BBC	 ----	    338	3341    	      5	LEAU  $01,U             
  6B7C	 ----	 ----	    338	3536    	     11	PULS  A,B,X,Y           
  6B7E	 ----	 ----	    338	EDC1    	      8	STD   ,U++              
@@ -8263,9 +8157,7 @@ Collected addresses:
  6D57	 ----	 ----	    256	E602    	      5	LDB   $02,X             
  6D59	 ----	 ----	    256	C407    	      2	ANDB  #$07              
  6D5B	 ----	 ----	    256	108E6D4C	      4	LDY   #$6D4C            
-
  6D5C	 6D5F	 ----	       	        	       	                        
-
  6D5F	 ----	 ----	    256	E6A5    	      5	LDB   B,Y               
  6D61	 ----	 ----	    256	F79805  	      5	STB   $9805             
  6D64	 ----	 ----	    256	108E7D7B	      4	LDY   #$7D7B            
@@ -8273,14 +8165,17 @@ Collected addresses:
  6D6A	 ----	 ----	    256	EDC0    	      7	STD   ,U+               
  6D6C	 ----	 ----	    256	6CC0    	      8	INC   ,U+               
  6D6E	 ----	 ----	    256	48      	      2	ASLA                    
+
  6D6F	 6D8F	 ----	  16426	3406    	      7	PSHS  B,A               
  6D71	 ----	 ----	  16426	6FE2    	      8	CLR   ,-S               
+
  6D73	 6D86	 ----	  49280	3404    	      6	PSHS  B                 
  6D75	 ----	 ----	  49280	A6A0    	      6	LDA   ,Y+               
  6D77	 ----	 ----	  49281	F69805  	      5	LDB   $9805             
  6D7A	 ----	 ----	  49281	2703    	      3	BEQ   $6D7F             
  6D7C	 ----	 ----	  26880	3D      	     11	MUL                     
  6D7D	 ----	 ----	  26880	AA61    	      5	ORA   $01,S             
+
  6D7F	 6D7A	 ----	  49281	A7C0    	      6	STA   ,U+               
  6D81	 ----	 ----	  49281	E761    	      5	STB   $01,S             
  6D83	 ----	 ----	  49281	3504    	      6	PULS  B                 
@@ -8366,9 +8261,11 @@ Collected addresses:
  6FE2	 ----	 ----	    257	B07D7B  	      5	SUBA  $7D7B             
  6FE5	 ----	 ----	    257	B797FC  	      5	STA   $97FC             
  6FE8	 ----	 ----	    257	4F      	      2	CLRA                    
+
  6FE9	 700D	 ----	   1022	FE9816  	      6	LDU   $9816             
  6FEC	 ----	 ----	   1022	3442    	      8	PSHS  U,A               
  6FEE	 ----	 ----	   1022	8B04    	      2	ADDA  #$04              
+
  6FF0	 7000	 ----	   5736	3442    	      8	PSHS  U,A               
  6FF2	 ----	 ----	   5736	FF980C  	      6	STU   $980C             
  6FF5	 ----	 ----	   5736	A663    	      5	LDA   $03,S             
@@ -8385,7 +8282,9 @@ Collected addresses:
  700B	 ----	 ----	   1021	C105    	      2	CMPB  #$05              
  700D	 ----	 ----	   1021	25DA    	      3	BCS   $6FE9             
  700F	 ----	 ----	    256	3510    	      7	PULS  X                 
+
  7011	 703F	 ----	  31204	39      	      5	RTS                     
+
  7012	 701C	 ----	  33908	3402    	      6	PSHS  A                 
  7014	 ----	 ----	  33908	8D09    	      7	BSR   $701F             
  7016	 ----	 ----	  33907	7C980C  	      7	INC   $980C             
@@ -8428,12 +8327,14 @@ Collected addresses:
  706E	 ----	 ----	    133	3D      	     11	MUL                     
  706F	 ----	 ----	    133	308B    	      8	LEAX  D,X               
  7071	 ----	 ----	    133	200B    	      3	BRA   $707E             
+
  7073	 7061	 ----	   2827	40      	      2	NEGA                    
  7074	 ----	 ----	   2827	3402    	      6	PSHS  A                 
  7076	 ----	 ----	   2827	B79802  	      5	STA   $9802             
  7079	 ----	 ----	   2827	C606    	      2	LDB   #$06              
  707B	 ----	 ----	   2827	3D      	     11	MUL                     
  707C	 ----	 ----	   2827	33CB    	      8	LEAU  D,U               
+
  707E	 7071	 ----	   2960	EC61    	      6	LDD   $01,S             
  7080	 ----	 ----	   2960	B697FD  	      5	LDA   $97FD             
  7083	 ----	 ----	   2960	B097FF  	      5	SUBA  $97FF             
@@ -8442,9 +8343,11 @@ Collected addresses:
  708B	 ----	 ----	   1383	739807  	      7	COM   $9807             
  708E	 ----	 ----	   1383	3086    	      5	LEAX  A,X               
  7090	 ----	 ----	   1383	2006    	      3	BRA   $7098             
+
  7092	 7086	 ----	   1577	40      	      2	NEGA                    
  7093	 ----	 ----	   1577	B79803  	      5	STA   $9803             
  7096	 ----	 ----	   1577	33C6    	      5	LEAU  A,U               
+
  7098	 7090	 ----	   2960	3504    	      6	PULS  B                 
  709A	 ----	 ----	   2960	1E89    	      8	EXG   A,B               
  709C	 ----	 ----	   2960	5D      	      2	TSTB                    
@@ -8456,6 +8359,7 @@ Collected addresses:
  70AA	 ----	 ----	   2960	7D9806  	      7	TST   $9806             
  70AD	 ----	 ----	   2960	2703    	      3	BEQ   $70B2             
  70AF	 ----	 ----	    133	B6980A  	      5	LDA   $980A             
+
  70B2	 70AD	 ----	   2960	A1E0    	      6	CMPA  ,S+               
  70B4	 ----	 ----	   2960	1025005C	    6/5	LBCS  $7114             
  70B8	 ----	 ----	   2146	3404    	      6	PSHS  B                 
@@ -8463,6 +8367,7 @@ Collected addresses:
  70BC	 ----	 ----	   2146	7D9807  	      7	TST   $9807             
  70BF	 ----	 ----	   2146	2703    	      3	BEQ   $70C4             
  70C1	 ----	 ----	    907	F6980B  	      5	LDB   $980B             
+
  70C4	 70BF	 ----	   2146	E1E0    	      6	CMPB  ,S+               
  70C6	 ----	 ----	   2146	254C    	      3	BCS   $7114             
  70C8	 ----	 ----	   1744	B6980B  	      5	LDA   $980B             
@@ -8477,6 +8382,7 @@ Collected addresses:
  70DE	 ----	 ----	   1657	F19809  	      5	CMPB  $9809             
  70E1	 ----	 ----	   1657	2303    	      3	BLS   $70E6             
  70E3	 ----	 ----	    964	F69809  	      5	LDB   $9809             
+
  70E6	 70E1	 ----	   1657	B6980A  	      5	LDA   $980A             
  70E9	 ----	 ----	   1657	B09800  	      5	SUBA  $9800             
  70EC	 ----	 ----	   1657	2726    	      3	BEQ   $7114             
@@ -8486,6 +8392,7 @@ Collected addresses:
  70F6	 ----	 ----	   1657	B19809  	      5	CMPA  $9809             
  70F9	 ----	 ----	   1657	2303    	      3	BLS   $70FE             
  70FB	 ----	 ----	    492	B69809  	      5	LDA   $9809             
+
  70FE	 70F9	 ----	   1657	4D      	      2	TSTA                    
  70FF	 ----	 ----	   1657	2713    	      3	BEQ   $7114             
  7101	 ----	 ----	   1628	3456    	     11	PSHS  U,X,B,A           
@@ -8496,6 +8403,7 @@ Collected addresses:
  710D	 ----	 ----	   1628	BD737A  	      8	JSR   $737A             
  7110	 ----	 ----	   1627	3556    	     11	PULS  A,B,X,U           
  7112	 ----	 ----	   1627	8D0E    	      7	BSR   $7122             
+
  7114	 70B4	 ----	   2959	3262    	      5	LEAS  $02,S             
  7116	 ----	 ----	   2959	39      	      5	RTS                     
 
@@ -8504,13 +8412,13 @@ Collected addresses:
  711C	 ----	 ----	    257	3D      	     11	MUL                     
  711D	 ----	 ----	    257	FD7128  	      6	STD   $7128             
  7120	 ----	 ----	    257	3506    	      7	PULS  A,B               
+
  7122	 7140	 ----	  32786	3406    	      7	PSHS  B,A               
  7124	 ----	 ----	  32786	3450    	      9	PSHS  U,X               
- 7126	 7132	 ----	  95970	A6890080	      8	LDA   $0080,X           
 
+ 7126	 7132	 ----	  95970	A6890080	      8	LDA   $0080,X           
  7128	 ----	 7107	       	        	       	                        
  7129	 ----	 7107	       	        	       	                        
-
  712A	 ----	 ----	  95970	43      	      2	COMA                    
  712B	 ----	 ----	  95970	A4C4    	      4	ANDA  ,U                
  712D	 ----	 ----	  95970	AA80    	      6	ORA   ,X+               
@@ -8556,8 +8464,7 @@ Collected addresses:
  7178	 ----	 ----	   2960	B0980A  	      5	SUBA  $980A             
  717B	 ----	 ----	   2960	2401    	      3	BCC   $717E             
 
-1 byte untouched
-
+ 717D	 ----	 ----	       	        	       	                        
  717E	 717B	 ----	   2960	FD97FE  	      6	STD   $97FE             
  7181	 ----	 ----	   2960	39      	      5	RTS                     
 
@@ -8600,11 +8507,14 @@ Collected addresses:
  71C3	 ----	 ----	      4	8E7747  	      3	LDX   #$7747            
  71C6	 ----	 ----	      4	7F9805  	      7	CLR   $9805             
  71C9	 ----	 ----	      4	5F      	      2	CLRB                    
+
  71CA	 7201	 ----	     20	F7980E  	      5	STB   $980E             
  71CD	 ----	 ----	     20	3414    	      8	PSHS  X,B               
  71CF	 ----	 ----	     20	5F      	      2	CLRB                    
+
  71D0	 71F5	 ----	    180	F7980D  	      5	STB   $980D             
  71D3	 ----	 ----	    180	5F      	      2	CLRB                    
+
  71D4	 71EB	 ----	   1620	F7980C  	      5	STB   $980C             
  71D7	 ----	 ----	   1620	A680    	      6	LDA   ,X+               
  71D9	 ----	 ----	   1620	270D    	      3	BEQ   $71E8             
@@ -8614,6 +8524,7 @@ Collected addresses:
  71E3	 ----	 ----	    632	58      	      2	ASLB                    
  71E4	 ----	 ----	    632	ADD5    	     11	JSR   [B,U]             
  71E6	 ----	 ----	    632	3514    	      8	PULS  B,X               
+
  71E8	 71D9	 ----	   1620	5C      	      2	INCB                    
  71E9	 ----	 ----	   1620	C109    	      2	CMPB  #$09              
  71EB	 ----	 ----	   1620	1026FFE5	    6/5	LBNE  $71D4             
@@ -8646,6 +8557,7 @@ Collected addresses:
  721D	 ----	 ----	      2	6F08    	      7	CLR   $08,X             
  721F	 ----	 ----	      2	6F07    	      7	CLR   $07,X             
  7221	 ----	 ----	      2	BD72BF  	      8	JSR   $72BF             
+
  7224	 721B	 ----	      4	3502    	      6	PULS  A                 
  7226	 ----	 ----	      4	48      	      2	ASLA                    
  7227	 ----	 ----	      4	108E723E	      4	LDY   #$723E            
@@ -8659,24 +8571,24 @@ Collected addresses:
  723B	 ----	 ----	      4	ED84    	      5	STD   ,X                
  723D	 ----	 ----	      4	39      	      5	RTS                     
 
-2 bytes untouched
-
+ 723E	 ----	 ----	       	        	       	                        
+ 723F	 ----	 ----	       	        	       	                        
  7240	 7235	 ----	       	        	       	                        
  7241	 7235	 ----	       	        	       	                        
-
-2 bytes untouched
-
+ 7242	 ----	 ----	       	        	       	                        
+ 7243	 ----	 ----	       	        	       	                        
  7244	 7235	 ----	       	        	       	                        
  7245	 7235	 ----	       	        	       	                        
 
-2 bytes untouched
-
+ 7246	 ----	 ----	       	        	       	                        
+ 7247	 ----	 ----	       	        	       	                        
  7248	 7235	 ----	      2	4C      	      2	INCA                    
  7249	 ----	 ----	      2	815C    	      2	CMPA  #$5C              
  724B	 ----	 ----	      2	814A    	      2	CMPA  #$4A              
 
  724C	 7235	 ----	      4	4A      	      2	DECA                    
  724D	 ----	 ----	      4	39      	      5	RTS                     
+
  724E	 7293	 ----	      4	6F1F    	      7	CLR   -$01,X            
  7250	 ----	 ----	      4	8520    	      2	BITA  #$20              
  7252	 ----	 ----	      4	26B4    	      3	BNE   $7208             
@@ -8720,12 +8632,13 @@ Collected addresses:
  72CD	 ----	 ----	      4	A584    	      4	BITA  ,X                
  72CF	 ----	 ----	      4	2702    	      3	BEQ   $72D3             
 
-2 bytes untouched
-
+ 72D1	 ----	 ----	       	        	       	                        
+ 72D2	 ----	 ----	       	        	       	                        
  72D3	 72CF	 ----	      4	A684    	      4	LDA   ,X                
  72D5	 ----	 ----	      4	8A80    	      2	ORA   #$80              
  72D7	 ----	 ----	      4	A784    	      4	STA   ,X                
  72D9	 ----	 ----	      4	3556    	     11	PULS  A,B,X,U           
+
  72DB	 7323	 ----	    149	39      	      5	RTS                     
 
  72DC	 72BB	 ----	      2	8407    	      2	ANDA  #$07              
@@ -8761,8 +8674,7 @@ Collected addresses:
  7311	 ----	 ----	      4	A705    	      5	STA   $05,X             
  7313	 ----	 ----	      4	39      	      5	RTS                     
 
-1 byte untouched
-
+ 7314	 ----	 ----	       	        	       	                        
  7315	 72E1	 ----	       	        	       	                        
  7316	 72E1	 ----	       	        	       	                        
 
@@ -8796,19 +8708,20 @@ Collected addresses:
  734F	 ----	 ----	    171	3D      	     11	MUL                     
  7350	 ----	 ----	    171	FD735B  	      6	STD   $735B             
  7353	 ----	 ----	    171	EC81    	      8	LDD   ,X++              
+
  7355	 7377	 ----	   4104	3402    	      6	PSHS  A                 
  7357	 ----	 ----	   4104	3444    	      8	PSHS  U,B               
- 7359	 736D	 ----	  16416	A6890060	      8	LDA   $0060,X           
 
+ 7359	 736D	 ----	  16416	A6890060	      8	LDA   $0060,X           
  735B	 ----	 7350	       	        	       	                        
  735C	 ----	 7350	       	        	       	                        
-
  735D	 ----	 ----	  16416	43      	      2	COMA                    
  735E	 ----	 ----	  16416	A4C4    	      4	ANDA  ,U                
  7360	 ----	 ----	  16416	AA80    	      6	ORA   ,X+               
  7362	 ----	 ----	  16416	11837EBD	      5	CMPU  #$7EBD            
  7366	 ----	 ----	  16416	2502    	      3	BCS   $736A             
  7368	 ----	 ----	  16000	A7C4    	      4	STA   ,U                
+
  736A	 7366	 ----	  16416	3341    	      5	LEAU  $01,U             
  736C	 ----	 ----	  16416	5A      	      2	DECB                    
  736D	 ----	 ----	  16416	26EA    	      3	BNE   $7359             
@@ -8823,6 +8736,7 @@ Collected addresses:
  737C	 ----	 ----	   1799	843F    	      2	ANDA  #$3F              
  737E	 ----	 ----	   1799	BD7182  	      8	JSR   $7182             
  7381	 ----	 ----	   1799	108E7C39	      4	LDY   #$7C39            
+
  7385	 73E8	 ----	   2055	EC84    	      5	LDD   ,X                
  7387	 ----	 ----	   2055	EDA1    	      8	STD   ,Y++              
  7389	 ----	 ----	   2055	3502    	      6	PULS  A                 
@@ -8832,17 +8746,22 @@ Collected addresses:
  7391	 ----	 ----	   1914	3D      	     11	MUL                     
  7392	 ----	 ----	   1914	8602    	      2	LDA   #$02              
  7394	 ----	 ----	   1914	3D      	     11	MUL                     
+
  7395	 739A	 ----	 367391	A680    	      6	LDA   ,X+               
  7397	 ----	 ----	 367391	A7A0    	      6	STA   ,Y+               
  7399	 ----	 ----	 367391	5A      	      2	DECB                    
  739A	 ----	 ----	 367390	26F9    	      3	BNE   $7395             
+
  739C	 73BB	 ----	   2054	8E7C39  	      3	LDX   #$7C39            
  739F	 ----	 ----	   2054	39      	      5	RTS                     
+
  73A0	 738D	 ----	    141	EC81    	      8	LDD   ,X++              
  73A2	 ----	 ----	    141	48      	      2	ASLA                    
  73A3	 ----	 ----	    141	313F    	      5	LEAY  -$01,Y            
+
  73A5	 73B9	 ----	   8128	3426    	      9	PSHS  Y,B,A             
  73A7	 ----	 ----	   8128	31A5    	      5	LEAY  B,Y               
+
  73A9	 73B2	 ----	  27072	A680    	      6	LDA   ,X+               
  73AB	 ----	 ----	  27072	8D10    	      7	BSR   $73BD             
  73AD	 ----	 ----	  27072	A7A4    	      4	STA   ,Y                
@@ -8887,6 +8806,7 @@ Collected addresses:
 
  73EA	 6C87	 ----	    130	3402    	      6	PSHS  A                 
  73EC	 ----	 ----	    130	C608    	      2	LDB   #$08              
+
  73EE	 73FE	 ----	   1040	B6994D  	      5	LDA   $994D             
  73F1	 ----	 ----	   1040	48      	      2	ASLA                    
  73F2	 ----	 ----	   1040	B8994D  	      5	EORA  $994D             
@@ -17345,9 +17265,7 @@ Collected addresses:
  9840	 9E0D	 9DF1	       	        	       	                        
  9841	 62E6	 ----	       	        	       	                        
  9842	 9FC3	 ----	       	        	       	                        
-
-1 byte untouched
-
+ 9843	 ----	 ----	       	        	       	                        
  9844	 9F0C	 ----	       	        	       	                        
  9845	 62A0	 6D3E	       	        	       	                        
 
@@ -17393,9 +17311,9 @@ Collected addresses:
  99F1	 ----	 ----	      5	39      	      5	RTS                     
 
  99F2	 99C1	 ----	       	        	       	                        
-
-3 bytes untouched
-
+ 99F3	 ----	 ----	       	        	       	                        
+ 99F4	 ----	 ----	       	        	       	                        
+ 99F5	 ----	 ----	       	        	       	                        
  99F6	 99C1	 ----	       	        	       	                        
 
 5 bytes untouched
@@ -17562,9 +17480,8 @@ Collected addresses:
  9A9B	 A005	 ----	       	        	       	                        
  9A9C	 A005	 ----	       	        	       	                        
  9A9D	 A005	 ----	       	        	       	                        
-
-2 bytes untouched
-
+ 9A9E	 ----	 ----	       	        	       	                        
+ 9A9F	 ----	 ----	       	        	       	                        
  9AA0	 99DB	 ----	       	        	       	                        
  9AA1	 99E1	 ----	       	        	       	                        
  9AA2	 99DB	 ----	       	        	       	                        
@@ -17646,10 +17563,12 @@ Collected addresses:
  9E02	 ----	 ----	      3	CE5402  	      3	LDU   #$5402 <-VRAM.L128+2
  9E05	 ----	 ----	      3	86D8    	      2	LDA   #$D8              
  9E07	 ----	 ----	      3	BD9FF9  	      8	JSR   $9FF9             
+
  9E0A	 9DEC	 ----	      5	BD99B8  	      8	JSR   $99B8             
  9E0D	 ----	 ----	      5	B69840  	      5	LDA   $9840             
  9E10	 ----	 ----	      5	CE57C7  	      3	LDU   #$57C7 <-VRAM.L152+7
  9E13	 ----	 ----	      5	BD9FC9  	      8	JSR   $9FC9             
+
  9E16	 9DDF	 ----	    130	39      	      5	RTS                     
 
 82 bytes untouched
@@ -17657,6 +17576,7 @@ Collected addresses:
  9E69	 9F19	 ----	     28	8D10    	      7	BSR   $9E7B             
  9E6B	 ----	 ----	     28	3406    	      7	PSHS  B,A               
  9E6D	 ----	 ----	     28	C608    	      2	LDB   #$08              
+
  9E6F	 9E77	 ----	    224	A680    	      6	LDA   ,X+               
  9E71	 ----	 ----	    224	A7C4    	      4	STA   ,U                
  9E73	 ----	 ----	    224	33C828  	      5	LEAU  $28,U             
@@ -17704,6 +17624,7 @@ Collected addresses:
  9F0C	 6C77	 ----	      2	B69844  	      5	LDA   $9844             
  9F0F	 ----	 ----	      2	2712    	      3	BEQ   $9F23             
  9F11	 ----	 ----	      2	CE5D66  	      3	LDU   #$5D66 <-VRAM.L188+6
+
  9F14	 9F21	 ----	     28	3440    	      7	PSHS  U                 
  9F16	 ----	 ----	     28	8E9EDE  	      3	LDX   #$9EDE            
  9F19	 ----	 ----	     28	BD9E69  	      8	JSR   $9E69             
@@ -17726,14 +17647,15 @@ Collected addresses:
  9FCB	 ----	 ----	      7	8139    	      2	CMPA  #$39              
  9FCD	 ----	 ----	      7	2302    	      3	BLS   $9FD1             
 
-2 bytes untouched
-
+ 9FCF	 ----	 ----	       	        	       	                        
+ 9FD0	 ----	 ----	       	        	       	                        
  9FD1	 9FCD	 ----	      7	C608    	      2	LDB   #$08              
  9FD3	 ----	 ----	      7	3D      	     11	MUL                     
  9FD4	 ----	 ----	      7	C399FA  	      4	ADDD  #$99FA            
  9FD7	 ----	 ----	      7	1F01    	      6	TFR   D,X               
  9FD9	 ----	 ----	      7	BD9E87  	      8	JSR   $9E87             
  9FDC	 ----	 ----	      7	8608    	      2	LDA   #$08              
+
  9FDE	 9FF6	 ----	     56	E682    	      6	LDB   ,-X               
  9FE0	 ----	 ----	     56	7CE7C3  	      7	INC   $E7C3 <-PRC       
  9FE3	 ----	 ----	     56	E7C4    	      4	STB   ,U                
@@ -17750,7 +17672,9 @@ Collected addresses:
  9FF9	 9FC1	 ----	      5	3402    	      6	PSHS  A                 
  9FFB	 ----	 ----	      5	BD9E87  	      8	JSR   $9E87             
  9FFE	 ----	 ----	      5	EC81    	      8	LDD   ,X++              
+
  A000	 A019	 ----	    152	3446    	      9	PSHS  U,B,A             
+
  A002	 A011	 ----	    576	7CE7C3  	      7	INC   $E7C3 <-PRC       
  A005	 ----	 ----	    576	A680    	      6	LDA   ,X+               
  A007	 ----	 ----	    576	A7C4    	      4	STA   ,U                
@@ -22305,17 +22229,13 @@ Collected addresses:
 2161 bytes untouched
 
  C600	 6980	 ----	       	        	       	                        
-
-3 bytes untouched
-
+ C601	 ----	 ----	       	        	       	                        
+ C602	 ----	 ----	       	        	       	                        
+ C603	 ----	 ----	       	        	       	                        
  C604	 697D	 ----	       	        	       	                        
-
-1 byte untouched
-
+ C605	 ----	 ----	       	        	       	                        
  C606	 6977	 ----	       	        	       	                        
-
-1 byte untouched
-
+ C607	 ----	 ----	       	        	       	                        
  C608	 697A	 ----	       	        	       	                        
 
 1079 bytes untouched
@@ -22904,7 +22824,7 @@ Memory map: $4100 -> $A17F:
  5F80	--------------------------------------------------------------------------------------------------------------------------------
  6000	----------RR-------------R-----------------------------------------------------------MM-------R--------R------------------------
  6080	--------------------------------------------------------------------------------------------------------------------------------
- 6100	--------------------***M**M**MMMMMMMM**M**MMMMMMMM**MM****M****-----------------****MMYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ 6100	--------------------***M**M**MMMM******************************-----------------****MMYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
  6180	XXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXYXXXXXXYXXXXXXXXYXXXXXXXYXXXXXYXXXYXXXXXXXXXXXXXXXX----------------------------------------------
  6200	--------------------------------------------------------------------------------------------------------------------------------
  6280	---------------RR-YXXXXXXXXXXXXXXXXXXX--------------------------------------------------------------YXXXXXXXXXXXXXXXXXXXX--YXXXX

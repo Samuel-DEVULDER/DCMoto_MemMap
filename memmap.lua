@@ -834,7 +834,7 @@ local function newHtmlWriter(file, mem)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
             local title  = '$' .. addr .. ' : ' .. RWX .. equate .. 
                            (opt_asm and '\nX = ' .. opt_asm:gsub(equate_ptn,'') or '') ..
-                           code('\n R = ', m.r):gsub(equate_ptn,'')..
+                           code('\nR = ', m.r):gsub(equate_ptn,'')..
 						   code('\nW = ',  m.w):gsub(equate_ptn,'')
 						   
             -- if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
@@ -1716,25 +1716,23 @@ local mem = {
 				writer:row{}
 				last_was_blank = true
 			end
-             end
+		end
 		local function row(row)
 			writer:row(row)
 			last_was_blank = false
 		end
 		local function lbl(adr)
-			if OPT_EQU and EQUATES[adr] then row{'*** ' .. EQUATES[adr] .. ' ***'} end
+			
 		end
         local function u(i)
 			if n<=0 then return end
 			if n<=3 then
 				for i=i-n,i-1 do
 					local adr = hex(i)
-					lbl(adr)
 					row{adr, NOADDR, NOADDR, NOCYCL,
 						VOID,
 						VOID,
-						--EQUATES[adr] and OPT_EQU and '* ' .. EQUATES[adr] or 
-						VOID,
+						EQUATES[adr] and OPT_EQU and '* ' .. EQUATES[adr] or VOID,
 						nil}
 				end
 				n = 0
@@ -1755,20 +1753,25 @@ local mem = {
                 -- local mask = ((m.r==NOADDR or m.asm) and 0 or 1) + (m.w==NOADDR and 0 or 2) + (m.x==0 and 0 or 4)
                 local mask = ((m.r..m.w==NOADDR..NOADDR or m.asm) and 0 or 1)*0 + (m.x==0 and 0 or 4)
 
-                if mask ~= curr 
+                if mask ~= curr
                 or (m.asm and m.r~=NOADDR) -- and nil==self[tonumber(m.r,16)].rel_jmp) 
                 then blk() end curr = mask
                 u(i)
-                
+				
                 local adr = hex(i)
                 -- local lbl = m.asm
                 -- if not lbl and EQUATES[adr] and OPT_EQU then lbl = '* ' .. EQUATES[adr] end
-				lbl(adr)
-                if m.r~=NOADDR or m.w~=NOADDR or m.asm or (m.s and self._stkop) then
+				local asm = m.asm or (m.s and self._stkop)
+				if asm then
+					if m.x>0 and OPT_EQU and EQUATES[adr] then row{'*** ' .. EQUATES[adr] .. ' ***'} end
+				elseif OPT_EQU and m.x==0 and EQUATES[adr] then 
+					asm = '* ' .. EQUATES[adr]
+				end
+                if m.r~=NOADDR or m.w~=NOADDR or asm then
                     row{adr, m.r, m.w, m.x>0 and m.asm and m.x or NOCYCL,
 						m.hex or VOID,
 						m.cycles or VOID,
-						m.asm or (m.s and self._stkop) or VOID,
+						asm or VOID,
 						nil}
                 end
             else
