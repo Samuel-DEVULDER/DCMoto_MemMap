@@ -766,6 +766,13 @@ local function newTSVWriter(file, tablen)
         for i,n in ipairs(cels) do
             t = t .. '\t'
             n = tostring(n)
+			
+			if i==7 then
+				local addr = n:match('%$(%x%x%x%x)')
+                local equate = addr and EQUATES:t(addr) or ''
+                n = n .. equate
+            end
+			
             if ok and n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
             n = trim(n) or ''
             if self.align[i]=='>' then
@@ -893,6 +900,7 @@ local function newHtmlWriter(file, mem)
             end
             return x
         end
+		--if OPT_EQU and EQUATES[txt] then txt = EQUATES[txt] end
         return valid[anchor] 
         and '<a href="#' .. anchor .. '" title="' .. esc2(title):gsub('<BR>','') .. '">' .. esc(txt) .. '</a>'
         or esc(txt)
@@ -1339,15 +1347,24 @@ local function newHtmlWriter(file, mem)
                 local back = code2mem[ADDR]
                 if back then
                     local before,arg,after = v:match('(.*%$)'..self.HEXADDR..'(.*)')
-                    if not arg then before,arg,after = v:match('^(%S+%s+[%[<]?)(%-?%$?[%w_,]+)(.*)$') end
-                    if not arg then before,arg,after = v:match('^(%s*)([%w_,]+)(.*)$') end
+					if arg and OPT_EQU and EQUATES[arg] then 
+						if valid[arg] then before, arg = before:sub(1,-2), EQUATES[arg] 
+						else after = EQUATES:t(arg) .. after end
+					end
+                    if not arg then before,arg,after = v:match('^(%S+%s+[%[<]?)(%-?%$?[%w_,+-]+)(.*)$') end
+                    if not arg then before,arg,after = v:match('^(%s*)([%w_,+-]+)(.*)$') end
                     if not arg then error(v) end
                     v = esc(before) .. ahref(ADDR, back, arg) .. esc(after)
                 else
                     -- sauts divers
                     local before,addr,after = v:match('^(.*%$)'..self.HEXADDR..'(.*)$')
+					local arg = addr
+					if arg and OPT_EQU and EQUATES[arg] then 
+						if valid[arg] then before, arg = before:sub(1,-2), EQUATES[arg] 
+						else after = EQUATES:t(arg) .. after end
+					end
                     if addr then
-                        v = esc(before) .. ahref(ADDR, addr, addr) .. esc(after)
+                        v = esc(before) .. ahref(ADDR, addr, arg) .. esc(after)
                     else
                         v = esc(v)
                     end
@@ -2086,13 +2103,13 @@ local function read_trace(filename)
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     trim(s:sub(43,46))
-                local addr   = args:match('%$(%x%x%x%x)')
-                local equate = addr and EQUATES:t(addr) or ''
-                if equate~='' then -- remore duplicate
+                -- local addr   = args:match('%$(%x%x%x%x)')
+                -- local equate = addr and EQUATES:t(addr) or ''
+                -- if equate~='' then -- remore duplicate
                     -- protect special chars
-                    local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
-                    asm = asm:gsub(equate_ptn, '') .. equate
-                end
+                    -- local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+                    -- asm = asm:gsub(equate_ptn, '') .. equate
+                -- end
                 mem:pc(curr_pc):a(asm,cycles)
                 -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
                 if nomem then nomem_asm[sig] = {asm,cycles} end
