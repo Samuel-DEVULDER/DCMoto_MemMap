@@ -149,19 +149,19 @@ local memoize = {
             end
         end
         if info.nparams==2 and not info.isvararg then
-			size = -65535
-			-- do local function set(k, v)
-				-- size = size+1
-				-- if size>0 then size,cache = -65535,{} end
-				-- cache[k] = v
-				-- return v
-			-- end			
-			-- return function(a1,a2)
-				-- local k = a1..a2
-				-- return cache[k] or set(k,fcn(a1,a2)) 
+            size = -65535
+            -- do local function set(k, v)
+                -- size = size+1
+                -- if size>0 then size,cache = -65535,{} end
+                -- cache[k] = v
+                -- return v
+            -- end          
+            -- return function(a1,a2)
+                -- local k = a1..a2
+                -- return cache[k] or set(k,fcn(a1,a2)) 
             -- end end
-			-- do return function(a1,a2)
-				-- local k = a1..a2
+            -- do return function(a1,a2)
+                -- local k = a1..a2
                 -- local v = cache[k]
                 -- if v then
                     -- return v
@@ -172,9 +172,9 @@ local memoize = {
                     -- return v
                 -- end
             -- end end
-			local VOID={}
+            local VOID={}
             return function(a1,a2)
-				local k = cache[a1]; if not k then k={}; cache[a1] = k end
+                local k = cache[a1]; if not k then k={}; cache[a1] = k end
                 local v = k[a2]
                 if v then
                     return v~=VOID and v or nil
@@ -186,9 +186,9 @@ local memoize = {
                 end
             end
         end
-		size = -65535
+        size = -65535
         return function(...)
-			local function f(x, ...) return x and x..f(...) or '' end
+            local function f(x, ...) return x and x..f(...) or '' end
             local k = f(...)
             local v = cache[k]
             if v then
@@ -666,14 +666,14 @@ local EQUATES = {
         local setTO = set{MACH_XX, MACH_TO}
         if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
         if setTO[OPT_MACH or MACH_XX] then self:iniTO() end
-		local f = io.open('codes.lst','r')
-		if f then
-			for l in f:lines() do
-				local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
-				if lbl then	self:d(a,lbl) end
-			end
-			f:close()
-		end
+        local f = io.open('codes.lst','r')
+        if f then
+            for l in f:lines() do
+                local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
+                if lbl then self:d(a,lbl) end
+            end
+            f:close()
+        end
     end,
 nil} EQUATES:ini()
 
@@ -766,13 +766,13 @@ local function newTSVWriter(file, tablen)
         for i,n in ipairs(cels) do
             t = t .. '\t'
             n = tostring(n)
-			
-			if i==7 then
-				local addr = n:match('%$(%x%x%x%x)')
+            
+            if i==7 then
+                local addr = n:match('%$(%x%x%x%x)')
                 local equate = addr and EQUATES:t(addr) or ''
                 n = n .. equate
             end
-			
+            
             if ok and n:len()>self.clen[i] then self.clen[i] = align(n:len()) end
             n = trim(n) or ''
             if self.align[i]=='>' then
@@ -823,10 +823,10 @@ local function newHtmlWriter(file, mem)
         end
         local m = mem[tonumber(addr,16)]
         if m then
-			local RWX = mem:RWX(m)
-			local opt_asm_addr, opt_asm = m.x>0 and addr, m.asm 
-			-- on utilise opt_last si l'adresse n'est pas pile sur le début de l'instruction
-			if opt_asm_addr and not opt_asm and opt_last then opt_asm_addr, opt_asm = hex(opt_last), mem[opt_last].asm end            
+            local RWX = mem:RWX(m)
+            local opt_asm_addr, opt_asm = m.x>0 and addr, m.asm 
+            -- on utilise opt_last si l'adresse n'est pas pile sur le début de l'instruction
+            if opt_asm_addr and not opt_asm and opt_last then opt_asm_addr, opt_asm = hex(opt_last), mem[opt_last].asm end            
             --
             local anchor = ''
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
@@ -842,8 +842,8 @@ local function newHtmlWriter(file, mem)
             local title  = '$' .. addr .. ' : ' .. RWX .. equate .. 
                            (opt_asm and '\nX = ' .. opt_asm:gsub(equate_ptn,'') or '') ..
                            code('\nR = ', m.r):gsub(equate_ptn,'')..
-						   code('\nW = ',  m.w):gsub(equate_ptn,'')
-						   
+                           code('\nW = ',  m.w):gsub(equate_ptn,'')
+                           
             -- if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
 
             return title, RWX, anchor
@@ -900,7 +900,7 @@ local function newHtmlWriter(file, mem)
             end
             return x
         end
-		--if OPT_EQU and EQUATES[txt] then txt = EQUATES[txt] end
+        --if OPT_EQU and EQUATES[txt] then txt = EQUATES[txt] end
         return valid[anchor] 
         and '<a href="#' .. anchor .. '" title="' .. esc2(title):gsub('<BR>','') .. '">' .. esc(txt) .. '</a>'
         or esc(txt)
@@ -1347,10 +1347,10 @@ local function newHtmlWriter(file, mem)
                 local back = code2mem[ADDR]
                 if back then
                     local before,arg,after = v:match('(.*%$)'..self.HEXADDR..'(.*)')
-					if arg and OPT_EQU and EQUATES[arg] then 
-						if valid[arg] then before, arg = before:sub(1,-2), EQUATES[arg] 
-						else after = EQUATES:t(arg) .. after end
-					end
+                    if arg and OPT_EQU and EQUATES[arg] then 
+                        if valid[arg] then before, arg = before:sub(1,-2), EQUATES[arg] 
+                        else after = EQUATES:t(arg) .. after end
+                    end
                     if not arg then before,arg,after = v:match('^(%S+%s+[%[<]?)(%-?%$?[%w_,+-]+)(.*)$') end
                     if not arg then before,arg,after = v:match('^(%s*)([%w_,+-]+)(.*)$') end
                     if not arg then error(v) end
@@ -1358,11 +1358,11 @@ local function newHtmlWriter(file, mem)
                 else
                     -- sauts divers
                     local before,addr,after = v:match('^(.*%$)'..self.HEXADDR..'(.*)$')
-					local arg = addr
-					if arg and OPT_EQU and EQUATES[arg] then 
-						if valid[arg] then before, arg = before:sub(1,-2), EQUATES[arg] 
-						else after = EQUATES:t(arg) .. after end
-					end
+                    local arg = addr
+                    if arg and OPT_EQU and EQUATES[arg] then 
+                        if valid[arg] then before, arg = before:sub(1,-2), EQUATES[arg] 
+                        else after = EQUATES:t(arg) .. after end
+                    end
                     if addr then
                         v = esc(before) .. ahref(ADDR, addr, arg) .. esc(after)
                     else
@@ -1473,13 +1473,13 @@ local function findHotspots(mem)
                 return math.abs(m.x - self.x)<=1
             end,
             add = function(self,m,i)
-			if m.asm and not m.cycles then error(m.asm) end
-				if m.cycles then
-					local cycles = tonumber(m.cycles) or 0
-					self.x = m.x
-					self.t = self.t + m.x * cycles
-					self.i = i -- dernière adresse du bloc
-				end
+            if m.asm and not m.cycles then error(m.asm) end
+                if m.cycles then
+                    local cycles = tonumber(m.cycles) or 0
+                    self.x = m.x
+                    self.t = self.t + m.x * cycles
+                    self.i = i -- dernière adresse du bloc
+                end
                 return self
             end,
             push = function(self, spots)
@@ -1602,7 +1602,7 @@ local mem = {
     -- marque les octets "hexa" comme executés "num" fois
     x = function(self,hexa,num)
         local pc = tonumber(self.PC,16)
-		self:_get(pc).hex = hexa
+        self:_get(pc).hex = hexa
         for i=0,hexa:len()/2-1 do local m = self:_get(pc+i); m.x = m.x + num end
         return self
     end,
@@ -1653,6 +1653,7 @@ local mem = {
                 -- for v in s:gmatch('([^\t]*)\t?') do t[#t+1] = trim(v) or '' end
                 for v in s:gmatch('([^\t]*)\t?') do table.insert(t, trim(v) or '') end
                 -- for v in s:gmatch('([^\t]*)\t?') do rawset(t, #t+1, trim(v) or '') end
+                if t[1] and t[1]:match('=[=]*') then break end
                 if t[1] == self._cycles_hd then
                     self.cycles = tonumber(t[2]:match('^(%d+)')) or self.cycles
                 elseif t[3] and t[1]:match('^%x%x%x%x$') then
@@ -1728,36 +1729,36 @@ local mem = {
         writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Hex code", ">uSec", "<*Asm code         "}
 
         local n,curr,last_was_blank=0,-1,true
-		local function blk() 
-			if not last_was_blank then
-				writer:row{}
-				last_was_blank = true
-			end
-		end
-		local function row(row)
-			writer:row(row)
-			last_was_blank = false
-		end
-		local function lbl(adr)
-			
-		end
+        local function blk() 
+            if not last_was_blank then
+                writer:row{}
+                last_was_blank = true
+            end
+        end
+        local function row(row)
+            writer:row(row)
+            last_was_blank = false
+        end
+        local function lbl(adr)
+            
+        end
         local function u(i)
-			if n<=0 then return end
-			if n<=3 then
-				for i=i-n,i-1 do
-					local adr = hex(i)
-					row{adr, NOADDR, NOADDR, NOCYCL,
-						VOID,
-						VOID,
-						EQUATES[adr] and OPT_EQU and '* ' .. EQUATES[adr] or VOID,
-						nil}
-				end
-				n = 0
-				return
-			end
+            if n<=0 then return end
+            if n<=3 then
+                for i=i-n,i-1 do
+                    local adr = hex(i)
+                    row{adr, NOADDR, NOADDR, NOCYCL,
+                        VOID,
+                        VOID,
+                        EQUATES[adr] and OPT_EQU and '* ' .. EQUATES[adr] or VOID,
+                        nil}
+                end
+                n = 0
+                return
+            end
             blk()
             row{sprintf('%d byte%s untouched', n, n>1 and 's' or '')}
-			if i<=OPT_MAX then blk() end
+            if i<=OPT_MAX then blk() end
             n = 0
         end
         
@@ -1774,22 +1775,22 @@ local mem = {
                 or (m.asm and m.r~=NOADDR) -- and nil==self[tonumber(m.r,16)].rel_jmp) 
                 then blk() end curr = mask
                 u(i)
-				
+                
                 local adr = hex(i)
                 -- local lbl = m.asm
                 -- if not lbl and EQUATES[adr] and OPT_EQU then lbl = '* ' .. EQUATES[adr] end
-				local asm = m.asm or (m.s and self._stkop)
-				if asm then
-					if m.x>0 and OPT_EQU and EQUATES[adr] then row{'*** ' .. EQUATES[adr] .. ' ***'} end
-				elseif OPT_EQU and m.x==0 and EQUATES[adr] then 
-					asm = '* ' .. EQUATES[adr]
-				end
+                local asm = m.asm or (m.s and self._stkop)
+                if asm then
+                    if m.x>0 and OPT_EQU and EQUATES[adr] then row{'*** ' .. EQUATES[adr] .. ' ***'} end
+                elseif OPT_EQU and m.x==0 and EQUATES[adr] then 
+                    asm = '* ' .. EQUATES[adr]
+                end
                 if m.r~=NOADDR or m.w~=NOADDR or asm then
                     row{adr, m.r, m.w, m.x>0 and m.asm and m.x or NOCYCL,
-						m.hex or VOID,
-						m.cycles or VOID,
-						asm or VOID,
-						nil}
+                        m.hex or VOID,
+                        m.cycles or VOID,
+                        asm or VOID,
+                        nil}
                 end
             else
                 n = n + 1
@@ -1913,7 +1914,7 @@ function getaddr(args, regs)
 
     -- extension de signe
     local function sex(a) return a>=128 and a-256 or a end
-	
+    
     -- DP & Extended
     x = args:match('<%$(%x%x)$')     if x then return tonumber(x,16)+reg('DP')*256 end
     x = args:match('^%$(%x%x%x%x)$') if x then return tonumber(x,16) end
@@ -2008,19 +2009,19 @@ if not OPT_RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
 local function wait_for_file(filename)
     out('Waiting for %s...', filename)
     profile:_()
-	local function ok(filename)
-		local ret, msg = os.rename(filename,filename.."_")
-		ret = ret and os.rename(filename.."_",filename)
-		return ret
-	end
+    local function ok(filename)
+        local ret, msg = os.rename(filename,filename.."_")
+        ret = ret and os.rename(filename.."_",filename)
+        return ret
+    end
     while not ok(filename) do
         if os.getenv('COMSPEC') then -- windows
             os.execute('ping -n 1 127.0.0.1 >NUL')
         else
             local t=os.clock() + 1
             repeat 
-				os.execute('ping -n 1 127.0.0.1 >nil')
-			until os.clock()>=t
+                os.execute('ping -n 1 127.0.0.1 >nil')
+            until os.clock()>=t
         end
     end
     profile:_()
