@@ -674,6 +674,15 @@ local EQUATES = {
             end
             f:close()
         end
+        -- ASM6908 output of ugbasic
+        f = io.open('main.lst','r')
+        if f then
+            for l in f:lines() do
+                local a,lbl = l:match('(%x+)                  (%S+)')
+                if lbl then self:d(a,lbl) end
+            end
+            f:close()
+        end
     end,
 nil} EQUATES:ini()
 
