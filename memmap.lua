@@ -2050,7 +2050,6 @@ local function read_trace(filename)
     local function maybe_indirect()
         if args:sub(1,1)=='[' then
             local a = getaddr(args,regs)
-            print("indirect", args, regs, '=',a)
             if a then mem:r(a,2) end
         end
     end
