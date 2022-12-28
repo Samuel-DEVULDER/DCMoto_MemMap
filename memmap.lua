@@ -1495,6 +1495,12 @@ local function findHotspots(mem)
                 local i = self.i
                 local asm = mem[i].asm
                 local jmp,addr = asm:match('(%a+)%s+%$(%x%x%x%x)')
+				if not addr then
+					jmp,addr = asm:match('(%a+)%s+<%$(%x%x)')
+					if jmp and addr then 
+						addr = mem[i].dp .. addr
+					end
+				end
                 table.insert(self.p, hex(i))
                 self.i = nil
                 if not(asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$')) then
@@ -1602,10 +1608,10 @@ local mem = {
         return self
     end,
     -- assigne un code asm au PC courrant
-    a = function(self, asm, cycles)
+    a = function(self, asm, cycles, dp)
         local pc = tonumber(self.PC,16)
         asm = trim(asm)
-        if asm then local m = self:_get(pc); m.asm,m.cycles = asm,cycles end
+        if asm then local m = self:_get(pc); m.asm,m.cycles,m.dp = asm,cycles,dp end
         return self
     end,
     -- marque les octets "hexa" comme executés "num" fois
@@ -2113,6 +2119,7 @@ local function read_trace(filename)
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     trim(s:sub(43,46))
+				local dp = args:match('<%$(%x%x)$') and regs:match('DP=(%x+)') or nil
                 -- local addr   = args:match('%$(%x%x%x%x)')
                 -- local equate = addr and EQUATES:t(addr) or ''
                 -- if equate~='' then -- remore duplicate
@@ -2120,7 +2127,7 @@ local function read_trace(filename)
                     -- local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
                     -- asm = asm:gsub(equate_ptn, '') .. equate
                 -- end
-                mem:pc(curr_pc):a(asm,cycles)
+                mem:pc(curr_pc):a(asm,cycles,dp)
                 -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
                 if nomem then nomem_asm[sig] = {asm,cycles} end
             end
