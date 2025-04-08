@@ -14,7 +14,7 @@ VERSION:=$(shell git describe --abbrev=0 2>/dev/null || echo v0)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
 TMP:=$(shell mktemp)
-OS:=$(shell uname -o)
+OS:=$(shell uname -s)
 EXE=
 
 BAT=.sh
@@ -110,12 +110,12 @@ $(DISTRO)/memmap.lua: $(DISTRO)/README.txt memmap.lua Makefile README.md
 	@rm .sed .usage 
 	@echo done
 
-$(DISTRO)/%: %
-	test -d "$<" || cp -v "$<" "$@"
-
-$(DISTRO)/example/%: %
+$(DISTRO)/example/%: example/%
 	@mkdir -p $(DISTRO)/example/
 	$(CP) "$<" "$@"
+
+$(DISTRO)/%: %
+	test -d "$<" || cp -rv "$<" "$@"
 
 tst: example/memmap.html tst_dummy tst_h
 
@@ -149,7 +149,7 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	$$ROOT/$(LUA) $$ROOT/memmap.lua \
 	-reset -html  -smooth \
 	-mach=?? -from=4000 -map -hot -equ -verbose=2
-	@cmd /c start $*/memmap.html
+	-@cmd /c start $*/memmap.html
 
 %/dcmoto_trace.txt: %/dcmoto_trace.txt.7z
 	$(7Z) -so -y x "$<" "$@" > "$@"
@@ -159,7 +159,7 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	$(7Z) -y -stl u "$@" "$(@:.7z=)"
 	
 $(LUA): LuaJIT $(wildcard LuaJIT/src/*)
-	cd $< && export MAKE="make -f Makefile" && $$MAKE BUILDMODE=static CC="$(CC) -static" CFLAGS="$(CFLAGS)"  
+	cd $< && export MAKE="make -f Makefile" && $$MAKE BUILDMODE=static CC="$(CC) -static" CFLAGS="$(CFLAGS) -DLUAJIT_ENABLE_LUA52COMPAT"
 	$(CP) $</src/luajit$(EXE) "$@"
 	$(CP) $</COPYRIGHT "$@"-COPYRIGHT
 	$(STRIP) "$@"
