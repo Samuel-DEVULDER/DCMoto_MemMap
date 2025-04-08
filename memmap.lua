@@ -674,7 +674,7 @@ local EQUATES = {
             end
             f:close()
         end
-        -- ASM6908 output of ugbasic
+        -- ASM6809 output of ugbasic
         f = io.open('main.lst','r')
         if f then
             for l in f:lines() do
@@ -683,6 +683,23 @@ local EQUATES = {
             end
             f:close()
         end
+		-- LSWASM
+		f = io.open('main.txt','r')
+		if f then
+            for l in f:lines() do
+                local a,b,lbl = l:match('(%x%x%x%x)                  %(%s*(%S+)%):%d+%s+(%S+):')
+                if lbl then self:d(a,b..':'..lbl) end	
+            end
+			f:close()
+		end
+		f = io.open('main.lwmap','r')
+		if f then
+            for l in f:lines() do
+                local lbl,a = l:match('Symbol: (%S+) %(.*%) = (%x%x%x%x)')
+                if a then self:d(a,lbl) end	
+            end
+			f:close()
+		end
     end,
 nil} EQUATES:ini()
 

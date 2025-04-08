@@ -1,4 +1,4 @@
-@echo off
+	@echo off
 setlocal
 
 if "%~n1%~x1"=="dcmoto_trace.txt" ( cd /d %~dsp1 )
