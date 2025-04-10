@@ -736,7 +736,7 @@ local EQUATES = {
 		f = io.open(file,'r')
 		if f then local prof
             for l in f:lines() do
-                local lbl,b,a = l:match('Symbol: (%S+) %((.*%)) = (%x%x%x%x)')
+                local lbl,b,a = l:match('Symbol: (%S+) %((.*)%) = (%x%x%x%x)')
                 if a then 
 					if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
 					self:d(a, (not file or single) and lbl or b..':'..lbl) 
@@ -794,7 +794,7 @@ local EQUATES = {
 			for entry in string.gmatch(OPT_EQU, '%s*([^,]+)%s*') do
 				collect(entry)
 			end
-			local single = files[2]
+			local single = files[2]==nil
 			for _,file in ipairs(files) do
 				if file:match("%.lst$")       then self:readASM6809_lst (file, single) end
 				if file:match("%.txt$")       then self:readLWASM_txt   (file, single) end
@@ -1601,7 +1601,7 @@ local function findHotspots(mem)
                 return math.abs(m.x - self.x)<=1
             end,
             add = function(self,m,i)
-            if m.asm and not m.cycles then error(m.asm) end
+				if m.asm and not m.cycles then error(m.asm) end
                 if m.cycles then
                     local cycles = tonumber(m.cycles) or 0
                     self.x = m.x
@@ -1620,7 +1620,9 @@ local function findHotspots(mem)
 						addr = mem[i].dp .. addr
 					end
 				end
-                table.insert(self.p, hex(i))
+				if #self.p>1 or self.p[1]~=hex(i) then
+					table.insert(self.p, hex(i))
+				end
                 self.i = nil
                 if not(asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$')) then
                     repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
@@ -1670,17 +1672,23 @@ local function findHotspots(mem)
             local b = spots[hot.b]
             if b and j.x<b.x then j = b end
         end
+		if j==nil then
+			j = hot and spots[hot.b]
+		end
 
         -- on vire les trucs auto-bloquants
-        if j and j==hot then j=nil end
+        if j and j==hot	then j=nil end
 
         if j then
             -- fusion
             -- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
             if hot.a>j.a then hot,j = j,hot end
 
-            if hot.b == nil then hot.p[#hot.p] = nil end
+            if hot.b == nil then hot.p[#hot.p] = nil end			
             if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
+			-- while hot.p[#hot.p]==j.p[1] do hot.p[#hot.p] = nil end
+			-- for _,x in ipairs(hot.p) do out('>>%s\n',x) end 
+			-- for _,x in ipairs(j.p) do out('<<%s\n',x) end 
             for _,x in ipairs(j.p) do table.insert(hot.p,x) end
 
             -- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
@@ -1701,7 +1709,7 @@ local function findHotspots(mem)
             pool[hot.a] = nil
         end
     end
-    -- cee une liste ordonnée
+    -- cree une liste ordonnée
     local ret = {}
     for _,h in pairs(spots) do table.insert(ret, h) end
     table.sort(ret, function(a,b) return a.t > b.t end)
@@ -1812,18 +1820,22 @@ local mem = {
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
-        writer:header{'*Number','Addr','>*Cycles','>Percent (Time)        '}
+        writer:header{'*Number','Addr','<*Code','<Label','>*Cycles','>Percent (Time)        '}
         for i,s in ipairs(spots) do
-            if i>1 then writer:row{'', '', '', ''} end
+            if i>1 then writer:row{'', '', '', '', '', ''} end
             local EMPTY='     '
             s.p = s.p or {s.a}
             for j,p in ipairs(s.p) do
+				local m = self[tonumber(p,16)]
+				local equate_ptn = EQUATES:t(p):gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')			
                 writer:row{
                     j==1 and sprintf('  #%-4d',i) or EMPTY,
-                    p,
-                    sprintf('%5d', self[tonumber(p,16)].x), -- %5d pour éviter de matcher une adresse (4 chiffres)
+					p,
+					m.asm and m.asm:gsub(equate_ptn,'') or '',
+					EQUATES[p] or '',
+                    sprintf('%5d', m.x), -- %5d pour éviter de matcher une adresse (4 chiffres)
                     j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000) or EMPTY
-                }
+				}
             end
             count = count + s.t
             if i>=3 and count >= .8 * total then break end
