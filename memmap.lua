@@ -40,6 +40,8 @@ local OPT_VERBOSE = 0                  -- niveau de détail
 
 local unpack = unpack or table.unpack
 
+
+
 -- formatage à la C
 local function sprintf(...)
     return string.format(...)
@@ -217,6 +219,52 @@ local function usage(errcode, short)
     os.exit(errocode or 5)
 end
 
+-- utilitaires fichiers
+local function exists(file)
+   local ok, err, code = file and os.rename(file, file)
+   if not ok then
+      if code == 13 then
+         -- Permission denied, but it exists
+         return true
+      end
+      local f = io.open(file,'r')
+	  if f then f:close() ok,err=true end
+   end
+-- print('EXIST',file,ok,err,code)
+   return ok, err
+end
+local function isdir(file)
+	if file=='.' then return true end
+	file = file..'/'
+	return exists(file) or exists(file:gsub('/','\\'))
+end
+local function isfile(file)
+   local f = io.open(file,'r')
+   if f then f:close() return true else return false end
+end
+local function dir(folder)
+	local ret = {}
+	if isdir(folder) then
+		for _,cmd in ipairs{
+			'DIR /B "'..folder:gsub('/','\\')..'"',
+			"find -maxdepth 1 -print0 '"..folder:gsub('\\','/').."'",
+			"ls '"..folder.."'",
+			nil} do
+			local f = io.popen(cmd)
+			if f then
+				for entry in f:lines() do 
+					if not entry:match('^%.') then
+						table.insert(ret, entry) 
+					end
+				end
+				f:close()
+				break
+			end
+		end
+	end
+	return ret
+end
+
 ------------------------------------------------------------------------------
 -- Analyse la ligne de commande
 ------------------------------------------------------------------------------
@@ -246,12 +294,13 @@ for i,v in ipairs(arg) do local t
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
-    else t=v:match('%-from=(-?%x+)')     if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
-    else t=v:match('%-to=(-?%x+)')       if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
+    else t=v:match('%-equ=(%S+)')      if t then OPT_EQU     = t																
+    else t=v:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
+    else t=v:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
     else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
-    end end end end end
+    end end end end end end
 end
 
 ------------------------------------------------------------------------------
@@ -651,7 +700,68 @@ local EQUATES = {
            'E2B3','LOADFILE',
            nil)
     end,
-    ini = function(self)
+	readASM6809_lst = function(self, file, single)
+        -- ASM6809 output of ugbasic
+		file = file or 'main.lst'
+        f = io.open(file,'r')
+        if f then local prof
+            for l in f:lines() do
+                local a,lbl = l:match('(%x+)                  (%S+)')
+                if lbl then 
+					if not prof then prof = true profile:_('Reading ASM6809 symbols from ' .. file) end
+					self:d(a,lbl) 
+				end
+            end
+            f:close()
+			if prof then profile:_() end
+        end
+	end,
+	readLWASM_txt = function(self, file, single)
+		file = file or 'main.txt'
+		f = io.open(file,'r')
+		if f then local prof
+			for l in f:lines() do
+                local a,b,lbl = l:match('(%x%x%x%x)                  %(%s*(%S+)%):%d+%s+(%S+):')
+                if lbl then 
+					if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
+					self:d(a,(not file or single) and lbl or b..':'..lbl) 
+				end	
+            end
+			f:close()
+			if prof then profile:_() end
+		end
+	end,
+	readLWASM_lwmap = function(self, file, single)
+		file = file  or 'main.lwmap'
+		f = io.open(file,'r')
+		if f then local prof
+            for l in f:lines() do
+                local lbl,b,a = l:match('Symbol: (%S+) %((.*%)) = (%x%x%x%x)')
+                if a then 
+					if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
+					self:d(a, (not file or single) and lbl or b..':'..lbl) 
+				end	
+            end
+			f:close()
+			if prof then profile:_() end
+		end
+	end,
+	readC6809_lst = function(self, file, single)
+		file = file or 'codes.lst'
+        local f = io.open(file,'r')
+        if f then local prof
+			for l in f:lines() do
+                local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
+                if lbl then 
+					if not prof then prof = true profile:_('Reading C6809 symbols from ' .. file) end
+					self:d(a,lbl) 
+				end
+            end
+            f:close()
+			if prof then profile:_() end
+        end
+	end,
+	ini = function(self)
         for k,v in pairs(self) do if k:match('^%x%x%x%x$') then self[k] = nil end end
         self
         :d('FFFE','VEC.RESET',
@@ -666,39 +776,31 @@ local EQUATES = {
         local setTO = set{MACH_XX, MACH_TO}
         if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
         if setTO[OPT_MACH or MACH_XX] then self:iniTO() end
-        local f = io.open('codes.lst','r')
-        if f then
-            for l in f:lines() do
-                local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
-                if lbl then self:d(a,lbl) end
-            end
-            f:close()
-        end
-        -- ASM6809 output of ugbasic
-        f = io.open('main.lst','r')
-        if f then
-            for l in f:lines() do
-                local a,lbl = l:match('(%x+)                  (%S+)')
-                if lbl then self:d(a,lbl) end
-            end
-            f:close()
-        end
-		-- LSWASM
-		f = io.open('main.txt','r')
-		if f then
-            for l in f:lines() do
-                local a,b,lbl = l:match('(%x%x%x%x)                  %(%s*(%S+)%):%d+%s+(%S+):')
-                if lbl then self:d(a,b..':'..lbl) end	
-            end
-			f:close()
+		if OPT_EQU==true then
+			self:readC6809_lst()
+			self:readASM6809_lst()
+			self:readLWASM_txt()
+			self:readLWASM_lwmap()
 		end
-		f = io.open('main.lwmap','r')
-		if f then
-            for l in f:lines() do
-                local lbl,a = l:match('Symbol: (%S+) %(.*%) = (%x%x%x%x)')
-                if a then self:d(a,lbl) end	
-            end
-			f:close()
+		if type(OPT_EQU)=='string' then
+			local files = {}
+			local function collect(entry)
+				if isfile(entry) then
+					table.insert(files, entry)
+				elseif isdir(entry) then
+					for _,e in ipairs(dir(entry)) do collect(entry..'/'..e) end
+				end
+			end
+			for entry in string.gmatch(OPT_EQU, '%s*([^,]+)%s*') do
+				collect(entry)
+			end
+			local single = files[2]
+			for _,file in ipairs(files) do
+				if file:match("%.lst$")       then self:readASM6809_lst (file, single) end
+				if file:match("%.txt$")       then self:readLWASM_txt   (file, single) end
+				if file:match("%.lwmap$")     then self:readLWASM_lwmap (file, single) end
+				if file:match("/codes%.lst$") then self:readC6809_lst   (file, single) end
+			end
 		end
     end,
 nil} EQUATES:ini()
