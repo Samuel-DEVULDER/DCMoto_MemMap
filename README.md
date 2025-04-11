@@ -3,10 +3,10 @@ Outil d'analyse de traces d'execution de [DCMoto](http://dcmoto.free.fr/emulateu
 
 # Usage
 ```
-	lua memmap.lua	[-reset] [-loop]
+	lua memmap.lua	[-reset] [-loop] [-trace=path/to/trace/file.txt]
 	                [-mach=(mo|to|??)]
 	                [-from=XXXX] [-to=XXXX]
-	                [-map[=NBCOLS]] [-hot] [-equ] 
+	                [-map[=NBCOLS]] [-hot] [-equ[=file,dir,...]] 
 	                [-html] [-smooth]
 	                [-verbose[=N]]
 	                [?|-h|--help]
@@ -47,13 +47,17 @@ Ce fonctionnement de base de l'outil peut être étendu par quelques optons de l
 
 Plusieurs options gouvernent le contenu du fichier produit:
 * __-equ__  
-	Ajoute une annotation concernant un equate thomson reconnu dans les adresses.
+* __-equ=FILE__  
+* __-equ=FOLDER__  
+	Ajoute une annotation concernant un equate thomson reconnu dans les adresses. Si rien n'est passé en argument, alors les fichiers standard de c6809, LWASM ou C6809 sont cherchés dans le repertoire courant. Si un ou plusieurs repertoires sont donnés, la recherche azuraé lieu dans cesz répertoire. Enfin si un ou des fichiers sont indiqués ce sera ceux-là qui fourniront les symboles.
 * __-hot__  
 	Une analyse des points chauds (endroits où le cpu passe le plus de temps) est ajoutée.
 * __-map__  
 	Ajoute une représentation 2D de la cartographie mémoire pour avoir une vue d'ensemble bien plus compacte que la liste linéaire de base. La largeur de cette cartographie est par défauut de 128 octets. Un kilo-octet représente alors 8 lignes, et l'ensemble des 64ko recouivre 512 lignes. C'est beaucoup, mais heuresement l'outil saute par dessus 8 lignes consécutives vides pour réduire cela.
 * __-map=NUM__  
 	Utilise NUM colonnes dans la représentation 2D. Attention à ne pas le choisir trop petit ou trop gros pour que cela reste lisible (256 est possible si on a un grand écran). L'idée ici est d'avoir une vue synthétique.
+* __-trace=FILE__
+	Utilise le fichier indiqué au lieu du fichier dcmoto_trace.txt du répertoire courant.
 
 Si l'option `-html` est présente, alors un fichier `memmap.html` est aussi produit. L'option `-smooth` utilisera alors un scrolling pour sauter d'un endroit à l'autre (ne pas l'appliquer si on a facilement le mal des transports). Le fichier HTML permet une navigation aisée via des hyperliens pour aller d'une adresse à une autre. La vue 2D utilise en outre un code couleur pour indiquer la nature de l'octet. 
 
