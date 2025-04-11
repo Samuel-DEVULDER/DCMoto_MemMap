@@ -246,8 +246,8 @@ local function dir(folder)
 	local ret = {}
 	if isdir(folder) then
 		for _,cmd in ipairs{
-			'DIR 2>NUL /B "'..(folder:gsub('/','\\'))..'"',
-			"find -maxdepth 1 -print0 '"..folder:gsub('\\','/').."'",
+			'DIR 2>NUL /B "'..folder:gsub('\\','/'):gsub('/','\\\\')..'"',
+			"find -maxdepth 1 -print0 '"..folder.."'",
 			"ls '"..folder.."'",
 			nil} do
 			local f = io.popen(cmd)
