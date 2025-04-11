@@ -246,7 +246,7 @@ local function dir(folder)
 	local ret = {}
 	if isdir(folder) then
 		for _,cmd in ipairs{
-			'DIR /B "'..folder:gsub('/','\\')..'"',
+			'DIR 2>NUL /B "'..(folder:gsub('/','\\'))..'"',
 			"find -maxdepth 1 -print0 '"..folder:gsub('\\','/').."'",
 			"ls '"..folder.."'",
 			nil} do
@@ -294,14 +294,14 @@ for i,v in ipairs(arg) do local t
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
-	else t=v:match('%-trace=(%S+)'     if t then TRACE       = t
+	else t=v:match('%-trace=(%S+)')    if t then TRACE       = t
     else t=v:match('%-equ=(%S+)')      if t then OPT_EQU     = t																
     else t=v:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
     else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
-    end end end end end end
+    end end end end end end end
 end
 
 ------------------------------------------------------------------------------
@@ -323,7 +323,7 @@ local EQUATES = {
     -- define adresses
     d = function(self,addr,name, ...)
         if addr then
-            self[self._page .. addr] = ((OPT_MACH==nil or OPT_MACH==MACH_XX) and self._mach or '') .. name
+            self[self._page .. addr] = (type(OPT_EQU)=='boolean' and (OPT_MACH==nil or OPT_MACH==MACH_XX) and self._mach or '') .. name
             self:d(...)
         end
         return self
@@ -786,10 +786,12 @@ local EQUATES = {
 		if type(OPT_EQU)=='string' then
 			local files = {}
 			local function collect(entry)
-				if isfile(entry) then
-					table.insert(files, entry)
-				elseif isdir(entry) then
+				if isdir(entry) then
 					for _,e in ipairs(dir(entry)) do collect(entry..'/'..e) end
+				elseif isfile(entry) then
+					table.insert(files, entry)
+				else
+					-- print('ignored', entry)
 				end
 			end
 			for entry in string.gmatch(OPT_EQU, '%s*([^,]+)%s*') do
