@@ -1621,6 +1621,10 @@ local function findHotspots(mem)
 					end
 				end
 				if #self.p>1 or self.p[1]~=hex(i) then
+					-- elipse if needed
+					local j=tonumber(self.a,16)
+					repeat j=j+1 until mem[j] and mem[j].asm
+					if j~=i then table.insert(self.p,-1) end
 					table.insert(self.p, hex(i))
 				end
                 self.i = nil
@@ -1682,13 +1686,23 @@ local function findHotspots(mem)
         if j then
             -- fusion
             -- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
-            if hot.a>j.a then hot,j = j,hot end
+            if hot.a>j.a then hot,j = j,hot end -- hot en 1ere position
 
-            if hot.b == nil then hot.p[#hot.p] = nil end			
-            if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
+            -- if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
+			
+			-- insertion de l'elipse
+			-- local last = hot.p[#hot.p]
+			-- if last.j==nil and last.b==nil then 
+				-- hot.p[#hot.p] = '...'
+				-- mem['...'] = {asm='...'}
+			-- else
+				-- table.insert(hot.p, #hot.p-1, -1)
+			-- end -- retrait de l'intruction de "non saut"
+			
 			-- while hot.p[#hot.p]==j.p[1] do hot.p[#hot.p] = nil end
 			-- for _,x in ipairs(hot.p) do out('>>%s\n',x) end 
 			-- for _,x in ipairs(j.p) do out('<<%s\n',x) end 
+			
             for _,x in ipairs(j.p) do table.insert(hot.p,x) end
 
             -- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
@@ -1820,22 +1834,33 @@ local mem = {
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
-        writer:header{'*Number','Addr','<*Code','<Label','>*Cycles','>Percent (Time)        '}
+        writer:header{'*Number','Addr','<*Assembly','<Label','>*#Times','>Percent (Time)      '}
         for i,s in ipairs(spots) do
             if i>1 then writer:row{'', '', '', '', '', ''} end
             local EMPTY='     '
             s.p = s.p or {s.a}
+			local x_times = ''
             for j,p in ipairs(s.p) do
-				local m = self[tonumber(p,16)]
-				local equate_ptn = EQUATES:t(p):gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')			
-                writer:row{
-                    j==1 and sprintf('  #%-4d',i) or EMPTY,
-					p,
-					m.asm and m.asm:gsub(equate_ptn,'') or '',
-					EQUATES[p] or '',
-                    sprintf('%5d', m.x), -- %5d pour éviter de matcher une adresse (4 chiffres)
-                    j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000) or EMPTY
-				}
+				if p==-1 then
+					writer:row{'', '....', '...', '', x_times, ''}
+				else
+					local m = self[tonumber(p,16)]
+					local equate_ptn = EQUATES:t(p):gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')		
+					local asm = m.asm:gsub(equate_ptn,''):gsub('<%-unreached','') or ''
+					-- local taken,addr = asm:match('^([L]?[BJ]%S%S)%s+%$(%x%x%x%x)')
+					-- taken = taken=='BRA' or taken=='LBRA' or taken=='JMP' or addr==s.p[j+1]
+					-- if addr and not taken then asm = asm..' !' end
+					x_times = sprintf('%5d', m.x) -- %5d pour éviter de matcher une adresse (4 chiffres)
+					writer:row{
+						j==1 and sprintf('  #%-4d',i) or EMPTY,
+						p,
+						asm,
+						EQUATES[p] or '',
+						x_times, 
+						j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000) 
+						or EMPTY,
+					nil}
+				end
             end
             count = count + s.t
             if i>=3 and count >= .8 * total then break end
