@@ -8,6 +8,7 @@
 -- $Usage$ : see README
 -----------------------------------------------------------------------------
 
+local ARGV   = arg                     -- ligne de commande
 local NOADDR = '----'                  -- marqueur d'absence
 local NOCYCL = ''                      -- marqueur d'absence
 local TRACE  = 'dcmoto_trace.txt'      -- fichier trace
@@ -278,7 +279,7 @@ local function machMO()
     log("Set machine to %s", OPT_MACH)
 end
 
-for i,v in ipairs(arg) do local t
+for i,v in ipairs(ARGV) do local t
     v = v:lower()
     if v=='-h'
     or v=='?'
@@ -914,6 +915,7 @@ local function newTSVWriter(file, tablen)
                 t = t .. n .. string.rep(' ', self.clen[i] - n:len() - tablen)
             end
         end
+		t = t:gsub('\n','\\n')
         self:printf('%s\n', t=='' and t or t:sub(2))
     end
     log('Created CSV writer (tab=%d).', tablen)
@@ -1597,45 +1599,42 @@ local function findHotspots(mem)
     log('Finding hot spots.')
     profile:_()
     local spots,hot = {}
-    local function newHot(i)
+    local function newHot()
         return {
-            x = 0, t = 0, a = hex(i), j=nil, b=nil, p={hex(i)},
-            touches = function(self,m)
-                return math.abs(m.x - self.x)<=1
-            end,
-            add = function(self,m,i)
-				if m.asm and not m.cycles then error(m.asm) end
-                if m.cycles then
-                    local cycles = tonumber(m.cycles) or 0
-                    self.x = m.x
-                    self.t = self.t + m.x * cycles
-                    self.i = i -- dernière adresse du bloc
-                end
-                return self
+            x = 0,                         -- count
+			t = 0,                         -- cycles
+			a = nil,                       -- start address (hex)
+			z = nil,                       -- end adress (dec, exclusive)
+			j = nil,                       -- jmp addr (hex)
+			b = nil,                       -- cond addr (hex)
+			p = {},                        -- adresses (hex or -1)
+            add = function(self,i,m)
+				if not m.asm then return self end
+				if not m.cycles then error(m.asm) end
+				if not self.a then self.a = hex(i) end
+				self.z = i + m.hex:len()/2
+                self.x = m.x
+                self.t = self.t + self.x * (tonumber(m.cycles) or 5) -- 5 because of long jump
+                self.i = i -- dernière adresse du bloc
+				table.insert(self.p, hex(i))
+				if #self.p==4 then self.p[2] = -1 table.remove(self.p,3) end
+				return self
             end,
             push = function(self, spots)
-                local i = self.i
-                local asm = mem[i].asm
+				local mem = mem[self.i]
+                local asm = mem.asm
                 local jmp,addr = asm:match('(%a+)%s+%$(%x%x%x%x)')
 				if not addr then
 					jmp,addr = asm:match('(%a+)%s+<%$(%x%x)')
 					if jmp and addr then 
-						addr = mem[i].dp .. addr
+						addr = mem.dp .. addr
+					elseif asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$') then
+						jmp,addr = 'JMP','----'
 					end
 				end
-				if #self.p>1 or self.p[1]~=hex(i) then
-					-- elipse if needed
-					local j=tonumber(self.a,16)
-					repeat j=j+1 until mem[j] and mem[j].asm
-					if j~=i then table.insert(self.p,-1) end
-					table.insert(self.p, hex(i))
-				end
-                self.i = nil
-                if not(asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$')) then
-                    repeat i=i+1 until i>OPT_MAX or mem[i] and mem[i].asm
-                    self.j = i<=OPT_MAX and hex(i) or nil
-                end
-                if addr then
+				self.z,self.i = hex(self.z) -- adresse block suivant
+				self.j = self.z
+			    if addr then
                     if jmp=='JMP' or jmp=='BRA' or jmp=='LBRA' then
                         self.j = addr
                     elseif REL_JMP[jmp] then
@@ -1644,91 +1643,75 @@ local function findHotspots(mem)
                 end
                 spots[self.a] = self
                 return nil
-            end
+            end,
+			merge = function(self, other)
+				for _,p in ipairs(other.p) do table.insert(self.p, p) end
+				-- out('merge %s-%s and %s-%s\n', self.a, self.z, other.a, other.z)
+				self.t = self.t + other.t
+				self.x = math.max(self.x, other.x)
+				self.z = other.z
+				self.j = other.j
+				self.b = other.b
+				other.merged = true
+			end
         }
     end
-    -- construit les portions droites
-    for i=OPT_MIN,OPT_MAX do
+	
+    -- construit les sections continues
+	local BARIER = set{'JMP','BRA','LBRA','RTS','RTI'}
+	for i=OPT_MIN,OPT_MAX do if mem[i] and mem[i].asm then
         local m = mem[i]
-        if nil==m or m.x==0 or m.asm then
-            if nil==m or m.x==0 then
-                if hot then hot = hot:push(spots) end
-            elseif hot and hot:touches(m) then
-                if m.asm then hot:add(m, i) end
-            else
-                if hot then hot = hot:push(spots) end
-                if m.asm then hot = newHot(i):add(m, i) end
-            end
-        end
-    end
-    -- recolle les bouts
-    local pool = {}
-    for _,h in pairs(spots) do if h.j and h.a~=h.j then pool[h.a] = h end end
-    while next(pool) do
-        -- on trouve le plus petit avec un saut
-        local hot
-        for _,h in pairs(pool) do
-            hot = (hot and hot.x<h.x and hot) or h
-        end
-        -- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
-        -- out('>>%s\n', type(hot.j))
+		-- if hot and (m.r~=NOADDR or hot.z~=i) then hot = hot:push(spots) end -- jumped-in
+		-- if hot==nil then 
+			-- if m.x>0 then hot = newHot():add(i,m) end
+		-- else
+			-- hot:add(i,m)
+			-- decide end of block
+			-- local op = m.asm:match('^(%a+)')
+			-- if REL_JMP[op] or BARIER[op] or m.asm:match('PC$') then
+				-- hot = hot:push(spots)
+			-- end
+		-- end
+		if hot and hot.x~=m.x then hot = hot:push(spots) end
+		if hot and m.x==hot.x then hot:add(i,m)
+			-- local op = m.asm:match('^(%a+)')
+			-- if BARIER[op] or m.asm:match('PC$') then
+				-- hot = hot:push(spots)
+			-- end
+		elseif m.x>0 then hot = newHot():add(i,m) end
+	end end 
+	if hot then hot = hot:push(spots) end
+	
+	-- for _,h in pairs(spots) do out('1 %s-%s\n', h.a,h.z) end
+    
+	-- on concatène les branchements conditionnels 
+	local pool = {}
+	for k,h in pairs(spots) do pool[h.a] = h end
+	while next(pool) do -- tant que pool pas vide
+		-- on trouve le plus petit avec un saut
+		local blk
+		for _,h in pairs(pool) do blk = (blk and blk.x<h.x) and blk or h end
 
-        -- choix de la branche la plus lourde
-        local j = hot and spots[hot.j]
-        if j and hot.b then
-            local b = spots[hot.b]
-            if b and j.x<b.x then j = b end
-        end
-		if j==nil then
-			j = hot and spots[hot.b]
+		-- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
+		-- out('>>%s\n', type(hot.j))
+
+		-- choix de la branche la plus lourde "qui vient après"
+		local big, small = spots[blk.j], spots[blk.b]
+		if big   and blk.j<blk.z then big   = nil end
+		if small and blk.b<blk.z then small = nil end
+		if (big and big.t or 0)<(small and small.t or 0) then big,small = small,big end
+		
+		-- merge de la big
+		if big then 
+			blk:merge(big) 
+		else -- on peut pas prolonger ==> retrait du block pool
+			pool[blk.a] = nil
 		end
+	end
 
-        -- on vire les trucs auto-bloquants
-        if j and j==hot	then j=nil end
-
-        if j then
-            -- fusion
-            -- out('merging %s(%d) with %s(%d)\n', hot.a, hot.x, j.a, j.x)
-            if hot.a>j.a then hot,j = j,hot end -- hot en 1ere position
-
-            -- if mem[tonumber(j.p[1],16)].r==NOADDR then table.remove(j.p, 1) end
-			
-			-- insertion de l'elipse
-			-- local last = hot.p[#hot.p]
-			-- if last.j==nil and last.b==nil then 
-				-- hot.p[#hot.p] = '...'
-				-- mem['...'] = {asm='...'}
-			-- else
-				-- table.insert(hot.p, #hot.p-1, -1)
-			-- end -- retrait de l'intruction de "non saut"
-			
-			-- while hot.p[#hot.p]==j.p[1] do hot.p[#hot.p] = nil end
-			-- for _,x in ipairs(hot.p) do out('>>%s\n',x) end 
-			-- for _,x in ipairs(j.p) do out('<<%s\n',x) end 
-			
-            for _,x in ipairs(j.p) do table.insert(hot.p,x) end
-
-            -- out('%s + %s ==> %d + %d\n', hot.a, j.a, #hot.p, #j.p)
-            -- retrait
-            pool [hot.a],pool [j.a] = nil,nil
-            spots[hot.a],spots[j.a] = nil,nil
-            -- fusion
-            hot.x = math.max(hot.x, j.x)
-            hot.t = hot.t + j.t
-            hot.j = j.j
-            hot.b = j.b
-            j.a,j.b,j.x,j.t = nil
-            -- rajout avec la nouvelle adresse
-            pool [hot.a] = hot
-            spots[hot.a] = hot
-        else
-            -- out('Remove %s\n', hot.a)
-            pool[hot.a] = nil
-        end
-    end
-    -- cree une liste ordonnée
+    -- cree une liste ordonnée avec les non mergés
     local ret = {}
-    for _,h in pairs(spots) do table.insert(ret, h) end
+    for _,h in pairs(spots) do if not h.merged then table.insert(ret, h) end end
     table.sort(ret, function(a,b) return a.t > b.t end)
     profile:_()
     return ret
@@ -1886,7 +1869,17 @@ local mem = {
         }
         writer:id('info')
         writer:header{'<','<'}
-        writer:row{    'Current Date' ,  os.date('%Y-%m-%d %H:%M:%S')}
+		local cmdLen,cmdLine = 0,''
+		for i,s in ipairs(ARGV) do 
+			if cmdLen+1+s:len()>=70 then
+				cmdLen,cmdLine = 0,cmdLine..' \n'
+			elseif i>1 then
+				cmdLen,cmdLine = cmdLen+1,cmdLine..' '
+			end
+			cmdLen,cmdLine = cmdLen+s:len(),cmdLine..s
+		end
+        writer:row{   'CLI Arguments' , cmdLine}
+        writer:row{    'Current Date' , os.date('%Y-%m-%d %H:%M:%S')}
         writer:row{   self._cycles_hd , sprintf('%d (~%.0fs)', self.cycles, self.cycles/1000000)}
         writer:row{    'Machine Type' , MACH[OPT_MACH or '']}
         writer:row{ 'Stack (guessed)' , stack or "n/a"}
