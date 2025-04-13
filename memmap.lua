@@ -1607,7 +1607,7 @@ local function findHotspots(mem)
 			z = nil,                       -- end adress (dec, exclusive)
 			j = nil,                       -- jmp addr (hex)
 			b = nil,                       -- cond addr (hex)
-			p = {},                        -- adresses (hex or -1)
+			p = {},                        -- trace (hex or -1)
             add = function(self,i,m)
 				if not m.asm then return self end
 				if not m.cycles then error(m.asm) end
@@ -1617,7 +1617,7 @@ local function findHotspots(mem)
                 self.t = self.t + self.x * (tonumber(m.cycles) or 5) -- 5 because of long jump
                 self.i = i -- dernière adresse du bloc
 				table.insert(self.p, hex(i))
-				if #self.p==4 then self.p[2] = -1 table.remove(self.p,3) end
+				-- if #self.p==4 then self.p[2] = -1 table.remove(self.p,3) end
 				return self
             end,
             push = function(self, spots)
@@ -1645,7 +1645,12 @@ local function findHotspots(mem)
                 return nil
             end,
 			merge = function(self, other)
+				-- simple
+				-- for _,p in ipairs(other.p) do table.insert(self.p, p) end
+				
+				-- si other suit direct self, alors on reduit la TRACE
 				for _,p in ipairs(other.p) do table.insert(self.p, p) end
+				
 				-- out('merge %s-%s and %s-%s\n', self.a, self.z, other.a, other.z)
 				self.t = self.t + other.t
 				self.x = math.max(self.x, other.x)
@@ -1653,6 +1658,35 @@ local function findHotspots(mem)
 				self.j = other.j
 				self.b = other.b
 				other.merged = true
+			end,
+			compressTrace = function(self)
+				local toKeep = {}
+				for _,a in ipairs(self.p) do
+					local m = mem[tonumber(a,16)]
+					if m.asm then
+						local b = m.asm:match('%s%$(%x%x%x%x)$')
+						if b and b<=a then toKeep[b] = true end
+					end
+				end
+			
+				local i,j,a,m = 1
+				function nxt(a)
+					a = tonumber(a,16)
+					return hex(a + mem[a].hex:len()/2)
+				end
+				while self.p[i] do 
+					j,a = i+1,nxt(self.p[i])
+					while not toKeep[a] and a==self.p[j] do j,a = j+1,nxt(self.p[j]) end
+					if j-i>=4 then -- compress
+						repeat
+							j=j-1
+							table.remove(self.p, j-1)
+						until j-i<4
+						self.p[i+1] = -1
+					end
+					i = j
+				end
+				return self
 			end
         }
     end
@@ -1684,22 +1718,24 @@ local function findHotspots(mem)
 	
 	-- for _,h in pairs(spots) do out('1 %s-%s\n', h.a,h.z) end
     
-	-- on concatène les branchements conditionnels 
+	-- essaye de faire grossi les plus petits segments
+	local function f1(b) return -b.t end
+	local function f2(b) return b.t end
 	local pool = {}
 	for k,h in pairs(spots) do pool[h.a] = h end
 	while next(pool) do -- tant que pool pas vide
 		-- on trouve le plus petit avec un saut
 		local blk
-		for _,h in pairs(pool) do blk = (blk and blk.x<h.x) and blk or h end
+		for _,h in pairs(pool) do blk = (blk and f1(blk)<f1(h)) and blk or h end
 
 		-- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
 		-- out('>>%s\n', type(hot.j))
 
-		-- choix de la branche la plus lourde "qui vient après"
+		-- choix de la branche "qui vient après" pla pluds empruntée
 		local big, small = spots[blk.j], spots[blk.b]
-		if big   and blk.j<blk.z then big   = nil end
-		if small and blk.b<blk.z then small = nil end
-		if (big and big.t or 0)<(small and small.t or 0) then big,small = small,big end
+		if big   and (blk.j<blk.z or big.merged)   then big   = nil end -- retrait du big s'il vient avant
+		if small and (blk.b<blk.z or small.merged) then small = nil end -- idem avec small
+		if (big and f2(big) or 0)<(small and f2(small) or 0) then big,small = small,big end -- choix du plus utilisé
 		
 		-- merge de la big
 		if big then 
@@ -1711,7 +1747,7 @@ local function findHotspots(mem)
 
     -- cree une liste ordonnée avec les non mergés
     local ret = {}
-    for _,h in pairs(spots) do if not h.merged then table.insert(ret, h) end end
+    for _,h in pairs(spots) do if not h.merged then table.insert(ret, h:compressTrace()) end end
     table.sort(ret, function(a,b) return a.t > b.t end)
     profile:_()
     return ret
@@ -1820,7 +1856,7 @@ local mem = {
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
-        writer:header{'*Number','Addr','<*Assembly','<Label','>*#Times','>Percent (Time)      '}
+        writer:header{'*Number','Addr','<*Assembly','<Label','>*#Count','>Percent (Time)      '}
         for i,s in ipairs(spots) do
             if i>1 then writer:row{'', '', '', '', '', ''} end
             local EMPTY='     '
