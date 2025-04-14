@@ -2057,10 +2057,10 @@ local mem = {
 					if o>=32768 then o = o-65536 end
 					if -128<=o and o<=127 then 
 						out('Info: short branch is possible at $%s : %s\n', adr, asm)
-						asm = asm .. " ; "..BCC:lower().."?"
+						asm = asm .. " ; "..BCC:lower().." ?"
 					elseif CC=='BRA' then
 						out('Info: %sjmp is possible at $%s\n', asm:match(m.dp .. '..$') and 'direct-page ', adr)
-						asm = asm .. " ; jmp?"
+						asm = asm .. " ; jmp ?"
 					end
 				end
                 if m.r~=NOADDR or m.w~=NOADDR or asm then
