@@ -297,8 +297,8 @@ for i,v in ipairs(ARGV) do local t
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU  = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
-	else t=v:match('%-trace=(.+)')    if t then TRACE       = t
-    else t=v:match('%-equ=(.+)')      if t then OPT_EQU     = t																
+	else t=v:match('%-trace=(.+)')     if t then TRACE       = t
+    else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t																
     else t=v:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
@@ -2051,13 +2051,14 @@ local mem = {
                 elseif OPT_EQU and m.x==0 and EQUATES[adr] then
                     asm = '* ' .. EQUATES[adr]
                 end
-				if asm and asm:match('^L(B..)') then
+                local BCC = asm and asm:match('^L(B..)')
+				if BCC then
 					local o = tonumber(m.hex:sub(-4),16)
 					if o>=32768 then o = o-65536 end
 					if -128<=o and o<=127 then 
-						out('Info: short branch is possible at $%s\n', adr)
-						asm = asm .. " ; short branch ?"
-					elseif asm:match('^LBRA') then
+						out('Info: short branch is possible at $%s : %s\n', adr, asm)
+						asm = asm .. BRAKET[1]..BCC.."?"..BRAKET[2]
+					elseif CC=='BRA' then
 						out('Info: %sjmp is possible at $%s\n', asm:match(m.dp .. '..$') and 'direct-page ', adr)
 						asm = asm .. " ; jmp?"
 					end
@@ -2284,7 +2285,8 @@ if not OPT_RESET then mem:loadTSV(io.open(RESULT .. '.csv','r')):close() end
 
 -- attente d'un fichier
 local function wait_for_file(filename)
-    out('Waiting for %s...', filename)
+    local prompt = sprintf('Waiting for %s...', filename)
+    out(prompt)
     profile:_()
     local function ok(filename)
         local ret, msg = os.rename(filename,filename.."_")
@@ -2302,7 +2304,7 @@ local function wait_for_file(filename)
         end
     end
     profile:_()
-    out('\r                                                 \r')
+    out('\r%s\r',string.rep(' ', prompt:len()))
 end
 
 -- ouverture et analyse du fichier de trace
