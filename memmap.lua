@@ -1151,9 +1151,12 @@ local function newHtmlWriter(file, mem)
             -- self:_body('<noscript>\n')
             -- self._footer_callback = function(self) self:_body('</noscript>\n') end
         else
-            self:_body('  <div style="display:flex">\n')
+			self:_body('  <div style="display:flex">\n')
             self._footer_callback = function(self)
-                self:_body('  </div>\n')
+				if id:match('hotspots') then
+					self:_hotspot_footer()
+				end
+			    self:_body('  </div>\n')
             end
         end
 
@@ -1396,9 +1399,12 @@ local function newHtmlWriter(file, mem)
             block: 'nearest',
         });
     }
-	function title(id,txt) {
-	  const e = document.getElementById(id)
-      if(e !== null) e.title = txt;
+	function hs(id, no) {
+		const e = document.getElementById(id)
+		if(e !== null) {
+			e.className += " hs" + no;
+			e.title      = "Hot spot #" + no;
+		}
     }
   </script>
   <div id="loadingPage">
@@ -1521,19 +1527,18 @@ local function newHtmlWriter(file, mem)
     function w:_hotspot_row(tag,columns)
 		if OPT_HOT_COL then
 			local function rgb_style(id)
-				self:_style('	#',id,  ':target {background-color : gold;}\n')
-				self:_style('	#',id,  '        {background-color : ',self._hotspot_row_rgb,';}\n')
-				self:_body('<script>title("', id, '", "Hot spot #',self._hotspot_row_no,'")</script>\n')
+				self._hotspot_row_ids = self._hotspot_row_ids or {}
+				self._hotspot_row_ids[id] = self._hotspot_row_no
 			end
 			local ADDR,no = trim(columns[2]),columns[1]:match('#(%d+)')
 			if no then
 				local rgb = {math.random(),math.random(),math.random()}
 				local max = math.max(unpack(rgb))
 				for i=1,3 do rgb[i] = math.floor(8+7*rgb[i]/max) end
-				self._hotspot_row_rgb   = string.format('#%03x',rgb[1]+rgb[2]*16+rgb[3]*256)
-				self._hotspot_row_adr   = nil
-				self._hotspot_row_no    = no
-				self._hotspot_row_extra = ' title="Hot spot #'..no..'"'
+				self._hotspot_row_no  = no
+				self._hotspot_row_adr = nil
+				self:_style('	.hs',no,  ':target {background-color : gold;}\n')
+				self:_style('	.hs',no,  '        {background-color : ',string.format('#%03x',rgb[1]+rgb[2]*16+rgb[3]*256),';}\n')			
 			end
 			if ADDR and ADDR:len()==4 then 
 				if ADDR ~= "...." then
@@ -1554,9 +1559,8 @@ local function newHtmlWriter(file, mem)
 					self:id('hs_'..ADDR) 
 				end
 			else
-				self._hotspot_row_adr   = nil
-				self._hotspot_row_no    = nil
-				self._hotspot_row_extra = nil
+				self._hotspot_row_adr = nil
+				self._hotspot_row_no  = nil
 			end
 		end
 		
@@ -1572,6 +1576,17 @@ local function newHtmlWriter(file, mem)
         end
         self:_raw_row(tag,cols,self._hotspot_row_extra)
     end
+    function w:_hotspot_footer()
+		if self._hotspot_row_ids then
+			local t,n = '	<script>\n\t\t',-1
+			for id,no in pairs(self._hotspot_row_ids) do
+				n = n+1 if n==5 then n,t=0,t..'\n\t\t' end
+				t = t..'hs("'..id..'",'..no..'); '
+			end
+			self:_body(t..'\n	</script>\n')
+			self._hotspot_row_ids = nil
+		end
+	end
 
     -- TODO ligne memmap
     w._memmap_color = {
