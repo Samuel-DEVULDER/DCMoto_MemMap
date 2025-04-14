@@ -1396,6 +1396,10 @@ local function newHtmlWriter(file, mem)
             block: 'nearest',
         });
     }
+	function title(id,txt) {
+	  const e = document.getElementById(id)
+      if(e !== null) e.title = txt;
+    }
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
@@ -1519,6 +1523,7 @@ local function newHtmlWriter(file, mem)
 			local function rgb_style(id)
 				self:_style('	#',id,  ':target {background-color : gold;}\n')
 				self:_style('	#',id,  '        {background-color : ',self._hotspot_row_rgb,';}\n')
+				self:_body('<script>title("', id, '", "Hot spot #',self._hotspot_row_no,'")</script>\n')
 			end
 			local ADDR,no = trim(columns[2]),columns[1]:match('#(%d+)')
 			if no then
@@ -1599,7 +1604,7 @@ local function newHtmlWriter(file, mem)
                 local title, RWX, anchor = describe(a, self._memmap_last_asm_addr)
                 if m.asm then self._memmap_last_asm_addr = BASE+i end
                 add('<td', ' class="c', self._memmap_color[RWX],'"', ' title="', esc(title):gsub('<BR>',''), '">',
-                    '<a href="#', m.x>0 and hex(self._memmap_last_asm_addr) or a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
+                    '<a href="#fm', m.x>0 and hex(self._memmap_last_asm_addr) or a, '"><noscript>',cols[2]:sub(i,i),'</noscript></a>')
             else
                 add('<td class="c7" title="$', a, esc(EQUATES:t(a)),' : ---"><noscript>-</noscript></td>')
             end
