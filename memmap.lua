@@ -297,8 +297,8 @@ for i,v in ipairs(ARGV) do local t
     elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU  = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
-	else t=v:match('%-trace=(%S+)')    if t then TRACE       = t
-    else t=v:match('%-equ=(%S+)')      if t then OPT_EQU     = t																
+	else t=v:match('%-trace=(.+)')    if t then TRACE       = t
+    else t=v:match('%-equ=(.+)')      if t then OPT_EQU     = t																
     else t=v:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
