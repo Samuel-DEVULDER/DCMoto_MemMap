@@ -2331,8 +2331,15 @@ local function read_trace(filename)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else return true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else return true end end)
 
+	local _parse = {}
     local function parse(s)
-        return s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
+		s = s:sub(1,42)
+		local r = _parse[s]
+		if r==nil then
+			r = {s:match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')}
+			_parse[s] = r 
+		end
+		return unpack(r)
     end
     -- parse = memoize:ret_n(parse)
 
@@ -2388,7 +2395,7 @@ local function read_trace(filename)
             jmp = nil
         end
     end
-    f:close()
+    f:close() _parse = nil
     out(string.rep(' ', 10) .. string.rep('\b',10))
     if last then mem.cycles = mem.cycles + tonumber(last:sub(48,57)) end
     profile:_()
