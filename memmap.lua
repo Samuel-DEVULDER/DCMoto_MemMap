@@ -27,6 +27,7 @@ local OPT_RESET   = false              -- ignore les analyses précédentes ?
 local OPT_MIN     = nil                -- adresse de départ
 local OPT_MAX     = nil                -- adresse de fin
 local OPT_HOT     = false              -- hotspots ?
+local OPT_HOT_COL = false              -- colored hotspots 
 local OPT_MAP     = false              -- ajoute une version graphique de la map
 local OPT_HTML    = false              -- produit une analyse html?
 local OPT_SMOOTH  = "auto"             -- type de scroll html
@@ -290,9 +291,10 @@ for i,v in ipairs(ARGV) do local t
     elseif v=='-reset'   then OPT_RESET   = true
     elseif v=='-map'     then OPT_MAP     = true
     elseif v=='-hot'     then OPT_HOT     = true
+    elseif v=='-hot=col' then OPT_HOT     = true; OPT_HOT_COL = true
     elseif v=='-equ'     then OPT_EQU     = true
     elseif v=='-verbose' then OPT_VERBOSE = 1
-    elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU = true
+    elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU  = true
     elseif v=='-mach=to' then machTO()
     elseif v=='-mach=mo' then machMO()
 	else t=v:match('%-trace=(%S+)')    if t then TRACE       = t
@@ -1004,7 +1006,7 @@ local function newHtmlWriter(file, mem)
     -- pointe sur l'adrese la plus proche
     local function closest_ahref(addr)
         if valid[addr] then
-            return '<a href="#' .. addr .. '">' .. addr .. '</a>'
+            return '<a href="#fm' .. addr .. '">' .. addr .. '</a>'
         else
             local base,n = tonumber(addr,16)
             for i=1,65535 do
@@ -1012,7 +1014,7 @@ local function newHtmlWriter(file, mem)
                 n = hex(base-i); if valid[n] then break end
             end
             if valid[n] then
-                return '<a href="#' .. n .. '" title="goto $' .. n ..'">' .. addr .. '</a>'
+                return '<a href="#fm' .. n .. '" title="goto $' .. n ..'">' .. addr .. '</a>'
             else
                 return add
             end
@@ -1035,7 +1037,7 @@ local function newHtmlWriter(file, mem)
         end
         --if OPT_EQU and EQUATES[txt] then txt = EQUATES[txt] end
         return valid[anchor]
-        and '<a href="#' .. anchor .. '" title="' .. esc2(title):gsub('<BR>','') .. '">' .. esc(txt) .. '</a>'
+        and '<a href="#fm' .. anchor .. '" title="' .. esc2(title):gsub('<BR>','') .. '">' .. esc(txt) .. '</a>'
         or esc(txt)
     end
 
@@ -1429,7 +1431,7 @@ local function newHtmlWriter(file, mem)
     end
 
     -- lignes html pure
-    function w:_raw_row(tag, html_cols)
+    function w:_raw_row(tag, html_cols, extra)
         if nil==html_cols[1] then
             html_cols[1] = '&nbsp;'
         end
@@ -1441,6 +1443,7 @@ local function newHtmlWriter(file, mem)
         add('    ','<tr')
         local id,orig = self:_nxId()
         if orig then add(' id="',id,'"') end
+		if extra then add(' ',extra) end
         add('>')
 
         local span = #html_cols~=self.ncols and #html_cols or -1
@@ -1471,7 +1474,7 @@ local function newHtmlWriter(file, mem)
     function w:_flatmap_row(tag,columns)
         local ADDR, cols = columns[1], {}
         -- la 1er colonne donne l'id
-        if ADDR and ADDR:len()==4 then self:id(ADDR) end
+        if ADDR and ADDR:len()==4 then self:id('fm'..ADDR) end
         for i,v in ipairs(columns) do
             v = trim(tostring(v)) or ' '
             if i==2 or i==3 then
@@ -1512,6 +1515,46 @@ local function newHtmlWriter(file, mem)
 
     -- ligne hotspot
     function w:_hotspot_row(tag,columns)
+		if OPT_HOT_COL then
+			local function rgb_style(id)
+				self:_style('	#',id,  ':target {background-color : gold;}\n')
+				self:_style('	#',id,  '        {background-color : ',self._hotspot_row_rgb,';}\n')
+			end
+			local ADDR,no = trim(columns[2]),columns[1]:match('#(%d+)')
+			if no then
+				local rgb = {math.random(),math.random(),math.random()}
+				local max = math.max(unpack(rgb))
+				for i=1,3 do rgb[i] = math.floor(8+7*rgb[i]/max) end
+				self._hotspot_row_rgb   = string.format('#%03x',rgb[1]+rgb[2]*16+rgb[3]*256)
+				self._hotspot_row_adr   = nil
+				self._hotspot_row_no    = no
+				self._hotspot_row_extra = ' title="Hot spot #'..no..'"'
+			end
+			if ADDR and ADDR:len()==4 then 
+				if ADDR ~= "...." then
+					if self._hotspot_row_adr0 then
+						for i=self._hotspot_row_adr0+1,tonumber(ADDR,16)-1 do
+							rgb_style(string.format("fm%04X",i))
+						end
+						self._hotspot_row_adr0 = nil
+					end
+					rgb_style('hs'..ADDR)
+					rgb_style('fm'..ADDR)
+					self:id('hs'..ADDR) 
+					self._hotspot_row_adr = ADDR
+				else
+					ADDR = self._hotspot_row_adr
+					self._hotspot_row_adr0 = tonumber(ADDR,16)
+					rgb_style('hs_'..ADDR)
+					self:id('hs_'..ADDR) 
+				end
+			else
+				self._hotspot_row_adr   = nil
+				self._hotspot_row_no    = nil
+				self._hotspot_row_extra = nil
+			end
+		end
+		
         local cols = {}
         for i,v in ipairs(columns) do
             v = trim(v) or ''
@@ -1522,7 +1565,7 @@ local function newHtmlWriter(file, mem)
             end
             cols[i] = v
         end
-        self:_raw_row(tag,cols)
+        self:_raw_row(tag,cols,self._hotspot_row_extra)
     end
 
     -- TODO ligne memmap
@@ -1708,10 +1751,10 @@ local function findHotspots(mem)
 		-- end
 		if hot and hot.x~=m.x then hot = hot:push(spots) end
 		if hot and m.x==hot.x then hot:add(i,m)
-			-- local op = m.asm:match('^(%a+)')
-			-- if BARIER[op] or m.asm:match('PC$') then
-				-- hot = hot:push(spots)
-			-- end
+			local op = m.asm:match('^(%a+)')
+			if BARIER[op] or m.asm:match('PC$') then
+				hot = hot:push(spots)
+			end
 		elseif m.x>0 then hot = newHot():add(i,m) end
 	end end 
 	if hot then hot = hot:push(spots) end
@@ -1858,7 +1901,7 @@ local mem = {
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
         writer:header{'*Number','Addr','<*Assembly','<Label','>*#Count','>Percent (Time)      '}
         for i,s in ipairs(spots) do
-            if i>1 then writer:row{'', '', '', '', '', ''} end
+			if i>1 then writer:row{'', '', '', '', '', ''} end
             local EMPTY='     '
             s.p = s.p or {s.a}
 			local x_times = ''
