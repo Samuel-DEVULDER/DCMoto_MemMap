@@ -2051,6 +2051,17 @@ local mem = {
                 elseif OPT_EQU and m.x==0 and EQUATES[adr] then
                     asm = '* ' .. EQUATES[adr]
                 end
+				if asm and asm:match('^L(B..)') then
+					local o = tonumber(m.hex:sub(-4),16)
+					if o>=32768 then o = o-65536 end
+					if -128<=o and o<=127 then 
+						out('Info: short branch is possible at $%s\n', adr)
+						asm = asm .. " ; short branch ?"
+					elseif asm:match('^LBRA') then
+						out('Info: %sjmp is possible at $%s\n', asm:match(m.dp .. '..$') and 'direct-page ', adr)
+						asm = asm .. " ; jmp?"
+					end
+				end
                 if m.r~=NOADDR or m.w~=NOADDR or asm then
                     row{adr, m.r, m.w, m.x>0 and m.asm and m.x or NOCYCL,
                         m.hex or VOID,
@@ -2351,7 +2362,7 @@ local function read_trace(filename)
             local txt = sprintf('%6.02f%%', 100*f:seek()/size)
             out('%s%s', txt, string.rep('\b', txt:len()))
         end
-        if s:sub(1,4)=='    ' then
+        if '    '==s:sub(1,4) then
             regs_next = s:sub(61,106)
         elseif OK_START[s:sub(1,1)] then
             num,last,pc,hexa,opcode,args = num+1,s,parse(s)--s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
@@ -2395,7 +2406,7 @@ local function read_trace(filename)
             jmp = nil
         end
     end
-    f:close() _parse = nil
+    f:close() parse,_parse = nil
     out(string.rep(' ', 10) .. string.rep('\b',10))
     if last then mem.cycles = mem.cycles + tonumber(last:sub(48,57)) end
     profile:_()
