@@ -2057,7 +2057,7 @@ local mem = {
 					if o>=32768 then o = o-65536 end
 					if -128<=o and o<=127 then 
 						out('Info: short branch is possible at $%s : %s\n', adr, asm)
-						asm = asm .. BRAKET[1]..BCC.."?"..BRAKET[2]
+						asm = asm .. " ; "..BCC:lower().."?"
 					elseif CC=='BRA' then
 						out('Info: %sjmp is possible at $%s\n', asm:match(m.dp .. '..$') and 'direct-page ', adr)
 						asm = asm .. " ; jmp?"
