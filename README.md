@@ -6,7 +6,7 @@ Outil d'analyse de traces d'execution de [DCMoto](http://dcmoto.free.fr/emulateu
 	lua memmap.lua	[-reset] [-loop] [-trace=path/to/trace/file.txt]
 	                [-mach=(mo|to|??)]
 	                [-from=XXXX] [-to=XXXX]
-	                [-map[=NBCOLS]] [-hot] [-hint] [-equ[=file,dir,...]] 
+	                [-map[=NBCOLS]] [-hot] [-hints] [-equ[=file,dir,...]] 
 	                [-html] [-smooth]
 	                [-verbose[=N]]
 	                [?|-h|--help]
@@ -54,7 +54,7 @@ Plusieurs options gouvernent le contenu du fichier produit:
 	Une analyse des points chauds (endroits où le cpu passe le plus de temps) est ajoutée.
 * __-map__  
 	Ajoute une représentation 2D de la cartographie mémoire pour avoir une vue d'ensemble bien plus compacte que la liste linéaire de base. La largeur de cette cartographie est par défauut de 128 octets. Un kilo-octet représente alors 8 lignes, et l'ensemble des 64ko recouivre 512 lignes. C'est beaucoup, mais heuresement l'outil saute par dessus 8 lignes consécutives vides pour réduire cela.
-* __-hint__
+* __-hints__
 	Essaye de suggérer des optimisations à partir des données recueillies.
 * __-map=NUM__  
 	Utilise NUM colonnes dans la représentation 2D. Attention à ne pas le choisir trop petit ou trop gros pour que cela reste lisible (256 est possible si on a un grand écran). L'idée ici est d'avoir une vue synthétique.

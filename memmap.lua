@@ -28,7 +28,7 @@ local OPT_MIN     = nil                -- adresse de départ
 local OPT_MAX     = nil                -- adresse de fin
 local OPT_HOT     = false              -- hotspots ?
 local OPT_HOT_COL = false              -- colored hotspots 
-local OPT_HINT    = false              -- add hint comments on the html
+local OPT_HINTS   = false              -- add hint comments on the html
 local OPT_MAP     = false              -- ajoute une version graphique de la map
 local OPT_HTML    = false              -- produit une analyse html?
 local OPT_SMOOTH  = "auto"             -- type de scroll html
@@ -291,7 +291,7 @@ for i,v in ipairs(ARGV) do local t
     elseif v=='-smooth'  then OPT_SMOOTH  = "smooth"
     elseif v=='-reset'   then OPT_RESET   = true
     elseif v=='-map'     then OPT_MAP     = true
-    elseif v=='-hint'    then OPT_HINT    = true
+    elseif v=='-hint'    then OPT_HINTS   = true
     elseif v=='-hot'     then OPT_HOT     = true
     elseif v=='-hot=col' then OPT_HOT     = true; OPT_HOT_COL = true
     elseif v=='-equ'     then OPT_EQU     = true
@@ -1990,8 +1990,8 @@ local mem = {
         writer:row{ 'Stack (guessed)' , stack or "n/a"}
         writer:row{   'Start Address' , '$'..hex(OPT_MIN)}
         writer:row{    'Stop Address' , '$'..hex(OPT_MAX)}
-		if OPT_HINT then
-		writer:row{         'Hint(s)' , HINT:count()}
+		if OPT_HINTS then
+		writer:row{           'Hints' , HINT:count()}
 		end
         writer:footer()
     end,
@@ -2176,7 +2176,7 @@ end
 ------------------------------------------------------------------------------
 -- Analyse des astuces potentielles
 ------------------------------------------------------------------------------
-function newHintFinder()
+function newHintsFinder()
 	return {
 		_add = function(self, addr, hint)
 			self[addr] = self[addr] or {}
@@ -2355,7 +2355,7 @@ function newHintFinder()
 		end
 	}
 end
-HINT = OPT_HINT and newHintFinder() or {analyse = function() end, getHints = function() return {} end}
+HINT = OPT_HINTS and newHintsFinder() or {analyse = function() end, getHints = function() return {} end}
 
 ------------------------------------------------------------------------------
 -- Programme principal: analyse le fichier de trace
@@ -2545,8 +2545,10 @@ local function read_trace(filename)
     end
     -- parse = memoize:ret_n(parse)
 
-    local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
-							 ,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70}
+    local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',
+							  48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,
+							  nil}
+	local byte,space3 = string.byte,function(a,b,c) return 0x202020==c+b*256+a*65536 end
     profile:_()
     for s in f:lines() do
         -- print(s) io.stdout:flush()
@@ -2554,12 +2556,17 @@ local function read_trace(filename)
             local txt = sprintf('%6.02f%%', 100*f:seek()/size)
             out('%s%s', txt, string.rep('\b', txt:len()))
         end
-		local c=string.byte(s,1)
-        if 32==c and '    '==string.sub(s,1,4) then 
+		local c = s:byte(1)
+        if 32==c and 
+			-- space3(byte(s,2,4)) then 
+			-- 0x202020==byte(s,2)+byte(s,3)*256+byte(s,4)*65536 then 
+			'    '==s:sub(1,4) then 
+			-- '   '==s:sub(2,4) then 
+			-- 32==byte(s,2) and 32==byte(s,3) and 32==byte(s,4) then
 			regs_next = s:sub(61,106)
         elseif 
-			OK_START[c] then
-			-- c>=48 and c<=57 or c>=65 and c<=70 then
+			-- OK_START[c] then
+			c>=48 and c<=57 or c>=65 and c<=70 then
 			-- string.find('0123456789ABCDEF', s:sub(1,1)) then 
 			-- OK_START[s:sub(1,1)] then
             num,last,pc,hexa,opcode,args = num+1,s,parse(s)--s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
@@ -2577,7 +2584,7 @@ local function read_trace(filename)
                 sig = hexa
             end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
-            regs,regs_next = regs_next,string.sub(s,61,106)
+            regs,regs_next = regs_next,s:sub(61,106)
 			HINT:analyse(pc, hexa, opcode, args, regs)
             if nomem_asm[sig] then
                 mem:a(nomem_asm[sig][1],nomem_asm[sig][2])
