@@ -1268,7 +1268,7 @@ local function newHtmlWriter(file, mem)
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
 	
-	.hint td:nth-of-type(4) {background-color: yellow; text-align: center;}
+	.hint td:nth-of-type(4) {background-color: yellow; text-align: center !important;	}
 	.hint td:nth-of-type(7) {color: gray; font-style: italic;}
 
     /* loading screen */
@@ -2545,7 +2545,8 @@ local function read_trace(filename)
     end
     -- parse = memoize:ret_n(parse)
 
-    local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}
+    local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+							 ,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70}
     profile:_()
     for s in f:lines() do
         -- print(s) io.stdout:flush()
@@ -2553,9 +2554,14 @@ local function read_trace(filename)
             local txt = sprintf('%6.02f%%', 100*f:seek()/size)
             out('%s%s', txt, string.rep('\b', txt:len()))
         end
-        if '    '==s:sub(1,4) then
-            regs_next = s:sub(61,106)
-        elseif OK_START[s:sub(1,1)] then
+		local c=string.byte(s,1)
+        if 32==c and '    '==string.sub(s,1,4) then 
+			regs_next = s:sub(61,106)
+        elseif 
+			OK_START[c] then
+			-- c>=48 and c<=57 or c>=65 and c<=70 then
+			-- string.find('0123456789ABCDEF', s:sub(1,1)) then 
+			-- OK_START[s:sub(1,1)] then
             num,last,pc,hexa,opcode,args = num+1,s,parse(s)--s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
             -- print(pc,hex,opcode,args)
             -- curr_pc, sig = tonumber(pc,16), hexa
