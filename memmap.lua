@@ -2577,7 +2577,7 @@ local function read_trace(filename)
                 sig = hexa
             end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
-            regs,regs_next = regs_next,s:sub(61,106)
+            regs,regs_next = regs_next,string.sub(s,61,106)
 			HINT:analyse(pc, hexa, opcode, args, regs)
             if nomem_asm[sig] then
                 mem:a(nomem_asm[sig][1],nomem_asm[sig][2])
