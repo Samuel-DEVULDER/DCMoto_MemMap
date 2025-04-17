@@ -894,7 +894,8 @@ local function newTSVWriter(file, tablen)
             self.file:write(self.hsep)
         end
     end
-    function w:footer()
+    function w:footer(cels)
+		if cels then self:row(cels) end
         self.file:write(self.hsep .. '\n')
     end
     function w:row(cels)
@@ -1109,7 +1110,13 @@ local function newHtmlWriter(file, mem)
     end
 
     -- fin de table
-    function w:footer()
+    function w:footer(cels)
+		self:_body('  </tbody>\n')
+		if cels then
+			self:_body('  <tfoot>\n')
+			self:row(cels)
+			self:_body('  </tfoot>\n')
+		end
         self:_body('  </table>\n')
         if self._footer_callback then
             self._footer_callback(self)
@@ -1133,11 +1140,12 @@ local function newHtmlWriter(file, mem)
         -- gestion du style
         local align  = {[''] = 'left', ['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
         local family = {['*'] = 'bold'}
-        local cols, empty = {}, true
+        local cols, sort, empty = {}, {}, true
         for i,n in ipairs(columns) do
-            local tag,font,txt = n:match('^([<=>]?)([%*]?)(.*)')
+            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^"]?)(.*)')
             cols[i] = trim(txt)
             if cols[i] then empty=false else cols[i]='' end
+			sort[i] = sorted=='"' and "txt" or sorted=="^" and "num"
             self:_style('    #', id, ' td:nth-of-type(', i, ') {\n', family[font] and
                         '      font-weight:' .. family[font]..';\n' or '',
                         '      text-align: ', align[tag], ';\n',
@@ -1164,7 +1172,16 @@ local function newHtmlWriter(file, mem)
         end
 
         self:_body('  <table id="',id,'"', class ,'>\n')
-        if not empty then self:_std_row("th", cols) end
+        if not empty then 
+			self:_body('  <thead>\n')
+			self:_std_row(function(i,v) return
+				sort[i] == "txt" and "th title=\"click to sort\" onclick=\"sortTable('"..id.."',"..(i-1)..",false)\"" or
+				sort[i] == "num" and "th title=\"click to sort\" onclick=\"sortTable('"..id.."',"..(i-1)..",true)\"" or
+				"th"
+			end, cols) 
+			self:_body('  </thead>\n')
+		end
+		self:_body('  <tbody>\n')
     end
 
     -- fonction de fermeture. C'est ici qu'on écrit vraiment dans
@@ -1248,7 +1265,7 @@ local function newHtmlWriter(file, mem)
       border-left:   1px solid #ddd;
       border-right:  1px solid #ddd;
     }
-    th {
+    thead,tfoot {
       background-color: lightgray;
       border-bottom:    1px solid #ddd;
     }
@@ -1412,6 +1429,90 @@ local function newHtmlWriter(file, mem)
 			e.title      = "Hot spot #" + no;
 		}
     }
+	function cmp(a,b,number) {
+		var ta = a.innerText, tb = b.innerText;
+		var d = number ? Number(ta) - Number(tb) : ta.localeCompare(tb);
+		if(Math.abs(d)<0.01) {
+			ta = a.parentElement.cells[0].innerText;
+			tb = b.parentElement.cells[0].innerText;
+			d = ta.localeCompare(tb);
+		}
+		return d;
+	}
+	// adapted from https://www.w3schools.com/howto/howto_js_sort_table.asp
+	function sortTable(id,n,number) {
+	  var table = document.getElementById(id);
+      if (table == null) {return;}
+	  var cursor = table.style.cursor, back = table.style.backgroundColor;
+	  try {
+		  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+		  table.style.cursor = 'wait';
+		  table.style.backgroundColor = 'lightgray';
+		  switching = true;
+		  // Set the sorting direction to ascending:
+		  dir = "asc";
+		  /* Make a loop that will continue until
+		  no switching has been done: */
+		  while (switching) {
+			// Start by saying: no switching is done:
+			switching = false;
+			rows = table.tBodies[0].rows;	
+			
+			/* Loop through all table rows (except the
+			first, which contains table headers): */
+			for (i = 0; i < (rows.length - 1); i++) {
+			  // Start by saying there should be no switching:
+			  shouldSwitch = false;
+			  /* Get the two elements you want to compare,
+			  one from current row and one from the next: */
+			  x = rows[i].cells[n]; /* getElementsByTagName("TD")[n]; */
+			  y = rows[i + 1].cells[n]; /*.getElementsByTagName("TD")[n]; */
+			  /* Check if the two rows should switch place,
+			  based on the direction, asc or desc: */
+			  if (dir == "asc") {
+				if (cmp(x, y, number)>0) {
+				  // If so, mark as a switch and break the loop:
+				  shouldSwitch = true;
+				  break;
+				}
+			  } else if (dir == "desc") {
+				if (cmp(x, y, number)<0) {
+				  // If so, mark as a switch and break the loop:
+				  shouldSwitch = true;
+				  break;
+				}
+			  }
+			}
+			if (shouldSwitch) {
+			  /* If a switch has been marked, make the switch
+			  and mark that a switch has been done: */
+			  rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+			  switching = true;
+			  // Each time a switch is done, increase this count by 1:
+			  switchcount ++;
+			} else {
+			  /* If no switching has been done AND the direction is "asc",
+			  set the direction to "desc" and run the while loop again. */
+			  if (switchcount == 0 && dir == "asc") {
+				dir = "desc";
+				switching = true;
+			  }
+			}
+		  }
+		  /* add indicator of sortig direrction */
+		  var header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
+		  for(let i=0; i<header.length; ++i)  {
+			var html = header[i].innerHTML;
+			if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
+			if(html.endsWith(down)) {header[i].innerHTML = html.slice(0,-down.length);}
+		   }
+		   header[n].innerHTML +=  dir=="asc" ? up : down;
+		} finally {
+		  table.style.cursor          = cursor;
+		  table.style.backgroundColor = back;
+		}
+	}
+	
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
@@ -1464,9 +1565,10 @@ local function newHtmlWriter(file, mem)
 
         local span = #html_cols~=self.ncols and #html_cols or -1
         for i,v in ipairs(html_cols) do
-            add('<', tag)
+			local tg = type(tag)=='function' and tag(i,v) or tag
+            add('<', tg)
             if i==span then add(' style="text-align:left;" colspan="', self.ncols - i + 1,'"') end
-            add('>', v, '</',tag,'>')
+            add('>', v, '</',tg:gsub('%s.*$',''),'>')
         end
         add('</tr>\n')
         self:_body(unpack(tr))
@@ -1533,20 +1635,22 @@ local function newHtmlWriter(file, mem)
 	-- ligne hints
 	function w:_hints_row(tag,columns)
 		if nil==self._hints_row_first then self._hints_row_first=false
-			self:_style('	#hints_1 td:nth-of-type(3) {bacground-color: #71F;}\n')
-			self:_style('	#hints_1 td:nth-of-type(4) {bacground-color: #71F;}\n')
-			self:_style('	#hints_1 td:nth-of-type(5) {bacground-color: #F17;}\n')
-			self:_style('	#hints_1 td:nth-of-type(6) {bacground-color: #F17;}\n')
-			self:_style('	#hints_1 td:nth-of-type(7) {bacground-color: yellow;}\n')
+			self:_style('	#hints_1 td:nth-of-type(3) {background-color: #AAF;}\n')
+			self:_style('	#hints_1 td:nth-of-type(4) {font-weight:bold;}\n')
+			self:_style('	#hints_1 td:nth-of-type(5) {background-color: #FAA;}\n')
+			self:_style('	#hints_1 td:nth-of-type(6) {font-weight:bold;}\n')
+			self:_style('	#hints_1 td:nth-of-type(7) {font-style:italic;}\n')
+			self:_style('	#hints_1 td:nth-of-type(8) {background-color: #AFA;}\n')
+			self:_style('	#hints_1 tfoot {font-weight:bold;}\n')
 		end
 		
         local cols = {}
         for i,v in ipairs(columns) do
             v = trim(v) or ''
-            if i==2 then
+            if i==1 then
                 v = ahref('',v,v)
             else
-                v = esc(v)
+                v = esc(v)--:gsub(' ','&nbsp;')
             end
             cols[i] = v
         end
@@ -1963,7 +2067,7 @@ local HINTS = OPT_HINTS and {
 				else
 					local a = arg:match('^%$(%x%x%x%x)$')
 					if self._bcom[BCC] and a then
-						local h = instrument(self:_newHint(addr, hexa, 'rarely-used-long-branch', 
+						local h = instrument(self:_newHint(addr, hexa, 'faster-short-branch', 
 							'7/3',
 							self._bcom[BCC]..' *+5 : JMP '..arg))
 
@@ -2218,28 +2322,37 @@ local mem = {
 			return a.g > b.g
 			-- return a.lbl<b.lbl or a.lbl==b.lbl and a.x > b.x 
 		end)
+		local function fmt(integer, x) 
+			local fmt = '%0.2f'
+			if integer then fmt,x = '%g', math.floor(x+.5) end
+			return sprintf(fmt, x) 
+		end
 
 		writer:id("hints")
         writer:title('Optimization Hints (%d)', #l)
-        writer:header{'','Addr','>','*Initial Code','>','*Suggested Code','Hint','>Count','>*Gain (ms)'}
-		local function fmt(int, x) return sprintf(int and '%.0g' or '%0.2f', x) end
-		local last
+        writer:header{'>"Addr','>^Count','>^uS','"Initial Code','>^uS','"Suggested Code','"Hint','>^Gain(ms)'}
+		local total1,total2,total3,last=0,0,0
 		for i,h in ipairs(l) do
 			-- if last and last~=h.lbl then
 				-- writer:row{'','','','','','','','',''}
 			-- end last = h.lbl
 			local asm = h:explain():gsub(' : ',':')
 			local int = not h.asm:match('^LB')
-			writer:row{'#'..i, 
+			writer:row{ --'#'..i, 
 				h.addr, 
-				fmt(int, h.t0), h.asm, 
+				h.x,
+				fmt(int, h.t0), h.asm:gsub('%s+',' '), 
 				fmt(int, h.t1), asm,
 				h.lbl, 
-				h.x,
 				fmt(false, h.g/1000),
 				nil}
+			total1,total2,total3 = total1+h.t0*h.x,total2+h.t1*h.x,total3+h.g
 		end
-        writer:footer()
+        writer:footer{'Total','',--'',
+			fmt(true,total1),'',
+			fmt(true,total2),'',
+			'',
+			fmt(false,total3/1000)}
         profile:_()
 	end,
     _saveHotspot = function(self, writer)
