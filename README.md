@@ -6,7 +6,7 @@ Outil d'analyse de traces d'execution de [DCMoto](http://dcmoto.free.fr/emulateu
 	lua memmap.lua	[-reset] [-loop] [-trace=path/to/trace/file.txt]
 	                [-mach=(mo|to|??)]
 	                [-from=XXXX] [-to=XXXX]
-	                [-map[=NBCOLS]] [-hot] [-hints] [-equ[=file,dir,...]] 
+	                [-map[=NBCOLS]] [-hot] [-Ohints] [-equ[=file,dir,...]] 
 	                [-html] [-smooth]
 	                [-verbose[=N]]
 	                [?|-h|--help]

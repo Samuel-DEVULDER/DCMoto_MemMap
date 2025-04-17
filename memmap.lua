@@ -282,29 +282,29 @@ local function machMO()
 end
 
 for i,v in ipairs(ARGV) do local t
-    v = v:lower()
-    if v=='-h'
-    or v=='?'
-    or v=='--help'   then usage()
-    elseif v=='-loop'    then OPT_LOOP    = true
-    elseif v=='-html'    then OPT_HTML    = true
-    elseif v=='-smooth'  then OPT_SMOOTH  = "smooth"
-    elseif v=='-reset'   then OPT_RESET   = true
-    elseif v=='-map'     then OPT_MAP     = true
-    elseif v=='-hint'    then OPT_HINTS   = true
-    elseif v=='-hot'     then OPT_HOT     = true
-    elseif v=='-hot=col' then OPT_HOT     = true; OPT_HOT_COL = true
-    elseif v=='-equ'     then OPT_EQU     = true
-    elseif v=='-verbose' then OPT_VERBOSE = 1
-    elseif v=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU  = true
-    elseif v=='-mach=to' then machTO()
-    elseif v=='-mach=mo' then machMO()
+    local l = v:lower()
+    if l=='-h'
+    or l=='?'
+    or l=='--help'   then usage()
+    elseif l=='-loop'    then OPT_LOOP    = true
+    elseif l=='-html'    then OPT_HTML    = true
+    elseif l=='-smooth'  then OPT_SMOOTH  = "smooth"
+    elseif l=='-reset'   then OPT_RESET   = true
+    elseif l=='-map'     then OPT_MAP     = true
+    elseif v=='-hints'   then OPT_HINTS   = true
+    elseif l=='-hot'     then OPT_HOT     = true
+    elseif l=='-hot=col' then OPT_HOT     = true; OPT_HOT_COL = true
+    elseif l=='-equ'     then OPT_EQU     = true
+    elseif l=='-verbose' then OPT_VERBOSE = 1
+    elseif l=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU  = true
+    elseif l=='-mach=to' then machTO()
+    elseif l=='-mach=mo' then machMO()
 	else t=v:match('%-trace=(.+)')     if t then TRACE       = t
     else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t																
-    else t=v:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
-    else t=v:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
-    else t=v:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
-    else t=v:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
+    else t=l:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
+    else t=l:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
+    else t=l:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
+    else t=l:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
     end end end end end end end
 end
@@ -1125,6 +1125,7 @@ local function newHtmlWriter(file, mem)
         self._row = self._std_row
         if id:match('flatmap')  then self._row = self._flatmap_row end
         if id:match('hotspots') then self._row = self._hotspot_row end
+        if id:match('hints')    then self._row = self._hints_row   end
         if id:match('memmap')   then self._row = self._memmap_row  end
         if id:match('caption')  then self._row = self._caption_row end
 
@@ -1473,7 +1474,7 @@ local function newHtmlWriter(file, mem)
 
     -- ligne standard
     function w:_std_row(tag, columns)
-        local cols, patt = {}, '(.*%$)'..self.HEXADDR..'(.*)'
+        local cols, patt = {}, '(.-%$)'..self.HEXADDR..'(.*)'
         for i,v in ipairs(columns) do
             local t = esc(trim(v) or ' ')
             local before,a,after = t:match(patt)
@@ -1528,7 +1529,30 @@ local function newHtmlWriter(file, mem)
 		if columns[4]=='HINT' then extra = ' class="hint"' end
         self:_raw_row(tag,cols,extra)
     end
-
+	
+	-- ligne hints
+	function w:_hints_row(tag,columns)
+		if nil==self._hints_row_first then self._hints_row_first=false
+			self:_style('	#hints_1 td:nth-of-type(3) {bacground-color: #71F;}\n')
+			self:_style('	#hints_1 td:nth-of-type(4) {bacground-color: #71F;}\n')
+			self:_style('	#hints_1 td:nth-of-type(5) {bacground-color: #F17;}\n')
+			self:_style('	#hints_1 td:nth-of-type(6) {bacground-color: #F17;}\n')
+			self:_style('	#hints_1 td:nth-of-type(7) {bacground-color: yellow;}\n')
+		end
+		
+        local cols = {}
+        for i,v in ipairs(columns) do
+            v = trim(v) or ''
+            if i==2 then
+                v = ahref('',v,v)
+            else
+                v = esc(v)
+            end
+            cols[i] = v
+        end
+        self:_raw_row(tag,cols)
+    end
+    
     -- ligne hotspot
     function w:_hotspot_row(tag,columns)
 		if OPT_HOT_COL then
@@ -1823,6 +1847,265 @@ local function findHotspots(mem)
 end
 
 ------------------------------------------------------------------------------
+-- Analyse des astuces potentielles
+------------------------------------------------------------------------------
+local HINTS = OPT_HINTS and {
+		_add = function(self, addr, hint)
+			self[addr] = self[addr] or {}
+			table.insert(self[addr], hint)
+			return self
+		end,
+		_newHint = function(self, addr, hexa, lbl, gain, explain)
+			local h = {
+				lbl     = lbl,
+				addr    = addr,
+				hexa    = hexa,
+				_gain   = gain,
+				_valid  = true,
+				_xplain = explain,
+				valid   = function(self) return self._valid end,
+				check   = function(self, addr, hexa, opcode, arg, regs) end,
+				explain = function(self) return self._xplain or self.lbl end,
+				cycles  = function(self, mem, orig) 
+					local t = tonumber(mem.cycles)
+					if t==nil then error(self.lbl) end
+					return orig and t or t + self._gain
+				end
+			}
+			self:_add(addr, h)
+			return h
+		end,
+		_dp = function(self, addr, hexa, opcode, arg, regs)
+			local DP = regs:match('DP=(%x%x)')
+			if arg:match('^%$'..DP..'%x%x$') and hexa:match(DP..'%x%x$') then
+				self:_newHint(addr, hexa, 'direct-page', -1, opcode..' <$'..arg:sub(4))
+				.check = function(self, addr, hexa, opcode, arg, regs) 
+					self._valid = regs:match('DP='..DP) 
+				end
+			end
+		end,
+		_cmp0 = function(self, addr, hexa, opcode, arg, regs)
+			local REG = arg=='#$0000' and opcode:match('^CMP([YUS])')
+			if REG then
+				local h = self:_newHint(addr, hexa, 'cmp-addr-zero', -1,
+					REG=='Y' and 'LEAY ,Y' or
+					'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
+				-- verifier si suivi par BEQ ou BNE
+				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
+				h.check = function(self, addr, hexa, opcode, arg, regs) 
+					if addr~=self.addr 
+					and opcode ~= 'BNE'  and opcode ~= 'BEQ'
+					and opcode ~= 'LBNE' and opcode ~= 'LBEQ'
+					then self._valid = false end
+				end
+			end
+		end,
+		_ld0 = function(self, addr, hexa, opcode, arg, regs)
+			local REG = arg=='#$00' and opcode:match('^LD([AB])')
+			if REG then
+				self:_newHint(addr, hexa, 'zero-reg', 0, 'CLR'..REG)
+			end
+		end,
+		_ldd = function(self, addr, hexa, opcode, arg, regs)
+			if opcode=='LDD' then
+				local A,B = arg:match('^#%$(%x%x)(%x%x)$')
+				if B then
+					local function tst(REG, VAL, REGEXP)
+						if regs:match(REGEXP) then
+							local t = VAL=='00' and 'CLR'..REG or 'LD'..REG..' #$'..VAL
+							if hexa:sub(-4)~='0000' then t = t..' (flags?)' end
+							self:_newHint(addr, hexa, 
+							REG=='A' and 'B-already-set' or 'A-already-set', -1, t)
+							.check = function(self, addr, hexa, opcode, arg, regs) 
+								self._valid = regs:match(REGEXP) 
+							end
+						end
+					end
+					tst('B',B,'D='..A..'%x%x ')
+					tst('A',A,'D=%x%x'..B..' ')
+				end
+			end
+		end,
+		_bcom = {BMI='BPL', BEQ='BNE', BVS='BVC', BCS='BCC',
+		         BPL='BMI', BNE='BEQ', BVC='BVS', BCC='BCS',
+				 BGT='BLE', BGE='BLT', BLE='BGT', BLT='BGE',
+				 BHI='BLS', BHS='BLO', BLS='BHI', BLO='BHS'},
+		_lbranch = function(self, addr, hexa, opcode, arg, regs)
+			local BCC = opcode:match('^L(B..)')
+			if BCC then
+				local function instrument(h)
+					h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
+					h.adr_nottaken = hex(tonumber(h.addr,16) + h.hexa:len()/2)
+					h.cnt_taken    = 0
+					h.cnt_nottaken = 0
+					h.check        = function(self, addr, hexa, opcode, arg, regs) 
+						if addr == self.adr_taken then
+							self.cnt_taken = self.cnt_taken + 1
+						elseif addr == self.adr_nottaken then
+							self.cnt_nottaken = self.cnt_nottaken + 1
+						end
+					end
+					h.valid         = function(self)
+						local mem = {x=1}
+						return self._valid and self:cycles(mem,true)>self:cycles(mem,false)
+					end
+					return h
+				end
+			
+				local o = tonumber(hexa:sub(-4),16)
+				if o>=32768 then o = o-65536 end
+				if -128<=o and o<=127 then 
+					instrument(self:_newHint(addr, hexa, 'short-branch', 3, BCC..' '..arg))
+					.cycles = function(self, mem, orig) 
+						return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/tonumber(mem.x)
+						             or 3
+					end
+				else
+					local a = arg:match('^%$(%x%x%x%x)$')
+					if self._bcom[BCC] and a then
+						local h = instrument(self:_newHint(addr, hexa, 'rarely-used-long-branch', 
+							'7/3',
+							self._bcom[BCC]..' *+5 : JMP '..arg))
+
+						self:_add(h.adr_taken, h):_add(h.adr_nottaken, h)
+						h.cycles = function(self, mem, orig) 
+							local total = self.cnt_taken + self.cnt_nottaken
+							return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
+							             or (7*self.cnt_taken + 3*self.cnt_nottaken)/total
+						end
+					elseif BCC=='BRA' or BCC=='BSR' then
+						self:_newHint(addr, hexa, 'slow-long-branch', 
+							-1,
+							(BCC=='BRA' and 'JMP ' or 'JSR ')..arg)
+					end
+				end
+			end
+		end,
+		_puls_rts = function(self, addr, hexa, opcode, arg, regs)
+			if opcode=='PULS' and not arg:match(',PC$') then
+				local h = self:_newHint(addr, hexa, 'puls-followed-by-rts', -3, opcode..' '..arg..',PC')
+				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
+				h.check = function(self, addr, hexa, opcode, arg, regs) 
+					if addr ~= self.addr then
+						self._valid = hexa=='39'
+					end
+				end
+			end
+		end,
+		_index = function(self, addr, hexa, opcode, arg, regs, XYU)
+			if opcode:match('^[L]?B[^I]') then return end
+			local a = arg:match('^$(%x%x%x%x)$') 
+			if a and regs:match(XYU..'='..a) then
+				self:_newHint(addr, hexa, 'reg-contains-address', -1, opcode..' ,'..XYU)
+				.check = function(self, addr, hexa, opcode, arg, regs) 
+					local addr = arg:match('^$(%x%x%x%x)$') 
+					self._valid = addr and regs:match(XYU..'='..a)
+				end
+			end
+		end,
+		_abx = function(self, addr, hexa, opcode, arg, regs)
+			local h
+			if opcode=='LEAX' and (arg=='B,X' or arg=='D,X') then
+				local B = arg=='B,X'
+				local function check(arg, regs) 
+					local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
+					if B then D=D%256 if D>=128 then D=D-256 end end
+					return 0<=D and D<256
+				end
+				if check(arg, regs)  then
+					h = self:_newHint(addr, hexa, 'abx-instead-of-leax', B and -3 or -5, 'ABX')
+					h.check = function(self, addr, hexa, opcode, arg, regs) 
+						self._valid = check(arg,regs)
+					end
+				end
+			end
+			return h
+		end,
+		_8bits_index = function(self, addr, hexa, opcode, arg, regs)
+			local REG = arg:match('^D,([XYUS])$')
+			if REG then
+				local function check(arg, regs) 
+					local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
+					if D>=32768 then D=D-65536 end
+					return -128<=D and D<128
+				end
+				local abx = self:_abx(addr, hexa, opcode, arg, regs)
+				if check(arg, regs) then
+					local h = self:_newHint(addr, hexa, '8bits-signed-index', -3, opcode..' B,'..REG)
+					h.check = function(self, addr, hexa, opcode, arg, regs) 
+						self._valid = check(arg,regs)
+					end
+					if abx then
+						h.valid = function(self)
+							return self._valid and not abx._valid
+						end
+					end
+				end
+			end
+		end,
+		analyse = function(self, addr, hexa, opcode, arg, regs)
+			local hints = self[addr]
+			if type(hints)=='table' then
+				for i=#hints,1,-1 do local h = hints[i]
+					if h._valid then
+						if h.addr==addr and h.hexa~=hexa then 
+							h._valid = false -- invalid si le code a changé
+						else
+							h:check(addr, hexa, opcode, arg, regs) 
+						end
+					end
+					if nil==h._valid then 
+						-- print('invalid', h.addr,  h.lbl)
+						table.remove(hints,i) 
+					end
+				end
+			elseif hints==nil and arg then self[addr] = {}
+				self:_lbranch     (addr, hexa, opcode, arg, regs)
+				self:_puls_rts    (addr, hexa, opcode, arg, regs) 
+				self:_ld0         (addr, hexa, opcode, arg, regs)
+				self:_ldd         (addr, hexa, opcode, arg, regs)
+				self:_cmp0        (addr, hexa, opcode, arg, regs)
+				self:_dp          (addr, hexa, opcode, arg, regs) 
+				self:_index       (addr, hexa, opcode, arg, regs, 'X') 
+				self:_index       (addr, hexa, opcode, arg, regs, 'Y') 
+				self:_index       (addr, hexa, opcode, arg, regs, 'U') 
+				self:_8bits_index (addr, hexa, opcode, arg, regs) 
+				if 0==#self[addr] then self[addr] = false end
+			end
+		end,
+		getAllHints = function(self)
+			local l = {}
+			for i=(OPT_MIN or 0),(OPT_MAX or 65535) do
+				for _,h in ipairs(self:getHints(hex(i))) do
+					table.insert(l, h)
+				end
+			end
+			return l
+		end,
+		count = function(self)
+			local n = 0
+			for i=(OPT_MIN or 0),(OPT_MAX or 65535) do
+				n = n + #self:getHints(hex(i))
+			end
+			return n
+		end,
+		getHints = function(self, addr)
+			local ret,hints = {},self[addr]
+			if type(hints)=='table' then
+				for _,h in ipairs(hints) do
+					if h.addr==addr and h:valid() then
+						table.insert(ret, h)
+					end
+				end
+			end
+			return ret
+		end
+	} or { -- dummy one
+		analyse = function() end, 
+		getHints = function() return {} end
+	}
+
+------------------------------------------------------------------------------
 -- analyseur de mémoire
 ------------------------------------------------------------------------------
 
@@ -1919,6 +2202,46 @@ local mem = {
         end
         return f
     end,
+	_saveHints = function(self, writer)
+		profile:_()
+		local l = HINTS:getAllHints()
+		
+		for i,h in ipairs(l) do
+			h.m   = self[tonumber(h.addr,16)]
+			h.x   = h.m.x
+			h.t0  = h:cycles(h.m, true)
+			h.t1  = h:cycles(h.m, false)
+			h.g   = (h.t0 - h.t1)*h.x
+			h.asm = h.m.asm
+		end
+		table.sort(l, function(a,b) 
+			return a.g > b.g
+			-- return a.lbl<b.lbl or a.lbl==b.lbl and a.x > b.x 
+		end)
+
+		writer:id("hints")
+        writer:title('Optimization Hints (%d)', #l)
+        writer:header{'','Addr','>','*Initial Code','>','*Suggested Code','Hint','>Count','>*Gain (ms)'}
+		local function fmt(int, x) return sprintf(int and '%.0g' or '%0.2f', x) end
+		local last
+		for i,h in ipairs(l) do
+			-- if last and last~=h.lbl then
+				-- writer:row{'','','','','','','','',''}
+			-- end last = h.lbl
+			local asm = h:explain():gsub(' : ',':')
+			local int = not h.asm:match('^LB')
+			writer:row{'#'..i, 
+				h.addr, 
+				fmt(int, h.t0), h.asm, 
+				fmt(int, h.t1), asm,
+				h.lbl, 
+				h.x,
+				fmt(false, h.g/1000),
+				nil}
+		end
+        writer:footer()
+        profile:_()
+	end,
     _saveHotspot = function(self, writer)
         local spots,total,count = self._hotspots or findHotspots(self),0,0
         profile:_()
@@ -1983,15 +2306,15 @@ local mem = {
 			end
 			cmdLen,cmdLine = cmdLen+s:len(),cmdLine..s
 		end
-        writer:row{   'CLI Arguments' , cmdLine}
-        writer:row{    'Current Date' , os.date('%Y-%m-%d %H:%M:%S')}
-        writer:row{   self._cycles_hd , sprintf('%d (~%.0fs)', self.cycles, self.cycles/1000000)}
-        writer:row{    'Machine Type' , MACH[OPT_MACH or '']}
-        writer:row{ 'Stack (guessed)' , stack or "n/a"}
-        writer:row{   'Start Address' , '$'..hex(OPT_MIN)}
-        writer:row{    'Stop Address' , '$'..hex(OPT_MAX)}
+        writer:row{     'CLI Arguments' , cmdLine}
+        writer:row{      'Current Date' , os.date('%Y-%m-%d %H:%M:%S')}
+        writer:row{     self._cycles_hd , sprintf('%d (~%.0fs)', self.cycles, self.cycles/1000000)}
+        writer:row{      'Machine Type' , MACH[OPT_MACH or '']}
+        writer:row{   'Stack (guessed)' , stack or "n/a"}
+        writer:row{     'Start Address' , '$'..hex(OPT_MIN)}
+        writer:row{      'Stop Address' , '$'..hex(OPT_MAX)}
 		if OPT_HINTS then
-		writer:row{           'Hints' , HINT:count()}
+		writer:row{'Optimization Hints' , HINTS:count()}
 		end
         writer:footer()
     end,
@@ -2067,7 +2390,7 @@ local mem = {
                         m.cycles or VOID,
                         asm or VOID,
                         nil}
-					local hints = HINT:getHints(adr)
+					local hints = HINTS:getHints(adr)
 					if hints[1] then
 						for i,h in ipairs(hints) do 
 							hint_no = hint_no + 1
@@ -2163,7 +2486,8 @@ local mem = {
         writer = writer or newParallelWriter()
         self:_saveInfos(writer)
         self:_saveFlatMap(writer) if     OPT_HOT then
-        self:_saveHotspot(writer) end if OPT_MAP then
+        self:_saveHotspot(writer) end if OPT_HINTS then
+		self:_saveHints(writer)   end if OPT_MAP then
         self:_save_Memmap(writer) end
         return writer
     end
@@ -2172,190 +2496,6 @@ if OPT_EQU then
     mem:pc(00000):a('* Start of memory')
     mem:pc(65535):a('* End of memory')
 end
-
-------------------------------------------------------------------------------
--- Analyse des astuces potentielles
-------------------------------------------------------------------------------
-function newHintsFinder()
-	return {
-		_add = function(self, addr, hint)
-			self[addr] = self[addr] or {}
-			table.insert(self[addr], hint)
-			return self
-		end,
-		_newHint = function(self, addr, hexa, lbl, explain)
-			local h = {
-				lbl     = lbl,
-				addr    = addr,
-				hexa    = hexa,
-				_valid  = true,
-				_xplain = explain,
-				valid   = function(self) return self._valid end,
-				check   = function(self, addr, hexa, opcode, arg, regs) end,
-				explain = function(self) return self._xplain or self.lbl end,
-				nil
-			}
-			self:_add(addr, h)
-			return h
-		end,
-		_dp = function(self, addr, hexa, opcode, arg, regs)
-			local DP = regs:match('DP=(%x%x)')
-			if arg:match('^%$'..DP..'%x%x$') and hexa:match(DP..'%x%x$') then
-				self:_newHint(addr, hexa, 'direct-page', opcode..' <$'..arg:sub(4))
-				.check = function(self, addr, hexa, opcode, arg, regs) 
-					self._valid = regs:match('DP='..DP) 
-				end
-			end
-		end,
-		_cmp0 = function(self, addr, hexa, opcode, arg, regs)
-			local REG = arg=='#$0000' and opcode:match('^CMP([YUS])')
-			if REG then
-				self:_newHint(addr, hexa, 'cmp-addr-zero', 
-					REG=='X' and 'LEAX ,X' or
-					REG=='Y' and 'LEAY ,Y' or
-					'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
-			end
-		end,
-		_ld0 = function(self, addr, hexa, opcode, arg, regs)
-			local REG = arg=='#$00' and opcode:match('^LD([AB])')
-			if REG then
-				self:_newHint(addr, hexa, 'ld-zero', 'CLR'..REG)
-			end
-		end,
-		_ldd = function(self, addr, hexa, opcode, arg, regs)
-			if opcode=='LDD' then
-				local A,B = arg:match('^#%$(%x%x)(%x%x)$')
-				if B then
-					local function tst(REG, VAL, REGEXP)
-						if regs:match(REGEXP) then
-							local t = VAL=='00' and 'CLR'..REG or 'LD'..REG..' #$'..VAL
-							if hexa:sub(-4)~='0000' then t = t..' (flags?)' end
-							self:_newHint(addr, hexa, REG=='A' and 'B-already-set' or 'A-already-set', t)
-							.check = function(self, addr, hexa, opcode, arg, regs) 
-								self._valid = regs:match(REGEXP) 
-							end
-						end
-					end
-					tst('B',B,'D='..A..'%x%x ')
-					tst('A',A,'D=%x%x'..B..' ')
-				end
-			end
-		end,
-		_bcom = {BMI='BPL', BEQ='BNE', BVS='BVC', BCS='BCC',
-		         BPL='BMI', BNE='BEQ', BVC='BVS', BCC='BCS',
-				 BGT='BLE', BGE='BLT', BLE='BGT', BLT='BGE',
-				 BHI='BLS', BHS='BLO', BLS='BHI', BLO='BHS'},
-		_lbcc = function(self, addr, hexa, opcode, arg, regs)
-			local BCC = opcode:match('^L(B..)')
-			if BCC then
-				local o = tonumber(hexa:sub(-4),16)
-				if o>=32768 then o = o-65536 end
-				if -128<=o and o<=127 then 
-					self:_newHint(addr, hexa, 'short-branch', BCC..' '..arg)
-				else
-					local a = arg:match('^%$(%x%x%x%x)$')
-					if self._bcom[BCC] and a then
-						local b = hex(tonumber(addr,16) + hexa:len()/2)
-						local h = self:_newHint(addr, hexa, 'rarely-used-long-branch', 
-							self._bcom[BCC]..' *+5 : JMP '..arg)
-
-						self:_add(a, h):_add(b, h)
-
-						h.adr_taken    = a
-						h.adr_nottaken = b
-						h.cnt_taken    = 0
-						h.cnt_nottaken = 0
-						h.valid        = function(self)
-							-- orig: 6*taken + 5*nottaken
-							-- opti: (3+4)*taken + 3*nottaken
-							return self._valid and self.cnt_taken < 2*self.cnt_nottaken 
-						end
-						h.check        = function(self, addr, hexa, opcode, arg, regs) 
-							if addr == self.adr_taken then
-								self.cnt_taken = self.cnt_taken + 1
-							elseif addr == self.adr_nottaken then
-								self.cnt_nottaken = self.cnt_nottaken + 1
-							end
-						end
-					elseif BCC=='BRA' or BCC=='BSR' then
-						self:_newHint(addr, hexa, 'slow-long-branch', 
-							(BCC=='BRA' and 'JMP ' or 'JSR ')..arg)
-					end
-				end
-			end
-		end,
-		_pulsrts = function(self, addr, hexa, opcode, arg, regs)
-			if opcode=='PULS' and not arg:match(',PC$') then
-				local h = self:_newHint(addr, hexa, 'puls-followed-by-rts', opcode..' '..arg..',PC')
-				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
-				h.check = function(self, addr, hexa, opcode, arg, regs) 
-					if addr ~= self.addr then
-						self._valid = hexa=='39'
-					end
-				end
-			end
-		end,
-		_index = function(self, addr, hexa, opcode, arg, regs, XYU)
-			if opcode:match('^[L]?B[^I]') then return end
-			local a = arg:match('^$(%x%x%x%x)$') 
-			if a and regs:match(XYU..'='..a) then
-				self:_newHint(addr, hexa, 'reg-contains-address', opcode..' ,'..XYU)
-				.check = function(self, addr, hexa, opcode, arg, regs) 
-					local addr = arg:match('^$(%x%x%x%x)$') 
-					self._valid = addr and regs:match(XYU..'='..a)
-				end
-			end
-		end,
-		analyse = function(self, addr, hexa, opcode, arg, regs)
-			local hints = self[addr]
-			if type(hints)=='table' then
-				for i=#hints,1,-1 do local h = hints[i]
-					if h._valid then
-						if h.addr==addr and h.hexa~=hexa then 
-							h._valid = false -- invalid si le code a changé
-						else
-							h:check(addr, hexa, opcode, arg, regs) 
-						end
-					end
-					if nil==h._valid then 
-						-- print('invalid', h.addr,  h.lbl)
-						table.remove(hints,i) 
-					end
-				end
-			elseif hints==nil and arg then self[addr] = {}
-				self:_lbcc    (addr, hexa, opcode, arg, regs)
-				self:_pulsrts (addr, hexa, opcode, arg, regs) 
-				self:_ld0     (addr, hexa, opcode, arg, regs)
-				self:_ldd     (addr, hexa, opcode, arg, regs)
-				self:_cmp0    (addr, hexa, opcode, arg, regs)
-				self:_dp      (addr, hexa, opcode, arg, regs) 
-				self:_index   (addr, hexa, opcode, arg, regs, 'X') 
-				self:_index   (addr, hexa, opcode, arg, regs, 'Y') 
-				self:_index   (addr, hexa, opcode, arg, regs, 'U') 
-				if 0==#self[addr] then self[addr] = false end
-			end
-		end,
-		count = function(self)
-			local n = 0
-			for i=(OPT_MIN or 0),(OPT_MAX or 65535) do
-				n = n + #self:getHints(hex(i))
-			end
-			return n
-		end,
-		getHints = function(self, addr)
-			local ret,hints = {},self[addr]
-			if type(hints)=='table' then
-				for _,h in ipairs(hints) do
-					if h.addr==addr and h:valid() then
-						table.insert(ret, h)
-					end
-				end
-			end
-			return ret
-		end
-	}
-end
-HINT = OPT_HINTS and newHintsFinder() or {analyse = function() end, getHints = function() return {} end}
 
 ------------------------------------------------------------------------------
 -- Programme principal: analyse le fichier de trace
@@ -2545,10 +2685,11 @@ local function read_trace(filename)
     end
     -- parse = memoize:ret_n(parse)
 
+	HINTS.mem = mem
     local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',
 							  48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,
 							  nil}
-	local byte,space3 = string.byte,function(a,b,c) return 0x202020==c+b*256+a*65536 end
+	-- local byte,space3 = string.byte,function(a,b,c) return 0x202020==c+b*256+a*65536 end
     profile:_()
     for s in f:lines() do
         -- print(s) io.stdout:flush()
@@ -2585,7 +2726,7 @@ local function read_trace(filename)
             end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             regs,regs_next = regs_next,s:sub(61,106)
-			HINT:analyse(pc, hexa, opcode, args, regs)
+			HINTS:analyse(pc, hexa, opcode, args, regs)
             if nomem_asm[sig] then
                 mem:a(nomem_asm[sig][1],nomem_asm[sig][2])
             else
