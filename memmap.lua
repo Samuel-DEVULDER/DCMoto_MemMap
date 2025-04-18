@@ -1105,11 +1105,11 @@ local function newHtmlWriter(file, mem)
     function w:title(...)
         local txt,id = sprintf(...),self:_nxId()
 		if nil==w._toc then
-			-- add Table Of Content
+			-- add Table of Contents
 			w._toc = {}
 			table.insert(self._body_, function(w) 
 				if w._toc[2] then
-					local t = '<h1 id="TOC">Table Of Content</h1>\n<ol>\n'
+					local t = '<h1 id="TOC">Table of Contents</h1>\n<ol>\n'
 					for _,entry in ipairs(w._toc) do
 						t = t..'<li><a href="#'..entry.id..'">'..esc(entry.title)..'</a></li>\n'
 					end
@@ -1118,7 +1118,7 @@ local function newHtmlWriter(file, mem)
 			end)
 		end
 		table.insert(w._toc, {title=txt, id=id}) 
-        self:_body('<',self.HEADING,' id="', id, '" title=\'Click for Table Of Content\' onclick="document.location.href=\'#TOC\';">',
+        self:_body('<',self.HEADING,' id="', id, '" class=\'clickable\' title=\'Click for Table of Contents\' onclick="document.location.href=\'#TOC\';">',
 						esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
                    '</',self.HEADING,'>','\n')
     end
@@ -1188,10 +1188,11 @@ local function newHtmlWriter(file, mem)
         self:_body('  <table id="',id,'"', class ,'>\n')
         if not empty then 
 			self:_body('  <thead>\n')
-			self:_std_row(function(i,v) return
-				sort[i] == "txt" and "th title=\"click to sort\" onclick=\"sortTable('"..id.."',"..(i-1)..",false)\"" or
-				sort[i] == "num" and "th title=\"click to sort\" onclick=\"sortTable('"..id.."',"..(i-1)..",true)\"" or
-				"th"
+			self:_std_row(function(i,v) 
+				local t = "th title=\"click to sort\" class=\"clickable\" onclick=\"sortTable('"..id.."',"..(i-1)
+				return sort[i] == "txt" and t..",false)\"" or
+				       sort[i] == "num" and t..",true)\"" or
+				       "th"
 			end, cols) 
 			self:_body('  </thead>\n')
 		end
@@ -1289,6 +1290,7 @@ local function newHtmlWriter(file, mem)
     table tr:hover {
       background-color: lightgray;
     }
+	.clickable:hover {cursor:pointer;}
 
     /* trucs globaux: couleurs */
     .c0 {background-color:#111;}
@@ -1300,7 +1302,7 @@ local function newHtmlWriter(file, mem)
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
 	
-	.hint td:nth-of-type(4) {background-color: yellow; text-align: center !important;	}
+	.hint td:nth-of-type(6) {background-color: yellow; text-align: center !important; font-weight: bold;	}
 	.hint td:nth-of-type(7) {color: gray; font-style: italic;}
 
     /* loading screen */
@@ -1455,76 +1457,66 @@ local function newHtmlWriter(file, mem)
 	}
 	// adapted from https://www.w3schools.com/howto/howto_js_sort_table.asp
 	function sortTable(id,n,number) {
-	  var table = document.getElementById(id);
-      if (table == null) {return;}
-	  var cursor = table.style.cursor, back = table.style.backgroundColor;
-	  try {
-		  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-		  table.style.cursor = 'wait';
-		  table.style.backgroundColor = 'lightgray';
-		  switching = true;
-		  // Set the sorting direction to ascending:
-		  dir = "asc";
-		  /* Make a loop that will continue until
-		  no switching has been done: */
-		  while (switching) {
-			// Start by saying: no switching is done:
-			switching = false;
-			rows = table.tBodies[0].rows;	
-			
-			/* Loop through all table rows (except the
-			first, which contains table headers): */
-			for (i = 0; i < (rows.length - 1); i++) {
-			  // Start by saying there should be no switching:
-			  shouldSwitch = false;
-			  /* Get the two elements you want to compare,
-			  one from current row and one from the next: */
-			  x = rows[i].cells[n]; /* getElementsByTagName("TD")[n]; */
-			  y = rows[i + 1].cells[n]; /*.getElementsByTagName("TD")[n]; */
-			  /* Check if the two rows should switch place,
-			  based on the direction, asc or desc: */
-			  if (dir == "asc") {
-				if (cmp(x, y, number)>0) {
-				  // If so, mark as a switch and break the loop:
-				  shouldSwitch = true;
-				  break;
-				}
-			  } else if (dir == "desc") {
-				if (cmp(x, y, number)<0) {
-				  // If so, mark as a switch and break the loop:
-				  shouldSwitch = true;
-				  break;
-				}
-			  }
+	  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+	  table = document.getElementById(id);
+	  rows = table.tBodies[0].rows;	
+	  switching = true;
+	  // Set the sorting direction to ascending:
+	  dir = "asc";
+	  /* Make a loop that will continue until
+	  no switching has been done: */
+	  while (switching) {
+		// Start by saying: no switching is done:
+		switching = false;
+		
+		/* Loop through all table rows (except the
+		first, which contains table headers): */
+		for (i = 1, y=rows[0].cells[n]; i < rows.length; i++) {
+		  // Start by saying there should be no switching:
+		  shouldSwitch = false;
+		  /* Get the two elements you want to compare,
+		  one from current row and one from the next: */
+		  x = y; y = rows[i].cells[n]; /*.getElementsByTagName("TD")[n]; */
+		  /* Check if the two rows should switch place,
+		  based on the direction, asc or desc: */
+		  if (dir == "asc") {
+			if (cmp(x, y, number)>0) {
+			  // If so, mark as a switch and break the loop:
+			  shouldSwitch = true;
+			  break;
 			}
-			if (shouldSwitch) {
-			  /* If a switch has been marked, make the switch
-			  and mark that a switch has been done: */
-			  rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-			  switching = true;
-			  // Each time a switch is done, increase this count by 1:
-			  switchcount ++;
-			} else {
-			  /* If no switching has been done AND the direction is "asc",
-			  set the direction to "desc" and run the while loop again. */
-			  if (switchcount == 0 && dir == "asc") {
-				dir = "desc";
-				switching = true;
-			  }
+		  } else if (dir == "desc") {
+			if (cmp(x, y, number)<0) {
+			  // If so, mark as a switch and break the loop:
+			  shouldSwitch = true;
+			  break;
 			}
 		  }
-		  /* add indicator of sortig direrction */
-		  var header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
-		  for(let i=0; i<header.length; ++i)  {
-			var html = header[i].innerHTML;
-			if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
-			if(html.endsWith(down)) {header[i].innerHTML = html.slice(0,-down.length);}
-		   }
-		   header[n].innerHTML +=  dir=="asc" ? up : down;
-		} finally {
-		  table.style.cursor          = cursor;
-		  table.style.backgroundColor = back;
 		}
+		if (shouldSwitch) {
+		  /* If a switch has been marked, make the switch
+		  and mark that a switch has been done: */
+		  rows[i].parentNode.insertBefore(rows[i], rows[i-1]);
+		  switching = true;
+		  // Each time a switch is done, increase this count by 1:
+		  switchcount ++;
+		} else {
+		  /* If no switching has been done AND the direction is "asc",
+		  set the direction to "desc" and run the while loop again. */
+		  if (switchcount == 0 && dir == "asc") {
+			dir = "desc";
+			switching = true;
+		  }
+		}
+	  }
+	  /* add indicator of sortig direrction */
+	  var header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
+	  for(let i=0; i<header.length; ++i)  {
+		var html = header[i].innerHTML;
+		if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
+		if(html.endsWith(down)) {header[i].innerHTML = html.slice(0,-down.length);}
+	   }
+	   header[n].innerHTML +=  dir=="asc" ? up : down;
 	}
 	
   </script>
@@ -1645,7 +1637,12 @@ local function newHtmlWriter(file, mem)
             end
             cols[i] = v
         end
-		if columns[4]=='HINT' then extra = ' class="hint"' end
+		if columns[6]=='HINT' and w._lastADDR then 
+			extra = ' class="hint clickable"'..
+					' title="click for details"'..
+			        ' onclick="document.location.href=\'#hint'..w._lastADDR..'\'"' 
+		end
+		w._lastADDR = ADDR
         self:_raw_row(tag,cols,extra)
     end
 	
@@ -1654,7 +1651,7 @@ local function newHtmlWriter(file, mem)
 		if nil==self._hints_row_first then self._hints_row_first=false
 			self:_style([[
 	#hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
-	#hints_1 td:nth-of-type(3)         {font-weight:bold	;}
+	#hints_1 td:nth-of-type(3)         {font-weight:bold;}
 	#hints_1 td:nth-of-type(4)         {background-color: #AAF;}
 	#hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
 	#hints_1 td:nth-of-type(6)         {background-color: #FAA;}
@@ -1678,7 +1675,7 @@ local function newHtmlWriter(file, mem)
             end
             cols[i] = v
         end
-        self:_raw_row(tag,cols)
+        self:_raw_row(tag,cols, " id='hint"..columns[1].."'")
     end
     
     -- ligne hotspot
@@ -2541,7 +2538,7 @@ local mem = {
 					if hints[1] then
 						for i,h in ipairs(hints) do 
 							hint_no = hint_no + 1
-							row{VOID, VOID, VOID, "HINT",h.lbl, VOID, '; '..h:explain()}
+							row{VOID, VOID, VOID, VOID, VOID, 'HINT', h:explain()}
 						end
 					end
                 end
