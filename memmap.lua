@@ -1439,10 +1439,26 @@ local function newHtmlWriter(file, mem)
         });
     }
 	function hs(id, no) {
-		const e = document.getElementById(id)
+		const e = document.getElementById(id);
 		if(e !== null) {
 			e.className += " hs" + no;
 			e.title      = "Hot spot #" + no;
+			if(id.startsWith('fm')) {
+				var hs = id.replace('fm','hs')
+				if(document.getElementById(hs) == null) {
+					/* find prevous value */
+					var i = Number(id.replace('fm','0x'))
+					do {
+						hs = 'hs_'+('0000'+i.toString(16).toUpperCase()).slice(-4);
+						i = i - 1;
+					} while(i>=0 &&	 document.getElementById(hs) == null);
+					if(i<0) {hs = null;}
+				}
+				if(hs !== null) {
+					e.title     += "\n(click to view)";
+					e.onclick    = function() {document.location.href='#'+hs;}
+				}
+			}
 		}
     }
 	function cmp(a,b,number) {
