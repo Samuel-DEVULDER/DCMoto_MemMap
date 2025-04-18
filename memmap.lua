@@ -1087,6 +1087,7 @@ local function newHtmlWriter(file, mem)
         if self._2panes==nil then
             if id=='hotspots'     then self._2panes = 1 end
             if id:match('memmap') then self._2panes = 1 end
+            if id:match('hints')  then self._2panes = 1 end
         end
         if self._2panes==1 then
             self._2panes = true
@@ -1654,7 +1655,7 @@ local function newHtmlWriter(file, mem)
             cols[i] = v
         end
 		if columns[6]=='HINT' and w._lastADDR then 
-			extra = ' class="hint clickable"'..
+			extra = ' class="hint clickable"'	..
 					' title="click for details"'..
 			        ' onclick="document.location.href=\'#hint'..w._lastADDR..'\'"' 
 		end
