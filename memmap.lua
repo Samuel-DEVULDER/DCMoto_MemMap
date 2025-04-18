@@ -2018,7 +2018,7 @@ local HINTS = OPT_HINTS and {
 		_ld0 = function(self, addr, hexa, opcode, arg, regs)
 			local REG = arg=='#$00' and opcode:match('^LD([AB])')
 			if REG then
-				self:_newHint(addr, hexa, 'zero-reg', 0, 'CLR'..REG)
+				self:_newHint(addr, hexa, 'clear-reg', 0, 'CLR'..REG)
 			end
 		end,
 		_ldd = function(self, addr, hexa, opcode, arg, regs)
