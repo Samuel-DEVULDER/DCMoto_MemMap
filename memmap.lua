@@ -1637,6 +1637,7 @@ local function newHtmlWriter(file, mem)
 		if nil==self._hints_row_first then self._hints_row_first=false
 			self:_style([[
 	#hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
+	#hints_1 td:nth-of-type(3)         {font-weight:bold	;}
 	#hints_1 td:nth-of-type(4)         {background-color: #AAF;}
 	#hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
 	#hints_1 td:nth-of-type(6)         {background-color: #FAA;}
@@ -1644,8 +1645,6 @@ local function newHtmlWriter(file, mem)
 	#hints_1 td:nth-of-type(8)         {column-width:4em;}
 	#hints_1 td:nth-of-type(9)         {background-color: #AFA;column-width:4em;}
 	
-	#hints_1 th:nth-of-type(5)         {text-align:left;}
-	#hints_1 th:nth-of-type(7)         {text-align:left;}
 	#hints_1 th:nth-of-type(8)         {text-align:right;}
 	#hints_1 th:nth-of-type(9)         {text-align:right;}
 	#hints_1 tfoot                     {font-weight:bold;}
@@ -2049,7 +2048,7 @@ local HINTS = OPT_HINTS and {
 		_lbranch = function(self, addr, hexa, opcode, arg, regs)
 			local BCC = opcode:match('^L(B..)')
 			if BCC then
-				local function instrument(h)
+				local function instrument(h,finder)
 					h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
 					h.adr_nottaken = hex(tonumber(h.addr,16) + h.hexa:len()/2)
 					h.cnt_taken    = 0
@@ -2059,21 +2058,26 @@ local HINTS = OPT_HINTS and {
 							self.cnt_taken = self.cnt_taken + 1
 						elseif addr == self.adr_nottaken then
 							self.cnt_nottaken = self.cnt_nottaken + 1
+						elseif addr ~= self.addr then
+							error(addr..' '..self.adr_taken..'/'..self.adr_nottaken)
 						end
 					end
 					h.valid         = function(self)
+						-- print(self.addr, self._valid, self.cnt_taken, self.cnt_nottaken)
 						local mem = {x=1}
 						return self._valid and self:cycles(mem,true)>self:cycles(mem,false)
 					end
+					finder:_add(h.adr_taken, h):_add(h.adr_nottaken, h)
 					return h
 				end
 			
 				local o = tonumber(hexa:sub(-4),16)
 				if o>=32768 then o = o-65536 end
 				if -128<=o and o<=127 then 
-					instrument(self:_newHint(addr, hexa, 'short-branch', 3, BCC..' '..arg))
+					instrument(self:_newHint(addr, hexa, 'short-branch', 3, BCC..' '..arg), self)
 					.cycles = function(self, mem, orig) 
-						return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/tonumber(mem.x)
+						local total = self.cnt_taken + self.cnt_nottaken
+						return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
 						             or 3
 					end
 				else
@@ -2081,9 +2085,7 @@ local HINTS = OPT_HINTS and {
 					if self._bcom[BCC] and a then
 						local h = instrument(self:_newHint(addr, hexa, 'rarely-taken', 
 							'7/3',
-							self._bcom[BCC]..' *+5 : JMP '..arg))
-
-						self:_add(h.adr_taken, h):_add(h.adr_nottaken, h)
+							self._bcom[BCC]..' *+5 : JMP '..arg), self)
 						h.cycles = function(self, mem, orig) 
 							local total = self.cnt_taken + self.cnt_nottaken
 							return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
@@ -2452,7 +2454,7 @@ local mem = {
         local VOID=''
         writer:id("flatmap")
         writer:title("Collected addresses")
-        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Hex code", ">uSec", "<*Asm code         "}
+        writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Hex code", ">(~)", "<*Asm code         "}
 
         local n,curr,last_was_blank=0,-1,true
         local function blk()
