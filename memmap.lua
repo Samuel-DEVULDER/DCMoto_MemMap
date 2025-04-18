@@ -1103,9 +1103,23 @@ local function newHtmlWriter(file, mem)
 
     -- le titre
     function w:title(...)
-        local txt = sprintf(...)
-        self:_body('<',self.HEADING,' id="', self:_nxId(), '">',
-                    esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
+        local txt,id = sprintf(...),self:_nxId()
+		if nil==w._toc then
+			-- add Table Of Content
+			w._toc = {}
+			table.insert(self._body_, function(w) 
+				if w._toc[2] then
+					local t = '<h1 id="TOC">Table Of Content</h1>\n<ol>\n'
+					for _,entry in ipairs(w._toc) do
+						t = t..'<li><a href="#'..entry.id..'">'..esc(entry.title)..'</a></li>\n'
+					end
+					return t..'</ol>\n'
+				end
+			end)
+		end
+		table.insert(w._toc, {title=txt, id=id}) 
+        self:_body('<',self.HEADING,' id="', id, '" title=\'Click for Table Of Content\' onclick="document.location.href=\'#TOC\';">',
+						esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
                    '</',self.HEADING,'>','\n')
     end
 
@@ -1533,8 +1547,11 @@ local function newHtmlWriter(file, mem)
         -- écriture du body avec la progression
         local nxt, size = 0, #self._body_
         for i,txt in ipairs(self._body_) do
+			if type(txt) == 'function' then
+				txt = txt(self)
+			end
             f(txt)
-            if txt:len()>0 and txt:sub(-1)=='\n' and i>nxt then
+            if txt and txt:len()>0 and txt:sub(-1)=='\n' and i>nxt then
                 f('<script>progress(', (i-1)/size, ')</script>\n')
                 nxt = i + size/100 -- on augmente de 1%
             end
