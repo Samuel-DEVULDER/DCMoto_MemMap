@@ -1635,13 +1635,21 @@ local function newHtmlWriter(file, mem)
 	-- ligne hints
 	function w:_hints_row(tag,columns)
 		if nil==self._hints_row_first then self._hints_row_first=false
-			self:_style('	#hints_1 td:nth-of-type(3) {background-color: #AAF;}\n')
-			self:_style('	#hints_1 td:nth-of-type(4) {font-weight:bold;}\n')
-			self:_style('	#hints_1 td:nth-of-type(5) {background-color: #FAA;}\n')
-			self:_style('	#hints_1 td:nth-of-type(6) {font-weight:bold;}\n')
-			self:_style('	#hints_1 td:nth-of-type(7) {font-style:italic;}\n')
-			self:_style('	#hints_1 td:nth-of-type(8) {background-color: #AFA;}\n')
-			self:_style('	#hints_1 tfoot {font-weight:bold;}\n')
+			self:_style([[
+	#hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
+	#hints_1 td:nth-of-type(4)         {background-color: #AAF;}
+	#hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
+	#hints_1 td:nth-of-type(6)         {background-color: #FAA;}
+	#hints_1 td:nth-of-type(7)         {font-weight:bold;column-width:11em;}
+	#hints_1 td:nth-of-type(8)         {column-width:4em;}
+	#hints_1 td:nth-of-type(9)         {background-color: #AFA;column-width:4em;}
+	
+	#hints_1 th:nth-of-type(5)         {text-align:left;}
+	#hints_1 th:nth-of-type(7)         {text-align:left;}
+	#hints_1 th:nth-of-type(8)         {text-align:right;}
+	#hints_1 th:nth-of-type(9)         {text-align:right;}
+	#hints_1 tfoot                     {font-weight:bold;}
+			]])
 		end
 		
         local cols = {}
@@ -1991,7 +1999,7 @@ local HINTS = OPT_HINTS and {
 		_cmp0 = function(self, addr, hexa, opcode, arg, regs)
 			local REG = arg=='#$0000' and opcode:match('^CMP([YUS])')
 			if REG then
-				local h = self:_newHint(addr, hexa, 'cmp-addr-zero', -1,
+				local h = self:_newHint(addr, hexa, 'cmp-zero', -1,
 					REG=='Y' and 'LEAY ,Y' or
 					'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
 				-- verifier si suivi par BEQ ou BNE
@@ -2002,6 +2010,10 @@ local HINTS = OPT_HINTS and {
 					and opcode ~= 'LBNE' and opcode ~= 'LBEQ'
 					then self._valid = false end
 				end
+			end
+			REG = arg=='#$00' and opcode:match('^CMP([AB])')
+			if REG then
+				self:_newHint(addr, hexa, 'cmp-zero', 0,'TST'..REG)
 			end
 		end,
 		_ld0 = function(self, addr, hexa, opcode, arg, regs)
@@ -2019,7 +2031,7 @@ local HINTS = OPT_HINTS and {
 							local t = VAL=='00' and 'CLR'..REG or 'LD'..REG..' #$'..VAL
 							if hexa:sub(-4)~='0000' then t = t..' (flags?)' end
 							self:_newHint(addr, hexa, 
-							REG=='A' and 'B-already-set' or 'A-already-set', -1, t)
+							REG=='A' and 'lsb-ready' or 'msb-ready', -1, t)
 							.check = function(self, addr, hexa, opcode, arg, regs) 
 								self._valid = regs:match(REGEXP) 
 							end
@@ -2067,7 +2079,7 @@ local HINTS = OPT_HINTS and {
 				else
 					local a = arg:match('^%$(%x%x%x%x)$')
 					if self._bcom[BCC] and a then
-						local h = instrument(self:_newHint(addr, hexa, 'faster-short-branch', 
+						local h = instrument(self:_newHint(addr, hexa, 'rarely-taken', 
 							'7/3',
 							self._bcom[BCC]..' *+5 : JMP '..arg))
 
@@ -2087,7 +2099,7 @@ local HINTS = OPT_HINTS and {
 		end,
 		_puls_rts = function(self, addr, hexa, opcode, arg, regs)
 			if opcode=='PULS' and not arg:match(',PC$') then
-				local h = self:_newHint(addr, hexa, 'puls-followed-by-rts', -3, opcode..' '..arg..',PC')
+				local h = self:_newHint(addr, hexa, 'puls-rts', -3, opcode..' '..arg..',PC')
 				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
 					if addr ~= self.addr then
@@ -2100,7 +2112,7 @@ local HINTS = OPT_HINTS and {
 			if opcode:match('^[L]?B[^I]') then return end
 			local a = arg:match('^$(%x%x%x%x)$') 
 			if a and regs:match(XYU..'='..a) then
-				self:_newHint(addr, hexa, 'reg-contains-address', -1, opcode..' ,'..XYU)
+				self:_newHint(addr, hexa, 'addr-reg', -1, opcode..' ,'..XYU)
 				.check = function(self, addr, hexa, opcode, arg, regs) 
 					local addr = arg:match('^$(%x%x%x%x)$') 
 					self._valid = addr and regs:match(XYU..'='..a)
@@ -2117,7 +2129,7 @@ local HINTS = OPT_HINTS and {
 					return 0<=D and D<256
 				end
 				if check(arg, regs)  then
-					h = self:_newHint(addr, hexa, 'abx-instead-of-leax', B and -3 or -5, 'ABX')
+					h = self:_newHint(addr, hexa, 'leax-abx', B and -3 or -5, 'ABX')
 					h.check = function(self, addr, hexa, opcode, arg, regs) 
 						self._valid = check(arg,regs)
 					end
@@ -2125,7 +2137,7 @@ local HINTS = OPT_HINTS and {
 			end
 			return h
 		end,
-		_8bits_index = function(self, addr, hexa, opcode, arg, regs)
+		_byte_index = function(self, addr, hexa, opcode, arg, regs)
 			local REG = arg:match('^D,([XYUS])$')
 			if REG then
 				local function check(arg, regs) 
@@ -2135,7 +2147,7 @@ local HINTS = OPT_HINTS and {
 				end
 				local abx = self:_abx(addr, hexa, opcode, arg, regs)
 				if check(arg, regs) then
-					local h = self:_newHint(addr, hexa, '8bits-signed-index', -3, opcode..' B,'..REG)
+					local h = self:_newHint(addr, hexa, 'byte-index', -3, opcode..' B,'..REG)
 					h.check = function(self, addr, hexa, opcode, arg, regs) 
 						self._valid = check(arg,regs)
 					end
@@ -2164,16 +2176,16 @@ local HINTS = OPT_HINTS and {
 					end
 				end
 			elseif hints==nil and arg then self[addr] = {}
-				self:_lbranch     (addr, hexa, opcode, arg, regs)
-				self:_puls_rts    (addr, hexa, opcode, arg, regs) 
-				self:_ld0         (addr, hexa, opcode, arg, regs)
-				self:_ldd         (addr, hexa, opcode, arg, regs)
-				self:_cmp0        (addr, hexa, opcode, arg, regs)
-				self:_dp          (addr, hexa, opcode, arg, regs) 
-				self:_index       (addr, hexa, opcode, arg, regs, 'X') 
-				self:_index       (addr, hexa, opcode, arg, regs, 'Y') 
-				self:_index       (addr, hexa, opcode, arg, regs, 'U') 
-				self:_8bits_index (addr, hexa, opcode, arg, regs) 
+				self:_lbranch    (addr, hexa, opcode, arg, regs)
+				self:_puls_rts   (addr, hexa, opcode, arg, regs) 
+				self:_ld0        (addr, hexa, opcode, arg, regs)
+				self:_ldd        (addr, hexa, opcode, arg, regs)
+				self:_cmp0       (addr, hexa, opcode, arg, regs)
+				self:_dp         (addr, hexa, opcode, arg, regs) 
+				self:_index      (addr, hexa, opcode, arg, regs, 'X') 
+				self:_index      (addr, hexa, opcode, arg, regs, 'Y') 
+				self:_index      (addr, hexa, opcode, arg, regs, 'U') 
+				self:_byte_index (addr, hexa, opcode, arg, regs) 
 				if 0==#self[addr] then self[addr] = false end
 			end
 		end,
@@ -2330,25 +2342,28 @@ local mem = {
 
 		writer:id("hints")
         writer:title('Optimization Hints (%d)', #l)
-        writer:header{'>"Addr','>^Count','>^uS','"Initial Code','>^uS','"Suggested Code','"Hint','>^Gain(ms)'}
+        writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
 		local total1,total2,total3,last=0,0,0
 		for i,h in ipairs(l) do
 			-- if last and last~=h.lbl then
 				-- writer:row{'','','','','','','','',''}
 			-- end last = h.lbl
 			local asm = h:explain():gsub(' : ',':')
-			local int = not h.asm:match('^LB')
+			local integer = not h.asm:match('^LB')
 			writer:row{ --'#'..i, 
 				h.addr, 
-				h.x,
-				fmt(int, h.t0), h.asm:gsub('%s+',' '), 
-				fmt(int, h.t1), asm,
 				h.lbl, 
-				fmt(false, h.g/1000),
+				h.x,
+				fmt(integer, h.t0), h.asm:gsub('%s+',' '), 
+				fmt(integer, h.t1), asm,
+				fmt(integer, h.t0-h.t1),
+				fmt(false,   h.g/1000),
 				nil}
 			total1,total2,total3 = total1+h.t0*h.x,total2+h.t1*h.x,total3+h.g
 		end
-        writer:footer{'Total','',--'',
+        writer:footer{'Total',
+			'',
+			'',
 			fmt(true,total1),'',
 			fmt(true,total2),'',
 			'',
