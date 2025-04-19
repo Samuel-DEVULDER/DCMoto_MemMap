@@ -10,6 +10,7 @@ Outil d'analyse de traces d'execution de [DCMoto](http://dcmoto.free.fr/emulateu
 					[-times=address,symbol,symbol-address,...]
 	                [-html] [-smooth]
 	                [-verbose[=N]]
+					[-auto-args]
 	                [?|-h|--help]
 ```
 Le programme attends que le fichier `dcmoto_trace.txt` apparaisse dans le repertoire courant. Ensuite il l'analyse, et produit un fichier `memmap.csv` contenant l'analyse de la trace. Ce fichier liste les adresses mémoires trouvées dans les trace. 
@@ -53,10 +54,12 @@ Plusieurs options gouvernent le contenu du fichier produit:
 	Ajoute une annotation concernant un equate thomson reconnu dans les adresses. Si rien n'est passé en argument, alors les fichiers standard de c6809, LWASM ou C6809 sont cherchés dans le repertoire courant. Si un ou plusieurs repertoires sont donnés, la recherche azuraé lieu dans cesz répertoire. Enfin si un ou des fichiers sont indiqués ce sera ceux-là qui fourniront les symboles.
 * __-hot__  
 	Une analyse des points chauds (endroits où le cpu passe le plus de temps) est ajoutée.
+* __-hot=colors__
+	parreil que `-hot`, mais une couleur aléatoire est attribuée à chaque "hot-spot" dans la sortie HTML. On retrouve ce code couleur dans la partie "listing" ce qui permet de s'y retrouver plus facilement dans l'analyse du code.
 * __-map__  
 	Ajoute une représentation 2D de la cartographie mémoire pour avoir une vue d'ensemble bien plus compacte que la liste linéaire de base. La largeur de cette cartographie est par défauut de 128 octets. Un kilo-octet représente alors 8 lignes, et l'ensemble des 64ko recouivre 512 lignes. C'est beaucoup, mais heuresement l'outil saute par dessus 8 lignes consécutives vides pour réduire cela.
 * __-hints__
-	Essaye de suggérer des optimisations à partir des données recueillies.
+	Essaye de suggérer des optimisations à partir des données recueillies. Les suggestions apparaissent avec le mot clef HINT dans la vue listing juste après l'instruction qu'elle suggère de modifier.
 * __-times=XXXX-YYYY,ZZZZ,....__
 	Mesure le temps moyen en cycles (~) et en VBL (20000 cycles) passé entre les adresse XXXX et YYYY (peuvent être des symboles).
 	Si une seule adresse est présente (cas ZZZZZ), alors on mesure le temps entre deux passages à cette adresse. 
@@ -68,6 +71,8 @@ Plusieurs options gouvernent le contenu du fichier produit:
 	Utilise le fichier indiqué au lieu du fichier dcmoto_trace.txt du répertoire courant.
 
 Si l'option `-html` est présente, alors un fichier `memmap.html` est aussi produit. L'option `-smooth` utilisera alors un scrolling pour sauter d'un endroit à l'autre (ne pas l'appliquer si on a facilement le mal des transports). Le fichier HTML permet une navigation aisée via des hyperliens pour aller d'une adresse à une autre. La vue 2D utilise en outre un code couleur pour indiquer la nature de l'octet. 
+
+Si l'option `-auto-args` est présqent les arguments utilisés sont sauvés dans un fichier `.memmap.arg`. Plus tard si l'option est présente, alors ce fichier est lu les les arguments précédents sont automatiquement ajoutés à la ligne de commande. Les autres arguments de la ligne de commande actuelle ont cependant priorité sur ceux du fichier `.memmap.arg`.
 
 Si on laisse la souris un certain temps sur un hyperlien, des infos synthétiques sont affichées sur l'adresse en question. Si l'adresse contient du code la vue assembleur est indiquée, s'il est lu ou écrit les instructions mises en jeu sont aussi affichées. 
 

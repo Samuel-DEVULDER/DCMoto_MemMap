@@ -37,14 +37,13 @@ local OPT_COLS    = 128                -- nb de colonnes de la table map
 local OPT_EQU     = false              -- utilise les equates
 local OPT_MACH    = nil                -- type de machine
 local OPT_VERBOSE = 0                  -- niveau de détail
+local OPT_AUTOARG = false              -- rejoue les arguments précédents
 
 ------------------------------------------------------------------------------
 -- utilitaires
 ------------------------------------------------------------------------------
 
 local unpack = unpack or table.unpack
-
-
 
 -- formatage à la C
 local function sprintf(...)
@@ -282,24 +281,46 @@ local function machMO()
     log("Set machine to %s", OPT_MACH)
 end
 
+-- auto arguments
+AUTO_ARGS = '-auto-args'
+for _,v in ipairs(ARGV) do if v==AUTO_ARGS then OPT_AUTOARG = '.memmap.args' end end
+if OPT_AUTOARG then
+	local args, f = {}, io.open(OPT_AUTOARG,'r')
+	local function add(l)
+		l = trim(l)
+		local k = l:match('^(.+)=') 
+		if nil==k then k = l end
+		if k~='' then args[k] = l end		
+	end
+	if f then
+		for l in f:lines() do add(l) end
+		f:close()
+	end
+	-- override with actual cmd-line args
+	for _,l in ipairs(ARGV) do add(l) end
+	args[AUTO_ARGS] = nil
+	ARGV = {}
+	for _,v in pairs(args) do table.insert(ARGV, v) end
+end
+
 for i,v in ipairs(ARGV) do local t
     local l = v:lower()
     if l=='-h'
     or l=='?'
     or l=='--help'   then usage()
-    elseif l=='-loop'    then OPT_LOOP    = true
-    elseif l=='-html'    then OPT_HTML    = true
-    elseif l=='-smooth'  then OPT_SMOOTH  = "smooth"
-    elseif l=='-reset'   then OPT_RESET   = true
-    elseif l=='-map'     then OPT_MAP     = true
-    elseif v=='-hints'   then OPT_HINTS   = true
-    elseif l=='-hot'     then OPT_HOT     = true
-    elseif l=='-hot=col' then OPT_HOT     = true; OPT_HOT_COL = true
-    elseif l=='-equ'     then OPT_EQU     = true
-    elseif l=='-verbose' then OPT_VERBOSE = 1
-    elseif l=='-mach=??' then OPT_MACH    = MACH_XX; OPT_EQU  = true
-    elseif l=='-mach=to' then machTO()
-    elseif l=='-mach=mo' then machMO()
+    elseif l=='-loop'       then OPT_LOOP    = true
+    elseif l=='-html'       then OPT_HTML    = true
+    elseif l=='-smooth'     then OPT_SMOOTH  = "smooth"
+    elseif l=='-reset'      then OPT_RESET   = true
+    elseif l=='-map'        then OPT_MAP     = true
+    elseif v=='-hints'      then OPT_HINTS   = true
+    elseif l=='-hot'        then OPT_HOT     = true
+    elseif l=='-hot=colors' then OPT_HOT     = true; OPT_HOT_COL = true; OPT_HTML = true
+    elseif l=='-equ'        then OPT_EQU     = true
+    elseif l=='-verbose'    then OPT_VERBOSE = 1
+    elseif l=='-mach=??'    then OPT_MACH    = MACH_XX; OPT_EQU  = true
+    elseif l=='-mach=to'    then machTO()
+    elseif l=='-mach=mo'    then machMO()
 	else t=v:match('%-trace=(.+)')     if t then TRACE       = t
     else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t																
     else t=v:match('%-times=(.+)')     if t then OPT_TIMES   = t																
@@ -309,6 +330,15 @@ for i,v in ipairs(ARGV) do local t
     else t=l:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
     end end end end end end end end
+end
+
+if OPT_AUTOARG then
+	local f = assert(io.open(OPT_AUTOARG,'w'))
+	for _,v in ipairs(ARGV) do
+		f:write(v..'\n')
+	end
+	f:flush()
+	f:close()
 end
 
 ------------------------------------------------------------------------------
