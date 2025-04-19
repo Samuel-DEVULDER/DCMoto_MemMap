@@ -6,7 +6,8 @@ Outil d'analyse de traces d'execution de [DCMoto](http://dcmoto.free.fr/emulateu
 	lua memmap.lua	[-reset] [-loop] [-trace=path/to/trace/file.txt]
 	                [-mach=(mo|to|??)]
 	                [-from=XXXX] [-to=XXXX]
-	                [-map[=NBCOLS]] [-hot] [-Ohints] [-equ[=file,dir,...]] 
+	                [-map[=NBCOLS]] [-hot] [-hints] [-equ[=file,dir,...]] 
+					[-times=address,symbol,symbol-address,...]
 	                [-html] [-smooth]
 	                [-verbose[=N]]
 	                [?|-h|--help]
@@ -56,6 +57,11 @@ Plusieurs options gouvernent le contenu du fichier produit:
 	Ajoute une représentation 2D de la cartographie mémoire pour avoir une vue d'ensemble bien plus compacte que la liste linéaire de base. La largeur de cette cartographie est par défauut de 128 octets. Un kilo-octet représente alors 8 lignes, et l'ensemble des 64ko recouivre 512 lignes. C'est beaucoup, mais heuresement l'outil saute par dessus 8 lignes consécutives vides pour réduire cela.
 * __-hints__
 	Essaye de suggérer des optimisations à partir des données recueillies.
+* __-times=XXXX-YYYY,ZZZZ,....__
+	Mesure le temps moyen en cycles (~) et en VBL (20000 cycles) passé entre les adresse XXXX et YYYY (peuvent être des symboles).
+	Si une seule adresse est présente (cas ZZZZZ), alors on mesure le temps entre deux passages à cette adresse. 
+	Dans ce cas en plus de la mesure du temps en cycles ou VBL, on affiche sa fréquence en Hz ce qui est pratique pour estimer le FPS.
+	En plus des moyennes de temps, une estimation de la marge d'erreur en pourcentage est calculée. Elle est rarement nulle (et peut même dépasser 100%) si des IRQ apparaissent entre leux deux adresses et consomment une portion non négligeable du temps-cpu entre ces adresses.
 * __-map=NUM__  
 	Utilise NUM colonnes dans la représentation 2D. Attention à ne pas le choisir trop petit ou trop gros pour que cela reste lisible (256 est possible si on a un grand écran). L'idée ici est d'avoir une vue synthétique.
 * __-trace=FILE__

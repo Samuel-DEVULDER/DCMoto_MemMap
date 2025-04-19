@@ -29,6 +29,7 @@ local OPT_MAX     = nil                -- adresse de fin
 local OPT_HOT     = false              -- hotspots ?
 local OPT_HOT_COL = false              -- colored hotspots 
 local OPT_HINTS   = false              -- add hint comments on the html
+local OPT_TIMES   = false              -- measure times
 local OPT_MAP     = false              -- ajoute une version graphique de la map
 local OPT_HTML    = false              -- produit une analyse html?
 local OPT_SMOOTH  = "auto"             -- type de scroll html
@@ -301,12 +302,13 @@ for i,v in ipairs(ARGV) do local t
     elseif l=='-mach=mo' then machMO()
 	else t=v:match('%-trace=(.+)')     if t then TRACE       = t
     else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t																
+    else t=v:match('%-times=(.+)')     if t then OPT_TIMES   = t																
     else t=l:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
     else t=l:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=l:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
     else t=l:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
-    end end end end end end end
+    end end end end end end end end
 end
 
 ------------------------------------------------------------------------------
@@ -348,6 +350,19 @@ local EQUATES = {
         or   self[add2 or ''] and BRAKET[1]..self[add2]..BRAKET[2]
         or   '') or ''
     end,
+	-- resolve symbol -> addr
+	r = function(self, symbol) 
+		local function norm(x) return x:upper() end
+		if nil==self._resolve then self._resolve = {}
+			for a,s in pairs(self) do 
+				if type(s)=='string' then self._resolve[norm(s)] = a end 
+			end
+		end
+		local s = norm(symbol)
+		return self[s] and s
+		    or self._resolve[s]
+			or tonumber(symbol, 16) and s
+	end,
     -- init equates for video ram
     iniVRAM = function(self, base)
         for i=0,8191 do local j,t
@@ -814,6 +829,95 @@ local EQUATES = {
 nil} EQUATES:ini()
 
 ------------------------------------------------------------------------------
+-- chronomètres
+------------------------------------------------------------------------------
+local TIMES TIMES = {
+	active = false,
+	_watches = {},
+	_attach = function(self, addr, sw) 
+		local list = self[addr]
+		if nil==list then list = {}; self[addr] = list end
+		table.insert(list, sw)
+	end,
+	_newStopWatch = function(self, from, to) 
+		local w = {
+			from  = from,
+			to    = to,
+			count = 0,
+			_t    = -1,
+			_sum1 = 0,
+			_sum2 = 0,
+			_stop = function(self, tick)
+				if self._t>=0 then local t = tick - self._t
+					self._t, self.count  , self._sum1    , self._sum2
+					=	 -1, self.count+1, self._sum1 + t, self._sum2 + t*t
+				end
+			end,
+			_start = function(self, tick)
+				if self._t<0 then self._t = tick end
+			end,
+			mean = function(self)
+				return self._sum1/self.count
+			end,
+			stddev = function(self)
+				local iN,s1,s2 = 1/self.count,self._sum1,self._sum2
+				return math.sqrt((s2 - s1*s1*iN)*iN)
+			end
+		}
+		-- skip if already exist
+		local list = self[from]	if list then
+			for _,w2 in ipairs(list) do
+				if w2.to == w.to then return end
+			end
+		end
+		self.active = true
+		-- add to data structure
+		table.insert(self._watches, w)
+		self:_attach(from, w); if to and from~=to then self:_attach(to, w) end
+		return w
+	end,
+	lastline = '                                                        0',
+	analyze = function(self, addr, fullline)
+		if self.active then
+			local l = self[addr]
+			if l then 
+				local t1,t2 = tonumber(self.lastline:sub(47,58)) 
+				for _,sw in ipairs(l) do 
+					if sw.to then
+						if sw.from == addr then sw:_start(t1) end
+						if sw.to   == addr then 
+							t2 = t2 or tonumber(fullline:sub(47,58))
+							sw:_stop(t2)  
+						end
+					else
+						sw:_stop(t1)
+						sw:_start(t1)
+					end
+				end
+			end
+			self.lastline = fullline
+		end
+	end,
+	getWatches = function(self)
+		return self._watches -- sort ?
+	end,
+	init = function(self, args)
+		if type(args)~='string' then return end
+		for entry in string.gmatch(args, '%s*([^,]+)%s*') do
+			local a,b = entry:match('%s*(%S+)%s*-%s*(%S+)%s*')
+			if not a then a = entry:match('%s*(%S+)%s*') end
+			local function check(symb)
+				local t = symb and symb:gsub('^%$','')
+				local addr = t and EQUATES:r(t)
+				if symb~=nil and addr==nil then error('Can not find/resolve "'..symb..'"') end
+				return addr
+			end
+			self:_newStopWatch(check(a),check(b))
+		end
+	end
+} TIMES:init(OPT_TIMES)
+
+------------------------------------------------------------------------------
 -- différent formateurs de résultat
 ------------------------------------------------------------------------------
 
@@ -883,7 +987,7 @@ local function newTSVWriter(file, tablen)
         self.hsep = ''
         cols = {}
         for i,n in ipairs(columns) do
-            local tag,fnt,txt = n:match('^([<=>]?)([%*]?)(.*)')
+            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^"]?)(.*)')
             self.align[i], cols[i], self.clen[i] = tag=='' and '<' or tag, txt, 0
             if empty and trim(txt) then empty = false end
         end
@@ -1088,6 +1192,7 @@ local function newHtmlWriter(file, mem)
             if id=='hotspots'     then self._2panes = 1 end
             if id:match('memmap') then self._2panes = 1 end
             if id:match('hints')  then self._2panes = 1 end
+            if id:match('times')  then self._2panes = 1 end
         end
         if self._2panes==1 then
             self._2panes = true
@@ -1146,6 +1251,7 @@ local function newHtmlWriter(file, mem)
         -- selection de la fonction de gestion des lignes en fonction de l'id
         self._row = self._std_row
         if id:match('flatmap')  then self._row = self._flatmap_row end
+        if id:match('times')    then self._row = self._times_row end
         if id:match('hotspots') then self._row = self._hotspot_row end
         if id:match('hints')    then self._row = self._hints_row   end
         if id:match('memmap')   then self._row = self._memmap_row  end
@@ -1464,7 +1570,7 @@ local function newHtmlWriter(file, mem)
     }
 	function cmp(a,b,number) {
 		var ta = a.innerText, tb = b.innerText;
-		var d = number ? Number(ta) - Number(tb) : ta.localeCompare(tb);
+		var d = number ? parseFloat(ta) - parseFloat(tb) : ta.localeCompare(tb);
 		if(Math.abs(d)<0.01) {
 			ta = a.parentElement.cells[0].innerText;
 			tb = b.parentElement.cells[0].innerText;
@@ -1661,6 +1767,38 @@ local function newHtmlWriter(file, mem)
 		end
 		w._lastADDR = ADDR
         self:_raw_row(tag,cols,extra)
+    end
+
+	function w:_times_row(tag,columns)
+		if nil==self._times_row_first then self._times_row_first=false
+			-- self:_style([[
+	-- #hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
+	-- #hints_1 td:nth-of-type(3)         {font-weight:bold;}
+	-- #hints_1 td:nth-of-type(4)         {background-color: #AAF;}
+	-- #hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
+	-- #hints_1 td:nth-of-type(6)         {background-color: #FAA;}
+	-- #hints_1 td:nth-of-type(7)         {font-weight:bold;column-width:11em;}
+	-- #hints_1 td:nth-of-type(8)         {column-width:4em;}
+	-- #hints_1 td:nth-of-type(9)         {background-color: #AFA;column-width:4em;}
+	
+	-- #hints_1 th:nth-of-type(8)         {text-align:right;}
+	-- #hints_1 th:nth-of-type(9)         {text-align:right;}
+	-- #hints_1 tfoot                     {font-weight:bold;}
+			-- ]])
+		end
+		
+        local cols = {}
+        for i,v in ipairs(columns) do
+            v = trim(v) or ''
+            if i<=2 then
+				local a,b = v:match('(%x%x%x%x)(.*)')
+				if a then v = ahref('',a,a)..esc(b) else v = esc(v) end
+            else
+                v = esc(v)--:gsub(' ','&nbsp;')
+            end
+            cols[i] = v
+        end
+        self:_raw_row(tag,cols)
     end
 	
 	-- ligne hints
@@ -2192,7 +2330,7 @@ local HINTS = OPT_HINTS and {
 				end
 			end
 		end,
-		analyse = function(self, addr, hexa, opcode, arg, regs)
+		analyze = function(self, addr, hexa, opcode, arg, regs)
 			local hints = self[addr]
 			if type(hints)=='table' then
 				for i=#hints,1,-1 do local h = hints[i]
@@ -2250,7 +2388,7 @@ local HINTS = OPT_HINTS and {
 			return ret
 		end
 	} or { -- dummy one
-		analyse = function() end, 
+		analyze = function() end, 
 		getHints = function() return {} end
 	}
 
@@ -2351,6 +2489,34 @@ local mem = {
         end
         return f
     end,
+	_saveTimes = function(self, writer)
+		profile:_()
+		local watches = TIMES:getWatches()
+		-- if all are looping, use Hz
+		-- local useHz = true;	for _,w in ipairs(watches) do if w.to then useHz = false; break end end
+		writer:id("times")
+		writer:title("Timings")
+		writer:header{'"From','"To',">^Samples",">^Avg(~)",">^Avg(VBL)", ">Avg(Hz)",">^Std Dev"}
+		for _,w in ipairs(watches) do
+			local function fmt(x)
+				return sprintf('%.02f', x)
+			end
+			local function symb(x)
+				return EQUATES[x] and x..' '..EQUATES[x] or x
+			end
+			local mean = w:mean()
+			writer:row{
+				symb(w.from), w.to and symb(w.to) or '<<<<', 
+				w.count,
+				fmt(mean), 
+				fmt(mean/20000),
+				w.to and 'n/a' or fmt(1000000/mean),
+				fmt(100*w:stddev()/mean, false)..'%', 
+			nil}
+		end
+		writer:footer()
+		profile:_()
+	end,
 	_saveHints = function(self, writer)
 		profile:_()
 		local l = HINTS:getAllHints()
@@ -2409,7 +2575,7 @@ local mem = {
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
         writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
-        writer:header{'*Number','Addr','<*Assembly','<Label','>*#Count','>Percent (Time)      '}
+        writer:header{'*Number','Addr','<*Assembly','<Label','>*Count','>Percent (Time)      '}
         for i,s in ipairs(spots) do
 			if i>1 then writer:row{'', '', '', '', '', ''} end
             local EMPTY='     '
@@ -2646,9 +2812,10 @@ local mem = {
     save = function(self, writer)
         writer = writer or newParallelWriter()
         self:_saveInfos(writer)
-        self:_saveFlatMap(writer) if     OPT_HOT then
+        self:_saveFlatMap(writer)     if OPT_TIMES then 
+		self:_saveTimes(writer)   end if OPT_HOT   then
         self:_saveHotspot(writer) end if OPT_HINTS then
-		self:_saveHints(writer)   end if OPT_MAP then
+		self:_saveHints(writer)   end if OPT_MAP   then
         self:_save_Memmap(writer) end
         return writer
     end
@@ -2887,7 +3054,8 @@ local function read_trace(filename)
             end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             regs,regs_next = regs_next,s:sub(61,106)
-			HINTS:analyse(pc, hexa, opcode, args, regs)
+			HINTS:analyze(pc, hexa, opcode, args, regs)
+			TIMES:analyze(pc, s)
             if nomem_asm[sig] then
                 mem:a(nomem_asm[sig][1],nomem_asm[sig][2])
             else
