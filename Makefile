@@ -10,7 +10,7 @@ RM=rm
 CP=cp
 7Z=7z
 
-VERSION:=$(shell git describe --abbrev=0 2>/dev/null || echo v0)
+VERSION:=$(shell git tag --list --sort=-authordate --merged | head -n1 || echo v0)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
 TMP:=$(shell mktemp)
@@ -60,6 +60,9 @@ clean:
 
 ##############################################################################
 # Distribution stuff
+
+chk-distro:
+	@echo $(DISTRO)
 
 distro: $(DISTRO)
 	zip -u -r "$(DISTRO).zip" "$<"
@@ -148,7 +151,7 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	cd $*; time \
 	$$ROOT/$(LUA) $$ROOT/memmap.lua \
 	-reset -html  -smooth \
-	-mach=?? -from=4000 -map -hot -equ -verbose=2
+	-mach=?? -from=4000 -map -hot=colors -hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
 	-@cmd /c start $*/memmap.html
 
 %/dcmoto_trace.txt: %/dcmoto_trace.txt.7z
