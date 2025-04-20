@@ -74,7 +74,7 @@ distro-update: distro-current
 	make distro-create-$(VERSION)
 	
 distro-create-%:
-	-git commit -a -m "update $*"
+	-git commit -a -m "create $*"
 	git push
 	git tag -a $* -m "$*"
 	git push --force origin tag $*
