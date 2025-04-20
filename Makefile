@@ -3,6 +3,7 @@
 ##############################################################################
 
 STRIP=strip
+STRIP=strip
 WGET=wget
 SED=sed -e
 GIT=git
@@ -126,9 +127,9 @@ tst_h: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	@X="$(DISTRO)/$(LUA) $< -h"; \
 	echo -n Testing $$X...;\
 	X=`$$X | wc -l`; \
-	if test $$X -ne 117; then \
+	if test $$X -ne 150; then \
 		echo; \
-		echo "Error: expected 117, got $$X"; \
+		echo "Error: expected 150, got $$X"; \
 		exit 15; \
 	else \
 		echo ok; \
@@ -138,9 +139,9 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	@X="$(DISTRO)/$(LUA) $< -dummy"; \
 	echo -n Testing $$X...;\
 	X=`$$X | wc -l`; \
-	if test $$X -ne 15; then \
+	if test $$X -ne 18; then \
 		echo; \
-		echo "Error: expected 15, got $$X"; \
+		echo "Error: expected 18, got $$X"; \
 		exit 15; \
 	else \
 		echo ok; \
