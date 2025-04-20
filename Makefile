@@ -70,11 +70,13 @@ distro-update:
 	git tag -d $(VERSION)
 	git commit -a -m "update $(VERSION)"
 	git push
-	make distro-$(DISTRO)
+	make distro-$(VERSION)
 	
 distro-%:
-	git tag -a $@ -m "$@"
-	git push --force origin tag $@
+	git commit -a -m "update $*"
+	git push
+	git tag -a $* -m "$*"
+	git push --force origin tag $*
 
 distro: $(DISTRO)
 	zip -u -r "$(DISTRO).zip" "$<"
