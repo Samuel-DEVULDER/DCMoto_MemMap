@@ -74,6 +74,8 @@ distro-update: distro-current
 	make distro-create-$(VERSION)
 	
 distro-create-%:
+	git pull
+	make distro
 	-git commit -a -m "update $*"
 	git push
 	git tag -a $* -m "$*"
