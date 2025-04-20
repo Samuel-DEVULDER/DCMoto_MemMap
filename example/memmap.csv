@@ -1,7 +1,7 @@
 sep=\t	(use a tabulation of 8)
 
 CLI Arguments	-reset -html -smooth -mach=?? -from=4000 -map -hot=colors -hints\n-times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
-Current Date	2025-04-20 19:30:08                                                                                                     
+Current Date	2025-04-20 18:40:23                                                                                                     
 Total Cycles	31999999 (~32s)                                                                                                         
 Machine Type	TO7(70)/TO8/TO9(+)                                                                                                      
 Stack (guessed)	$6111                                                                                                                   
