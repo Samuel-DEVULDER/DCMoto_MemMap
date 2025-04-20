@@ -64,6 +64,17 @@ clean:
 
 distro-version:
 	@echo $(DISTRO)
+	
+distro-update:
+	git pull
+	git tag -d $(VERSION)
+	git commit -a -m "update $(VERSION)"
+	git push
+	make distro-$(DISTRO)
+	
+distro-%:
+	git tag -a $@ -m "$@"
+	git push --force origin tag $@
 
 distro: $(DISTRO)
 	zip -u -r "$(DISTRO).zip" "$<"
