@@ -11,7 +11,7 @@ RM=rm
 CP=cp
 7Z=7z
 
-VERSION:=$(shell git tag --list --sort=-authordate --merged | head -n1 || echo v0)
+VERSION:=$(shell git tag --list --sort=-authordate --merged | tail -n1 || echo v0)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
 TMP:=$(shell mktemp)
@@ -62,7 +62,7 @@ clean:
 ##############################################################################
 # Distribution stuff
 
-chk-distro:
+distro-version:
 	@echo $(DISTRO)
 
 distro: $(DISTRO)
