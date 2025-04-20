@@ -68,8 +68,6 @@ distro-version:
 distro-update:
 	git pull
 	git tag -d $(VERSION)
-	git commit -a -m "update $(VERSION)"
-	git push
 	make distro-$(VERSION)
 	
 distro-%:
