@@ -63,7 +63,10 @@ clean:
 # Distribution stuff
 
 distro-current:
-	@echo "Current version is : $(DISTRO)"
+	@echo "Current version is : $(VERSION)"
+	@echo "Current prefix is  : $(DISTRO)"
+	@echo 
+	@echo
 	
 distro-update: distro-current
 	git pull
