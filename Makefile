@@ -82,7 +82,7 @@ distro-create-%:
 	git push --force origin tag $*
 
 distro: $(DISTRO)
-	zip -u -r "$(DISTRO).zip" "$<"
+	zip -9 -u -r "$(DISTRO).zip" "$<"
 
 $(DISTRO): $(ALL) \
 	$(DISTRO)/ \
