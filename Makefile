@@ -3,6 +3,7 @@
 ##############################################################################
 
 STRIP=strip
+STRIP=strip
 WGET=wget
 SED=sed -e
 GIT=git
@@ -10,7 +11,7 @@ RM=rm
 CP=cp
 7Z=7z
 
-VERSION:=$(shell git tag --list --sort=-authordate --merged | head -n1 || echo v0)
+VERSION:=$(shell git tag --list --sort=-authordate --merged | tail -n1 || echo v0)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
 TMP:=$(shell mktemp)
@@ -61,8 +62,24 @@ clean:
 ##############################################################################
 # Distribution stuff
 
-chk-distro:
-	@echo $(DISTRO)
+distro-current:
+	@echo
+	@echo "==============================================="
+	@echo "Current version is : $(VERSION)"
+	@echo "Current prefix is  : $(DISTRO)"
+	@echo "==============================================="
+	@echo
+	
+distro-update: distro-current
+	git pull
+	git tag -d $(VERSION)
+	make distro-create-$(VERSION)
+	
+distro-create-%:
+	-git commit -a -m "create $*"
+	git push
+	git tag -a $* -m "$*"
+	git push --force origin tag $*
 
 distro: $(DISTRO)
 	zip -u -r "$(DISTRO).zip" "$<"
@@ -126,9 +143,9 @@ tst_h: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	@X="$(DISTRO)/$(LUA) $< -h"; \
 	echo -n Testing $$X...;\
 	X=`$$X | wc -l`; \
-	if test $$X -ne 117; then \
+	if test $$X -ne 150; then \
 		echo; \
-		echo "Error: expected 117, got $$X"; \
+		echo "Error: expected 150, got $$X"; \
 		exit 15; \
 	else \
 		echo ok; \
@@ -138,9 +155,9 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	@X="$(DISTRO)/$(LUA) $< -dummy"; \
 	echo -n Testing $$X...;\
 	X=`$$X | wc -l`; \
-	if test $$X -ne 15; then \
+	if test $$X -ne 18; then \
 		echo; \
-		echo "Error: expected 15, got $$X"; \
+		echo "Error: expected 18, got $$X"; \
 		exit 15; \
 	else \
 		echo ok; \
