@@ -65,7 +65,7 @@ clean:
 distro-current:
 	@echo "Current version is : $(VERSION)"
 	@echo "Current prefix is  : $(DISTRO)"
-	@echo 
+	@echo "==============================================="
 	@echo
 	
 distro-update: distro-current
@@ -74,8 +74,6 @@ distro-update: distro-current
 	make distro-create-$(VERSION)
 	
 distro-create-%:
-	git pull
-	make distro
 	-git commit -a -m "update $*"
 	git push
 	git tag -a $* -m "$*"
