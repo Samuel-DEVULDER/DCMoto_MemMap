@@ -77,7 +77,7 @@ Si l'option `-prev-args` est présente les arguments non présent sur la ligne d
 
 Si on laisse la souris un certain temps sur un hyperlien, des infos synthétiques sont affichées sur l'adresse en question. Si l'adresse contient du code la vue assembleur est indiquée, s'il est lu ou écrit les instructions mises en jeu sont aussi affichées. 
 
-En principe le fichier HTML est compatible tout "brouteur", y compris ceux en mode texte ou ceux fonctionnant en mode ésombre". Attention toutefois, comme il est assez gros cerains "browsers" mettent de temps à l'afficher. A l'heure actuelle il semble que ce soit Firefox qui soit le plus perfomant. Chrome mets plus de temps, mais une barre de progression est affichée durant le chargement pour patienter.
+En principe le fichier HTML est compatible tout "brouteur", y compris ceux en mode texte ou ceux fonctionnant en mode "sombre". Attention toutefois, comme il est assez gros cerains "browsers" mettent de temps à l'afficher. A l'heure actuelle il semble que ce soit Firefox qui soit le plus perfomant. Chrome mets plus de temps, mais une barre de progression est affichée durant le chargement pour patienter.
 
 # Examples
 
