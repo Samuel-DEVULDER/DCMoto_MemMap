@@ -63,6 +63,8 @@ clean:
 # Distribution stuff
 
 distro-current:
+	@echo
+	@echo "==============================================="
 	@echo "Current version is : $(VERSION)"
 	@echo "Current prefix is  : $(DISTRO)"
 	@echo "==============================================="
