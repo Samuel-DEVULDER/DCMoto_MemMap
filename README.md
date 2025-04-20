@@ -20,11 +20,12 @@ Chaque ligne est de la forme:
 
 >```ADDR <tab> RRRR <tab> WWWW <tab> EXEC <tab> HEXA <tab> CYCLES <tab> ASM```
 
-La remière forme ne concerne que les où:
+avec:
 - `<tab>` est une tabulation, ainsi le fichier au format CSV peut être lu et correctement affiché par un tableur, ou même un simple éditeur de texte.
 - `ADDR` est une adresse mémoire en hexadécimal. 
 - `RRRR` est l'adresse (hexadécimal) de la dernière instruction cpu qui a lu cette adresse. 
 - `WWWW` est l'adresse de la dernière instruction cpu qui l'a modifié.
+
 Si aucune instruction n'a lu (ou écrit à) ces adresses alors un `----` est présent.
 - `EXEC` contient un nombre qui indique le nombre de fois où le CPU a executé du code machine (ou vide s'il n'y a pas d'instruction machine à cette addresse).
 - `HEXA` le code machine executé.
