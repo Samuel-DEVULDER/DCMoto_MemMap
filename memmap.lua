@@ -8,12 +8,13 @@
 -- $Usage$ : see README
 -----------------------------------------------------------------------------
 
-local ARGV   = arg                     -- ligne de commande
-local NOADDR = '----'                  -- marqueur d'absence
-local NOCYCL = ''                      -- marqueur d'absence
-local TRACE  = 'dcmoto_trace.txt'      -- fichier trace
-local RESULT = 'memmap'                -- racine des fichiers résultats
-local BRAKET = {' <-',''}              -- pour décorer les equates
+local ARGV    = arg                    -- ligne de commande
+local PREVCLI = '-prev-args'           -- réutil. ligne de fcommande préced.
+local NOADDR  = '----'                 -- marqueur d'absence
+local NOCYCL  = ''                     -- marqueur d'absence
+local TRACE   = 'dcmoto_trace.txt'     -- fichier trace
+local RESULT  = 'memmap'               -- racine des fichiers résultats
+local BRAKET  = {' <-',''}             -- pour décorer les equates
 -- local BRAKET = {' .oO(',')'}
 -- local BRAKET = {' (',')'}
 -- local BRAKET = {'<<',''}
@@ -281,11 +282,9 @@ local function machMO()
     log("Set machine to %s", OPT_MACH)
 end
 
--- auto arguments
-AUTO_ARGS = '-auto-args'
-for _,v in ipairs(ARGV) do if v==AUTO_ARGS then OPT_AUTOARG = '.memmap.args' end end
-if OPT_AUTOARG then
-	local args, f = {}, io.open(OPT_AUTOARG,'r')
+-- reuse previous command-line arguments
+for _,v in ipairs(ARGV) do if v==PREVCLI then 
+	local args, f = {}, io.open(RESULT..'.csv','r')
 	local function add(l)
 		l = trim(l)
 		local k = l:match('^(.+)=') 
@@ -293,15 +292,25 @@ if OPT_AUTOARG then
 		if k~='' then args[k] = l end		
 	end
 	if f then
-		for l in f:lines() do add(l) end
+		for l in f:lines() do 
+			local c1,c2 = l:match('^([^\t]+)\t(.*)$')
+			if c1=='CLI Arguments' then
+				c2 = c2:gsub('^%s*%-',''):gsub('\\n',' '):gsub('\\t',' ')..' -'
+				for entry in string.gmatch(c2, '%s*(.-)%s+%-') do
+					add('-'..entry)
+				end
+				break
+			end
+		end
 		f:close()
 	end
 	-- override with actual cmd-line args
 	for _,l in ipairs(ARGV) do add(l) end
-	args[AUTO_ARGS] = nil
+	args[PREVCLI] = nil
 	ARGV = {}
 	for _,v in pairs(args) do table.insert(ARGV, v) end
-end
+	break
+end end
 
 for i,v in ipairs(ARGV) do local t
     local l = v:lower()
@@ -330,15 +339,6 @@ for i,v in ipairs(ARGV) do local t
     else t=l:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
     end end end end end end end end
-end
-
-if OPT_AUTOARG then
-	local f = assert(io.open(OPT_AUTOARG,'w'))
-	for _,v in ipairs(ARGV) do
-		f:write(v..'\n')
-	end
-	f:flush()
-	f:close()
 end
 
 ------------------------------------------------------------------------------
@@ -871,9 +871,20 @@ local TIMES TIMES = {
 	end,
 	_newStopWatch = function(self, from, to) 
 		local w = {
+			-- public
 			from  = from,
 			to    = to,
 			count = 0,
+			min  = math.huge,
+			max  = 0,
+			mean = function(self)
+				return self._sum1/self.count
+			end,
+			stddev = function(self)
+				local iN,s1,s2 = 1/self.count,self._sum1,self._sum2
+				return math.sqrt((s2 - s1*s1*iN)*iN)
+			end,
+			-- private
 			_t    = -1,
 			_sum1 = 0,
 			_sum2 = 0,
@@ -881,19 +892,14 @@ local TIMES TIMES = {
 				if self._t>=0 then local t = tick - self._t
 					self._t, self.count  , self._sum1    , self._sum2
 					=	 -1, self.count+1, self._sum1 + t, self._sum2 + t*t
+					if t>self.max then self.max = t end
+					if t<self.min then self.min = t end
 				end
 			end,
 			_start = function(self, tick)
 				if self._t<0 then self._t = tick end
 			end,
-			mean = function(self)
-				return self._sum1/self.count
-			end,
-			stddev = function(self)
-				local iN,s1,s2 = 1/self.count,self._sum1,self._sum2
-				return math.sqrt((s2 - s1*s1*iN)*iN)
-			end
-		}
+		nil}
 		-- skip if already exist
 		local list = self[from]	if list then
 			for _,w2 in ipairs(list) do
@@ -1425,7 +1431,7 @@ local function newHtmlWriter(file, mem)
       height: 1em;
     }
     table tr:hover {
-      background-color: lightgray;
+      background-color: lightgray !important;
     }
 	.clickable:hover {cursor:pointer;}
 
@@ -1801,20 +1807,10 @@ local function newHtmlWriter(file, mem)
 
 	function w:_times_row(tag,columns)
 		if nil==self._times_row_first then self._times_row_first=false
-			-- self:_style([[
-	-- #hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
-	-- #hints_1 td:nth-of-type(3)         {font-weight:bold;}
-	-- #hints_1 td:nth-of-type(4)         {background-color: #AAF;}
-	-- #hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
-	-- #hints_1 td:nth-of-type(6)         {background-color: #FAA;}
-	-- #hints_1 td:nth-of-type(7)         {font-weight:bold;column-width:11em;}
-	-- #hints_1 td:nth-of-type(8)         {column-width:4em;}
-	-- #hints_1 td:nth-of-type(9)         {background-color: #AFA;column-width:4em;}
-	
-	-- #hints_1 th:nth-of-type(8)         {text-align:right;}
-	-- #hints_1 th:nth-of-type(9)         {text-align:right;}
-	-- #hints_1 tfoot                     {font-weight:bold;}
-			-- ]])
+			self:_style([[
+	#times_1 td:nth-of-type(5)         {background-color: #FFA;font-weight:bold;}
+	#times_1 td:nth-of-type(9)         {background-color: #AFF;}
+			]])
 		end
 		
         local cols = {}
@@ -2520,16 +2516,17 @@ local mem = {
         return f
     end,
 	_saveTimes = function(self, writer)
+		if not TIMES.active then return end
 		profile:_()
 		local watches = TIMES:getWatches()
 		-- if all are looping, use Hz
 		-- local useHz = true;	for _,w in ipairs(watches) do if w.to then useHz = false; break end end
 		writer:id("times")
 		writer:title("Timings")
-		writer:header{'"From','"To',">^Samples",">^Avg(~)",">^Avg(VBL)", ">Avg(Hz)",">^Std Dev"}
+		writer:header{'"From','"To',">^Samples",">^Min(~)",">^Avg(~)",">^Max(~)",">^Avg(VBL)", ">Avg(Hz)",">^Std Dev"}
 		for _,w in ipairs(watches) do
 			local function fmt(x)
-				return sprintf('%.02f', x)
+				return sprintf(x>=1000 and "%.0f" or '%.02f', x)
 			end
 			local function symb(x)
 				return EQUATES[x] and x..' '..EQUATES[x] or x
@@ -2538,7 +2535,9 @@ local mem = {
 			writer:row{
 				symb(w.from), w.to and symb(w.to) or '<<<<', 
 				w.count,
+				w.min,
 				fmt(mean), 
+				w.max,
 				fmt(mean/20000),
 				w.to and 'n/a' or fmt(1000000/mean),
 				fmt(100*w:stddev()/mean, false)..'%', 
@@ -2550,53 +2549,54 @@ local mem = {
 	_saveHints = function(self, writer)
 		profile:_()
 		local l = HINTS:getAllHints()
-		
-		for i,h in ipairs(l) do
-			h.m   = self[tonumber(h.addr,16)]
-			h.x   = h.m.x
-			h.t0  = h:cycles(h.m, true)
-			h.t1  = h:cycles(h.m, false)
-			h.g   = (h.t0 - h.t1)*h.x
-			h.asm = h.m.asm
-		end
-		table.sort(l, function(a,b) 
-			return a.g > b.g
-			-- return a.lbl<b.lbl or a.lbl==b.lbl and a.x > b.x 
-		end)
-		local function fmt(integer, x) 
-			local fmt = '%0.2f'
-			if integer then fmt,x = '%g', math.floor(x+.5) end
-			return sprintf(fmt, x) 
-		end
+		if l[1] then
+			for i,h in ipairs(l) do
+				h.m   = self[tonumber(h.addr,16)]
+				h.x   = h.m.x
+				h.t0  = h:cycles(h.m, true)
+				h.t1  = h:cycles(h.m, false)
+				h.g   = (h.t0 - h.t1)*h.x
+				h.asm = h.m.asm
+			end
+			table.sort(l, function(a,b) 
+				return a.g > b.g
+				-- return a.lbl<b.lbl or a.lbl==b.lbl and a.x > b.x 
+			end)
+			local function fmt(integer, x) 
+				local fmt = '%0.2f'
+				if integer then fmt,x = '%g', math.floor(x+.5) end
+				return sprintf(fmt, x) 
+			end
 
-		writer:id("hints")
-        writer:title('Optimization Hints (%d)', #l)
-        writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
-		local total1,total2,total3,last=0,0,0
-		for i,h in ipairs(l) do
-			-- if last and last~=h.lbl then
-				-- writer:row{'','','','','','','','',''}
-			-- end last = h.lbl
-			local asm = h:explain():gsub(' : ',':')
-			local integer = not h.asm:match('^LB')
-			writer:row{ --'#'..i, 
-				h.addr, 
-				h.lbl, 
-				h.x,
-				fmt(integer, h.t0), h.asm:gsub('%s+',' '), 
-				fmt(integer, h.t1), asm,
-				fmt(integer, h.t0-h.t1),
-				fmt(false,   h.g/1000),
-				nil}
-			total1,total2,total3 = total1+h.t0*h.x,total2+h.t1*h.x,total3+h.g
+			writer:id("hints")
+			writer:title('Optimization Hints (%d)', #l)
+			writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
+			local total1,total2,total3,last=0,0,0
+			for i,h in ipairs(l) do
+				-- if last and last~=h.lbl then
+					-- writer:row{'','','','','','','','',''}
+				-- end last = h.lbl
+				local asm = h:explain():gsub(' : ',':')
+				local integer = not h.asm:match('^LB')
+				writer:row{ --'#'..i, 
+					h.addr, 
+					h.lbl, 
+					h.x,
+					fmt(integer, h.t0), h.asm:gsub('%s+',' '), 
+					fmt(integer, h.t1), asm,
+					fmt(integer, h.t0-h.t1),
+					fmt(false,   h.g/1000),
+					nil}
+				total1,total2,total3 = total1+h.t0*h.x,total2+h.t1*h.x,total3+h.g
+			end
+			writer:footer{'Total',
+				'',
+				'',
+				fmt(true,total1),'',
+				fmt(true,total2),'',
+				'',
+				fmt(false,total3/1000)}
 		end
-        writer:footer{'Total',
-			'',
-			'',
-			fmt(true,total1),'',
-			fmt(true,total2),'',
-			'',
-			fmt(false,total3/1000)}
         profile:_()
 	end,
     _saveHotspot = function(self, writer)
@@ -2657,7 +2657,7 @@ local mem = {
 		local cmdLen,cmdLine = 0,''
 		for i,s in ipairs(ARGV) do 
 			if cmdLen+1+s:len()>=70 then
-				cmdLen,cmdLine = 0,cmdLine..' \n'
+				cmdLen,cmdLine = 0,cmdLine..'\n'
 			elseif i>1 then
 				cmdLen,cmdLine = cmdLen+1,cmdLine..' '
 			end

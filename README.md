@@ -72,7 +72,7 @@ Plusieurs options gouvernent le contenu du fichier produit:
 
 Si l'option `-html` est présente, alors un fichier `memmap.html` est aussi produit. L'option `-smooth` utilisera alors un scrolling pour sauter d'un endroit à l'autre (ne pas l'appliquer si on a facilement le mal des transports). Le fichier HTML permet une navigation aisée via des hyperliens pour aller d'une adresse à une autre. La vue 2D utilise en outre un code couleur pour indiquer la nature de l'octet. 
 
-Si l'option `-auto-args` est présqent les arguments utilisés sont sauvés dans un fichier `.memmap.arg`. Plus tard si l'option est présente, alors ce fichier est lu les les arguments précédents sont automatiquement ajoutés à la ligne de commande. Les autres arguments de la ligne de commande actuelle ont cependant priorité sur ceux du fichier `.memmap.arg`.
+Si l'option `-prev-args` est présente les arguments non présent sur la ligne de commande seront retouvés dans le fichier `.csv`.
 
 Si on laisse la souris un certain temps sur un hyperlien, des infos synthétiques sont affichées sur l'adresse en question. Si l'adresse contient du code la vue assembleur est indiquée, s'il est lu ou écrit les instructions mises en jeu sont aussi affichées. 
 
