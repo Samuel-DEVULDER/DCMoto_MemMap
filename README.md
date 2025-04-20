@@ -25,8 +25,7 @@ avec:
 - `ADDR` est une adresse mémoire en hexadécimal. 
 - `RRRR` est l'adresse (hexadécimal) de la dernière instruction cpu qui a lu cette adresse. 
 - `WWWW` est l'adresse de la dernière instruction cpu qui l'a modifié.
-
-Si aucune instruction n'a lu (ou écrit à) ces adresses alors un `----` est présent.
+   Si aucune instruction n'a lu (ou écrit à) ces adresses alors un `----` est présent.
 - `EXEC` contient un nombre qui indique le nombre de fois où le CPU a executé du code machine (ou vide s'il n'y a pas d'instruction machine à cette addresse).
 - `HEXA` le code machine executé.
 - `CYCLES`le nomnbre de cycle utilisé par le code machine.
