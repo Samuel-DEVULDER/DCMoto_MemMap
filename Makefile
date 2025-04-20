@@ -62,15 +62,15 @@ clean:
 ##############################################################################
 # Distribution stuff
 
-distro-version:
-	@echo $(DISTRO)
+distro-current:
+	@echo "Current version is : $(DISTRO)"
 	
-distro-update:
+distro-update: distro-current
 	git pull
 	git tag -d $(VERSION)
-	make distro-$(VERSION)
+	make distro-create-$(VERSION)
 	
-distro-%:
+distro-create-%:
 	-git commit -a -m "update $*"
 	git push
 	git tag -a $* -m "$*"
