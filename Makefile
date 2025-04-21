@@ -12,6 +12,7 @@ CP=cp
 7Z=7z
 
 VERSION:=$(shell git tag --list --sort=-authordate --merged | tail -n1 || echo v0)
+GIT_URL:=$(shell git config --get remote.origin.url)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
 TMP:=$(shell mktemp)
@@ -74,6 +75,7 @@ distro-update: distro-current
 	git pull
 	git tag -d $(VERSION)
 	make distro-create-$(VERSION)
+	-explorer $(GIT_URL)
 	
 distro-create-%:
 	-git commit -a -m "create $*"
