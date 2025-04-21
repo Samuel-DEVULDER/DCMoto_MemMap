@@ -2161,6 +2161,7 @@ local HINTS = OPT_HINTS and {
 			table.insert(self[addr], hint)
 			return self
 		end,
+		_hints = {},
 		_newHint = function(self, addr, hexa, lbl, gain, explain)
 			local h = {
 				lbl     = lbl,
@@ -2179,6 +2180,7 @@ local HINTS = OPT_HINTS and {
 				end
 			}
 			self:_add(addr, h)
+			table.insert(self._hints, h)
 			return h
 		end,
 		_dp = function(self, addr, hexa, opcode, arg, regs)
@@ -2191,8 +2193,10 @@ local HINTS = OPT_HINTS and {
 			end
 		end,
 		_cmp0 = function(self, addr, hexa, opcode, arg, regs)
-			local REG = arg=='#$0000' and opcode:match('^CMP([YUS])')
-			if REG then
+			local REG = arg=='#$0000' and opcode:match('^CMP([DYUS])')
+			if REG=='D' then 
+				self:_newHint(addr, hexa, 'cmp-zero', -1, 'ADDD #0')
+			elseif REG then
 				local h = self:_newHint(addr, hexa, 'cmp-zero', -1,
 					REG=='Y' and 'LEAY ,Y' or
 					'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
@@ -2387,20 +2391,21 @@ local HINTS = OPT_HINTS and {
 			end
 		end,
 		getAllHints = function(self)
-			local l = {}
-			for i=(OPT_MIN or 0),(OPT_MAX or 65535) do
-				for _,h in ipairs(self:getHints(hex(i))) do
-					table.insert(l, h)
-				end
-			end
-			return l
+			local t = self._hints
+			for i=#t,1,-1 do if not t[i]:valid() then table.remove(t,i) end end
+			table.sort(t, function(a,b) return a.addr<b.addr end)
+			return t
 		end,
 		count = function(self)
-			local n = 0
-			for i=(OPT_MIN or 0),(OPT_MAX or 65535) do
-				n = n + #self:getHints(hex(i))
+			return #self:getAllHints()
+		end,
+		total_gain = function(self, mem)
+			local t = 0
+			for _,h in ipairs(self:getAllHints()) do 
+				local m = mem[tonumber(h.addr,16)]
+				t = t + m.x * (h:cycles(m,true) - h:cycles(m,false))
 			end
-			return n
+			return t
 		end,
 		getHints = function(self, addr)
 			local ret,hints = {},self[addr]
@@ -2567,11 +2572,12 @@ local mem = {
 				if integer then fmt,x = '%g', math.floor(x+.5) end
 				return sprintf(fmt, x) 
 			end
-
-			writer:id("hints")
-			writer:title('Optimization Hints (%d)', #l)
-			writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
+			
 			local total1,total2,total3,last=0,0,0
+			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
+			writer:id("hints")
+			writer:title('Optimization Hints (%d / %.2g ms)', #l, total3/1000)
+			writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
 			for i,h in ipairs(l) do
 				-- if last and last~=h.lbl then
 					-- writer:row{'','','','','','','','',''}
@@ -2587,7 +2593,7 @@ local mem = {
 					fmt(integer, h.t0-h.t1),
 					fmt(false,   h.g/1000),
 					nil}
-				total1,total2,total3 = total1+h.t0*h.x,total2+h.t1*h.x,total3+h.g
+				total1,total2 = total1+h.t0*h.x,total2+h.t1*h.x
 			end
 			writer:footer{'Total',
 				'',
@@ -2671,7 +2677,7 @@ local mem = {
         writer:row{     'Start Address' , '$'..hex(OPT_MIN)}
         writer:row{      'Stop Address' , '$'..hex(OPT_MAX)}
 		if OPT_HINTS then
-		writer:row{'Optimization Hints' , HINTS:count()}
+		writer:row{'Optimization Hints' , HINTS:count()..' / '..HINTS:total_gain(self)..'cycles'}
 		end
         writer:footer()
     end,
