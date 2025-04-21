@@ -2195,7 +2195,7 @@ local HINTS = OPT_HINTS and {
 		_cmp0 = function(self, addr, hexa, opcode, arg, regs)
 			local REG = arg=='#$0000' and opcode:match('^CMP([DYUS])')
 			if REG=='D' then 
-				self:_newHint(addr, hexa, 'cmp-zero', -1, 'ADDD #0')
+				self:_newHint(addr, hexa, 'cmp-zero', -1, 'SUBD #0')
 			elseif REG then
 				local h = self:_newHint(addr, hexa, 'cmp-zero', -1,
 					REG=='Y' and 'LEAY ,Y' or
@@ -2310,7 +2310,9 @@ local HINTS = OPT_HINTS and {
 			end
 		end,
 		_index = function(self, addr, hexa, opcode, arg, regs, XYU)
-			if opcode:match('^[L]?B[^I]') then return end
+			if opcode:match('^[L]?B[^I]') 
+			or opcode=='TFR'
+			or opcode=='EXG' then return end
 			local a = arg:match('^$(%x%x%x%x)$') 
 			if a and regs:match(XYU..'='..a) then
 				self:_newHint(addr, hexa, 'addr-reg', -1, opcode..' ,'..XYU)
@@ -2340,7 +2342,7 @@ local HINTS = OPT_HINTS and {
 		end,
 		_byte_index = function(self, addr, hexa, opcode, arg, regs)
 			local REG = arg:match('^D,([XYUS])$')
-			if REG then
+			if REG and opcode~='TFR' and opcode~='EXG' then
 				local function check(arg, regs) 
 					local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
 					if D>=32768 then D=D-65536 end
@@ -2576,7 +2578,7 @@ local mem = {
 			local total1,total2,total3,last=0,0,0
 			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
 			writer:id("hints")
-			writer:title('Optimization Hints (%d / %.2g ms)', #l, total3/1000)
+			writer:title('Optimization Hints (%d / %.2f ms)', #l, total3/1000)
 			writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
 			for i,h in ipairs(l) do
 				-- if last and last~=h.lbl then
@@ -2677,7 +2679,7 @@ local mem = {
         writer:row{     'Start Address' , '$'..hex(OPT_MIN)}
         writer:row{      'Stop Address' , '$'..hex(OPT_MAX)}
 		if OPT_HINTS then
-		writer:row{'Optimization Hints' , HINTS:count()..' / '..HINTS:total_gain(self)..'cycles'}
+		writer:row{'Optimization Hints' , sprintf("%d / %d cycles", HINTS:count(), HINTS:total_gain(self))}
 		end
         writer:footer()
     end,
@@ -3144,7 +3146,7 @@ local function read_trace(filename)
     end
 
     local mb, time = size/1024/1024, (os.clock() -start_time)
-    log('Analyzed %6.3f Mb of trace (%6.3f Mb/s).', mb, mb / time)
+    log('Analyzed %.3f Mb of trace (%.3f Mb/s).', mb, mb / time)
 end
 
 -- essaye de deviner le type de machine en analysant la valeur de DP dans
