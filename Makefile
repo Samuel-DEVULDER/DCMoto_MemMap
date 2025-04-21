@@ -13,6 +13,7 @@ CP=cp
 
 VERSION:=$(shell git tag --list --sort=-authordate --merged | tail -n1 || echo v0)
 GIT_URL:=$(shell git config --get remote.origin.url)
+DISTRO_URL:=$(shell echo '$(GIT_URL)' | sed -e 's/\.git$$//')/releases/tag/$(VERSION)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
 TMP:=$(shell mktemp)
@@ -70,12 +71,16 @@ distro-current:
 	@echo "Current prefix is  : $(DISTRO)"
 	@echo "==============================================="
 	@echo
+
+distro-url:
+	@echo $(GIT_URL)
+	-@explorer.exe $(DISTRO_URL)
 	
 distro-update: distro-current
 	git pull
 	git tag -d $(VERSION)
 	make distro-create-$(VERSION)
-	-explorer.exe $(shell echo '$(GIT_URL)' | sed -e 's/\.git$$//')/releases/tag/$(VERSION)
+	-explorer.exe $(DISTRO_URL)
 	
 distro-create-%:
 	-git commit -a -m "create $*"
