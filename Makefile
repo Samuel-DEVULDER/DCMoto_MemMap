@@ -75,7 +75,7 @@ distro-update: distro-current
 	git pull
 	git tag -d $(VERSION)
 	make distro-create-$(VERSION)
-	-explorer $(GIT_URL)
+	-explorer $(shell ehop $(GIT_URL) | sed -e \.git$//)/releases/tag/$(VERSION)
 	
 distro-create-%:
 	-git commit -a -m "create $*"
