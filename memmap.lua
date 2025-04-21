@@ -2162,16 +2162,18 @@ local HINTS = OPT_HINTS and {
 			return self
 		end,
 		_hints = {},
-		_newHint = function(self, addr, hexa, lbl, gain, explain)
+		_newHint = function(self, addr, hexa, lbl, gain, explain, asm)
 			local h = {
 				lbl     = lbl,
 				addr    = addr,
 				hexa    = hexa,
+				_asm    = asm,
 				_gain   = gain,
 				_valid  = true,
 				_xplain = explain,
 				valid   = function(self) return self._valid end,
 				check   = function(self, addr, hexa, opcode, arg, regs) end,
+				asm     = function(self, asm) return self._asm or asm end,
 				explain = function(self) return self._xplain or self.lbl end,
 				cycles  = function(self, mem, orig) 
 					local t = tonumber(mem.cycles)
@@ -2300,12 +2302,17 @@ local HINTS = OPT_HINTS and {
 		end,
 		_puls_rts = function(self, addr, hexa, opcode, arg, regs)
 			if opcode=='PULS' and not arg:match(',PC$') then
-				local h = self:_newHint(addr, hexa, 'puls-rts', -3, opcode..' '..arg..',PC')
+				local h = self:_newHint(addr, hexa, 'puls-rts', -3, opcode..' '..arg..',PC', opcode..' '..arg..':RTS')
 				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
 					if addr ~= self.addr then
 						self._valid = hexa=='39'
 					end
+				end
+				h.cycles  = function(self, mem, orig) 
+					local t = tonumber(mem.cycles)
+					if t==nil then error(self.lbl) end
+					return orig and t+5 or t + 2
 				end
 			end
 		end,
@@ -2563,7 +2570,6 @@ local mem = {
 				h.t0  = h:cycles(h.m, true)
 				h.t1  = h:cycles(h.m, false)
 				h.g   = (h.t0 - h.t1)*h.x
-				h.asm = h.m.asm
 			end
 			table.sort(l, function(a,b) 
 				return a.g > b.g
@@ -2585,12 +2591,12 @@ local mem = {
 					-- writer:row{'','','','','','','','',''}
 				-- end last = h.lbl
 				local asm = h:explain():gsub(' : ',':')
-				local integer = not h.asm:match('^LB')
+				local integer = not h.m.asm:match('^LB')
 				writer:row{ --'#'..i, 
 					h.addr, 
 					h.lbl, 
 					h.x,
-					fmt(integer, h.t0), h.asm:gsub('%s+',' '), 
+					fmt(integer, h.t0), h:asm(h.m.asm):gsub('%s+',' '), 
 					fmt(integer, h.t1), asm,
 					fmt(integer, h.t0-h.t1),
 					fmt(false,   h.g/1000),
