@@ -777,7 +777,7 @@ local EQUATES = {
                 local a,b,lbl = l:match('(%x%x%x%x)                  %(%s*(%S+)%):%d+%s+(%S+):')
                 if lbl then 
 					if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
-					self:d(a,(not file or single) and lbl or b..':'..lbl) 
+					self:d(a,(not file or single) and lbl or b:gsub('//','')..':'..lbl) 
 				end	
             end
 			f:close()
@@ -1026,7 +1026,7 @@ local function newTSVWriter(file, tablen)
         self.hsep = ''
         cols = {}
         for i,n in ipairs(columns) do
-            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^"]?)(.*)')
+            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^v"]?)(.*)')
             self.align[i], cols[i], self.clen[i] = tag=='' and '<' or tag, txt, 0
             if empty and trim(txt) then empty = false end
         end
@@ -1302,10 +1302,12 @@ local function newHtmlWriter(file, mem)
         local family = {['*'] = 'bold'}
         local cols, sort, empty = {}, {}, true
         for i,n in ipairs(columns) do
-            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^"]?)(.*)')
+            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^v"]?)(.*)')
             cols[i] = trim(txt)
             if cols[i] then empty=false else cols[i]='' end
-			sort[i] = sorted=='"' and "txt" or sorted=="^" and "num"
+			sort[i] = sorted=='"' and "txt" 
+			       or sorted=="^" and "num+"
+				   or sorted=="v" and "num-"
             self:_style('    #', id, ' td:nth-of-type(', i, ') {\n', family[font] and
                         '      font-weight:' .. family[font]..';\n' or '',
                         '      text-align: ', align[tag], ';\n',
@@ -1336,8 +1338,9 @@ local function newHtmlWriter(file, mem)
 			self:_body('  <thead>\n')
 			self:_std_row(function(i,v) 
 				local t = "th title=\"click to sort\" class=\"clickable\" onclick=\"sortTable('"..id.."',"..(i-1)
-				return sort[i] == "txt" and t..",false)\"" or
-				       sort[i] == "num" and t..",true)\"" or
+				return sort[i] == "txt"  and t..",false,+1)\"" or
+				       sort[i] == "num+" and t..",true,+1)\"" or
+				       sort[i] == "num-" and t..",true,-1)\"" or
 				       "th"
 			end, cols) 
 			self:_body('  </thead>\n')
@@ -1607,80 +1610,43 @@ local function newHtmlWriter(file, mem)
 			}
 		}
     }
-	function cmp(a,b,number) {
-		var ta = a.innerText, tb = b.innerText;
-		var d = number ? parseFloat(ta) - parseFloat(tb) : ta.localeCompare(tb);
-		if(Math.abs(d)<0.01) {
-			ta = a.parentElement.cells[0].innerText;
-			tb = b.parentElement.cells[0].innerText;
+	function cmp(a,b,n,number,dir) {
+		var ta = a.cells[n].innerText, tb = b.cells[n].innerText;
+		var d = number ? (parseFloat(ta) - parseFloat(tb))*dir : ta.localeCompare(tb)*dir;
+		for(let i = 0; Math.abs(d)<0.01 && i<a.cells.length; ++i) {
+			ta = a.cells[i].innerText;
+			tb = b.cells[i].innerText;
 			d = ta.localeCompare(tb);
 		}
 		return d;
 	}
-	// adapted from https://www.w3schools.com/howto/howto_js_sort_table.asp
-	function sortTable(id,n,number) {
-	  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-	  table = document.getElementById(id);
-	  rows = table.tBodies[0].rows;	
-	  switching = true;
-	  // Set the sorting direction to ascending:
-	  dir = "asc";
-	  /* Make a loop that will continue until
-	  no switching has been done: */
-	  while (switching) {
-		// Start by saying: no switching is done:
-		switching = false;
-		
-		/* Loop through all table rows (except the
-		first, which contains table headers): */
-		for (i = 1, y=rows[0].cells[n]; i < rows.length; i++) {
-		  // Start by saying there should be no switching:
-		  shouldSwitch = false;
-		  /* Get the two elements you want to compare,
-		  one from current row and one from the next: */
-		  x = y; y = rows[i].cells[n]; /*.getElementsByTagName("TD")[n]; */
-		  /* Check if the two rows should switch place,
-		  based on the direction, asc or desc: */
-		  if (dir == "asc") {
-			if (cmp(x, y, number)>0) {
-			  // If so, mark as a switch and break the loop:
-			  shouldSwitch = true;
-			  break;
+	// https://en.wikipedia.org/wiki/Insertion_sort
+	function insertionSort(rows,n,number,direction)  {
+		var no_change = true, i, j, x;
+		for(i = 1; i<rows.length; ++i) {
+			x = rows[i];
+			for(j = i; j>0 && cmp(rows[j-1],x,n,number,direction)>0;--j) {}
+			if(j < i) {
+				no_change = false;
+				x.parentElement.insertBefore(x,rows[j]);
 			}
-		  } else if (dir == "desc") {
-			if (cmp(x, y, number)<0) {
-			  // If so, mark as a switch and break the loop:
-			  shouldSwitch = true;
-			  break;
-			}
-		  }
 		}
-		if (shouldSwitch) {
-		  /* If a switch has been marked, make the switch
-		  and mark that a switch has been done: */
-		  rows[i].parentNode.insertBefore(rows[i], rows[i-1]);
-		  switching = true;
-		  // Each time a switch is done, increase this count by 1:
-		  switchcount ++;
-		} else {
-		  /* If no switching has been done AND the direction is "asc",
-		  set the direction to "desc" and run the while loop again. */
-		  if (switchcount == 0 && dir == "asc") {
-			dir = "desc";
-			switching = true;
-		  }
-		}
-	  }
-	  /* add indicator of sortig direrction */
-	  var header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
+		return no_change;
+	}
+	function sortTable(id,n,number,dir) {
+	  const table  = document.getElementById(id);
+	  const header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
+	  const rows   = table.tBodies[0].rows;
+	  if(header[n].innerHTML.endsWith(up))   dir = -1;
+	  if(header[n].innerHTML.endsWith(down)) dir = +1;
+	  if(insertionSort(rows,n,number,dir)) {insertionSort(rows,n,number,dir = -dir);}
 	  for(let i=0; i<header.length; ++i)  {
-		var html = header[i].innerHTML;
+		const html = header[i].innerHTML;
 		if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
 		if(html.endsWith(down)) {header[i].innerHTML = html.slice(0,-down.length);}
 	   }
-	   header[n].innerHTML +=  dir=="asc" ? up : down;
+	   header[n].innerHTML +=  dir>0 ? up : down;
 	}
-	
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
@@ -2176,7 +2142,7 @@ local HINTS = OPT_HINTS and {
 				_xplain = explain,
 				valid   = function(self) return self._valid end,
 				check   = function(self, addr, hexa, opcode, arg, regs) end,
-				asm     = function(self, asm) return self._asm or asm end,
+				asm     = function(self, asm) return self._asm or asm:gsub('<%-unreached','') end,
 				explain = function(self) return self._xplain or self.lbl end,
 				cycles  = function(self, mem, orig) 
 					local t = tonumber(mem.cycles)
@@ -2422,8 +2388,6 @@ local HINTS = OPT_HINTS and {
 			elseif hints==nil and arg then self[addr] = {}
                 local n = tonumber(addr,16)
                 if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
-                    self:_branch_always_false (addr, hexa, opcode, arg, regs)
-                    self:_branch_always_true  (addr, hexa, opcode, arg, regs)
                     self:_lbranch             (addr, hexa, opcode, arg, regs)
                     self:_puls_rts            (addr, hexa, opcode, arg, regs) 
                     self:_ld0                 (addr, hexa, opcode, arg, regs)
@@ -2434,6 +2398,8 @@ local HINTS = OPT_HINTS and {
                     self:_index               (addr, hexa, opcode, arg, regs, 'Y') 
                     self:_index               (addr, hexa, opcode, arg, regs, 'U') 
                     self:_byte_index          (addr, hexa, opcode, arg, regs) 
+                    self:_branch_always_false (addr, hexa, opcode, arg, regs)
+                    self:_branch_always_true  (addr, hexa, opcode, arg, regs)
                 end
 				if 0==#self[addr] then self[addr] = false end
 			end
@@ -2616,7 +2582,7 @@ local mem = {
 			end)
 			local function fmt(integer, x) 
 				local fmt = '%0.2f'
-				if integer then fmt,x = '%g', math.floor(x+.5) end
+				if integer then fmt,x = '%.0f', math.floor(x+.5) end
 				return sprintf(fmt, x) 
 			end
 			
@@ -2624,7 +2590,7 @@ local mem = {
 			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
 			writer:id("hints")
 			writer:title('Optimization Hints (%d / %.2f ms)', #l, total3/1000)
-			writer:header{'>"Addr','"Hint','>^Count','>^(~)','"Initial Code','>^(~)','"Suggested Code','>^Gain(~)','>^Gain(ms)'}
+			writer:header{'>"Addr','"Hint','>vCount','>v(~)','"Initial Code','>v(~)','"Suggested Code','>vGain(~)','>vGain(ms)'}
 			for i,h in ipairs(l) do
 				-- if last and last~=h.lbl then
 					-- writer:row{'','','','','','','','',''}
@@ -2709,9 +2675,10 @@ local mem = {
         writer:header{'<','<'}
 		local cmdLen,cmdLine = 0,''
 		for i,s in ipairs(ARGV) do 
-			if cmdLen+1+s:len()>=70 then
-				cmdLen,cmdLine = 0,cmdLine..'\n'
-			elseif i>1 then
+			-- if cmdLen+1+s:len()>=70 then
+				-- cmdLen,cmdLine = 0,cmdLine..'\n'
+			-- else
+			if i>1 then
 				cmdLen,cmdLine = cmdLen+1,cmdLine..' '
 			end
 			cmdLen,cmdLine = cmdLen+s:len(),cmdLine..s
