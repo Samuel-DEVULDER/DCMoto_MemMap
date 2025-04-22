@@ -2675,10 +2675,9 @@ local mem = {
         writer:header{'<','<'}
 		local cmdLen,cmdLine = 0,''
 		for i,s in ipairs(ARGV) do 
-			-- if cmdLen+1+s:len()>=70 then
-				-- cmdLen,cmdLine = 0,cmdLine..'\n'
-			-- else
-			if i>1 then
+			if cmdLen+1+s:len()>=65 then
+				cmdLen,cmdLine = 0,cmdLine..' \n'
+            elseif i>1 then
 				cmdLen,cmdLine = cmdLen+1,cmdLine..' '
 			end
 			cmdLen,cmdLine = cmdLen+s:len(),cmdLine..s
