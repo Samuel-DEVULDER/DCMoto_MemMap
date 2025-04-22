@@ -239,7 +239,9 @@ local function exists(file)
 end
 local function isdir(file)
 	if file=='.' then return true end
-	file = file..'/'
+    local f = io.open(file,'r')
+    if f then f:close(); return false; end
+	file = (file..'/'):gsub('/+','/')
 	return exists(file) or exists(file:gsub('/','\\'))
 end
 local function isfile(file)
@@ -757,7 +759,7 @@ local EQUATES = {
         f = io.open(file,'r')
         if f then local prof
             for l in f:lines() do
-                local a,lbl = l:match('(%x+)                  (%S+)')
+                local a,lbl = l:match('^(%x+)                  (%S+)$')
                 if lbl then 
 					if not prof then prof = true profile:_('Reading ASM6809 symbols from ' .. file) end
 					self:d(a,lbl) 
@@ -836,7 +838,8 @@ local EQUATES = {
 		if type(OPT_EQU)=='string' then
 			local files = {}
 			local function collect(entry)
-				if isdir(entry) then
+                entry = entry:gsub('/+','/')
+                if isdir(entry) then
 					for _,e in ipairs(dir(entry)) do collect(entry..'/'..e) end
 				elseif isfile(entry) then
 					table.insert(files, entry)
@@ -2246,36 +2249,67 @@ local HINTS = OPT_HINTS and {
 		         BPL='BMI', BNE='BEQ', BVC='BVS', BCC='BCS',
 				 BGT='BLE', BGE='BLT', BLE='BGT', BLT='BGE',
 				 BHI='BLS', BHS='BLO', BLS='BHI', BLO='BHS'},
+        _newBranchHint = function(self, addr, hexa, arg, lbl, gain, explain, asm)
+            local h = self:_newHint(addr, hexa, lbl, gain, explain, asm)
+            h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
+            h.adr_nottaken = hex(tonumber(h.addr,16) + h.hexa:len()/2)
+            h.cnt_taken    = 0
+            h.cnt_nottaken = 0
+            h.extra_check  = function(self, addr, hexa, opcode, arg, regs) end
+            h.check        = function(self, addr, hexa, opcode, arg, regs) 
+                if addr == self.adr_taken then
+                    self.cnt_taken = self.cnt_taken + 1
+                elseif addr == self.adr_nottaken then
+                    self.cnt_nottaken = self.cnt_nottaken + 1
+                elseif addr ~= self.addr then
+                    error(addr..' '..self.adr_taken..'/'..self.adr_nottaken)
+                end
+                self:extra_check(addr, hexa, opcode, arg, regs)
+            end
+            h.valid         = function(self)
+                -- print(self.addr, self._valid, self.cnt_taken, self.cnt_nottaken)
+                local mem = {x=1}
+                return self._valid and self:cycles(mem,true)>=self:cycles(mem,false)
+            end
+            self:_add(h.adr_taken, h):_add(h.adr_nottaken, h)
+            return h
+        end,
+        _branch_always_true = function(self, addr, hexa, opcode, arg, regs)
+			local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
+            local LONG,BCC = opcode:match('^(L?)(B..)$')
+            if BCC and self._bcom[BCC] then LONG = LONG=='L'
+				local h = self:_newBranchHint(addr, hexa, arg, 'always-true', 
+                        0, (LONG and "JMP $" or "BRA $")..a)
+                h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
+                    if self.cnt_nottaken>0 then self._valid = false end
+                end
+                h.cycles  = function(self, mem, orig) 
+                    return LONG and orig and 6
+                        or LONG and not orig and 4
+                        or 3
+                end
+            end
+        end,
+        _branch_always_false = function(self, addr, hexa, opcode, arg, regs)
+            local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
+            local LONG,BCC = opcode:match('^(L?)(B..)$')
+			if BCC and self._bcom[BCC] then LONG = LONG=='L'
+				local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(remove)')
+                h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
+                    if self.cnt_taken>0 then self._valid = false end
+                end
+                h.cycles  = function(self, mem, orig) 
+                    return orig and (LONG and 5 or 3) or 0
+                end
+            end
+        end,
 		_lbranch = function(self, addr, hexa, opcode, arg, regs)
 			local BCC = opcode:match('^L(B..)')
 			if BCC then
-				local function instrument(h,finder)
-					h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
-					h.adr_nottaken = hex(tonumber(h.addr,16) + h.hexa:len()/2)
-					h.cnt_taken    = 0
-					h.cnt_nottaken = 0
-					h.check        = function(self, addr, hexa, opcode, arg, regs) 
-						if addr == self.adr_taken then
-							self.cnt_taken = self.cnt_taken + 1
-						elseif addr == self.adr_nottaken then
-							self.cnt_nottaken = self.cnt_nottaken + 1
-						elseif addr ~= self.addr then
-							error(addr..' '..self.adr_taken..'/'..self.adr_nottaken)
-						end
-					end
-					h.valid         = function(self)
-						-- print(self.addr, self._valid, self.cnt_taken, self.cnt_nottaken)
-						local mem = {x=1}
-						return self._valid and self:cycles(mem,true)>self:cycles(mem,false)
-					end
-					finder:_add(h.adr_taken, h):_add(h.adr_nottaken, h)
-					return h
-				end
-			
 				local o = tonumber(hexa:sub(-4),16)
 				if o>=32768 then o = o-65536 end
 				if -128<=o and o<=127 then 
-					instrument(self:_newHint(addr, hexa, 'short-branch', 3, BCC..' '..arg), self)
+					self:_newBranchHint(addr, hexa, arg, 'short-branch', 3, BCC..' '..arg)
 					.cycles = function(self, mem, orig) 
 						local total = self.cnt_taken + self.cnt_nottaken
 						return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
@@ -2284,9 +2318,9 @@ local HINTS = OPT_HINTS and {
 				else
 					local a = arg:match('^%$(%x%x%x%x)$')
 					if self._bcom[BCC] and a then
-						local h = instrument(self:_newHint(addr, hexa, 'rarely-taken', 
+						local h = self:_newBranchHint(addr, hexa, arg, 'rarely-taken', 
 							'7/3',
-							self._bcom[BCC]..' *+5 : JMP '..arg), self)
+							self._bcom[BCC]..' *+5 : JMP '..arg)
 						h.cycles = function(self, mem, orig) 
 							local total = self.cnt_taken + self.cnt_nottaken
 							return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
@@ -2386,16 +2420,21 @@ local HINTS = OPT_HINTS and {
 					end
 				end
 			elseif hints==nil and arg then self[addr] = {}
-				self:_lbranch    (addr, hexa, opcode, arg, regs)
-				self:_puls_rts   (addr, hexa, opcode, arg, regs) 
-				self:_ld0        (addr, hexa, opcode, arg, regs)
-				self:_ldd        (addr, hexa, opcode, arg, regs)
-				self:_cmp0       (addr, hexa, opcode, arg, regs)
-				self:_dp         (addr, hexa, opcode, arg, regs) 
-				self:_index      (addr, hexa, opcode, arg, regs, 'X') 
-				self:_index      (addr, hexa, opcode, arg, regs, 'Y') 
-				self:_index      (addr, hexa, opcode, arg, regs, 'U') 
-				self:_byte_index (addr, hexa, opcode, arg, regs) 
+                local n = tonumber(addr,16)
+                if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
+                    self:_branch_always_false (addr, hexa, opcode, arg, regs)
+                    self:_branch_always_true  (addr, hexa, opcode, arg, regs)
+                    self:_lbranch             (addr, hexa, opcode, arg, regs)
+                    self:_puls_rts            (addr, hexa, opcode, arg, regs) 
+                    self:_ld0                 (addr, hexa, opcode, arg, regs)
+                    self:_ldd                 (addr, hexa, opcode, arg, regs)
+                    self:_cmp0                (addr, hexa, opcode, arg, regs)
+                    self:_dp                  (addr, hexa, opcode, arg, regs) 
+                    self:_index               (addr, hexa, opcode, arg, regs, 'X') 
+                    self:_index               (addr, hexa, opcode, arg, regs, 'Y') 
+                    self:_index               (addr, hexa, opcode, arg, regs, 'U') 
+                    self:_byte_index          (addr, hexa, opcode, arg, regs) 
+                end
 				if 0==#self[addr] then self[addr] = false end
 			end
 		end,
