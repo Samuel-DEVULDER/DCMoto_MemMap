@@ -1621,17 +1621,52 @@ local function newHtmlWriter(file, mem)
 		return d;
 	}
 	// https://en.wikipedia.org/wiki/Insertion_sort
-	function insertionSort(rows,n,number,direction)  {
-		var no_change = true, i, j, x;
+	function insertionSort(rows,n,number,direction) {
+		let no_change = true, parent = rows[0].parentElement, i, j, x;
 		for(i = 1; i<rows.length; ++i) {
 			x = rows[i];
-			for(j = i; j>0 && cmp(rows[j-1],x,n,number,direction)>0;--j) {}
+			for(j = i; j>0 && cmp(rows[j-1],x,n,number,direction)>0;--j);
 			if(j < i) {
 				no_change = false;
-				x.parentElement.insertBefore(x,rows[j]);
+				parent.insertBefore(x,rows[j]);
 			}
 		}
 		return no_change;
+	}
+	// https://en.wikipedia.org/wiki/Shellsort
+	function shellSort(rows,n,number,direction) {
+		const len     = rows.length;
+		const parent  = rows[0].parentElement;
+		const gaps    = [4,10,23,57,132,301,701];
+		let   changed = false,i,j,k,l,x,y;
+		// Start with a big gap, then reduce the gap
+		for(j = gaps.length; --j>=0;) {
+			// Do a gapped insertion sort for this gap size.
+			for (i = k = gaps[j]; i < len; ++i) {
+				for(x = rows[l=i]; (l-=k) >= 0 && 
+					cmp(y = rows[l],x,n,number,direction)>0;) {
+					parent.insertBefore(y,x);
+					parent.insertBefore(x, rows[l]);
+					changed = true;
+				}
+			}
+		}
+		// last is insert
+		if(!insertionSort(rows,n,number,direction)) changed = true;
+		return !changed;
+	}
+	function sort(rows,n,number,direction) {
+		const len     = rows.length;
+		const parent  = rows[0].parentElement;
+		const array   = [];
+		let   changed = false, i;
+		for(i=rows.length; --i>=0;) array.push(parent.removeChild(rows[i]));
+		array.sort(function(a,b) {return cmp(a,b,n,number,direction);});
+		for(i=0; i<array.length; ++i) {
+			parent.appendChild(array[i]);
+			if(array[i]!=rows[i]) changed = true;
+		}
+		return changed;
 	}
 	function sortTable(id,n,number,dir) {
 	  const table  = document.getElementById(id);
@@ -1639,7 +1674,7 @@ local function newHtmlWriter(file, mem)
 	  const rows   = table.tBodies[0].rows;
 	  if(header[n].innerHTML.endsWith(up))   dir = -1;
 	  if(header[n].innerHTML.endsWith(down)) dir = +1;
-	  if(insertionSort(rows,n,number,dir)) {insertionSort(rows,n,number,dir = -dir);}
+	  if(sort(rows,n,number,dir)) {sort(rows,n,number,dir = -dir);}
 	  for(let i=0; i<header.length; ++i)  {
 		const html = header[i].innerHTML;
 		if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
