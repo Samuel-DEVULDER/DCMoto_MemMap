@@ -16,8 +16,8 @@ GIT_URL:=$(shell git config --get remote.origin.url)
 DISTRO_URL:=$(shell echo '$(GIT_URL)' | sed -e 's/\.git$$//')/releases/tag/$(VERSION)
 MACHINE:=$(shell uname -m)
 DATE:=$(shell date +%FT%T%Z || date)
-TMP:=$(shell mktemp)
-OS:=$(shell uname -s)
+TMP:=$(shell mktemp -d)
+OS:=$(shell uname -s | sed -e 's/.*_NT.*/_NT/')
 EXE=
 
 BAT=.sh
@@ -26,7 +26,7 @@ MKEXE=chmod a+rx
 CC=gcc
 CFLAGS=-O3 -Wall
 
-ifeq ($(OS),Windows_NT)
+ifeq ($(OS),_NT)
 	OS:=win
 endif
 
@@ -35,7 +35,7 @@ ifeq ($(OS),Cygwin)
 endif
 
 ifeq ($(OS),win)
-	CC=i686-w64-mingw32-gcc -m32
+	CC?=i686-w64-mingw32-gcc -m32
 	MACHINE=x86
 	EXE=.exe
 
@@ -176,7 +176,7 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	$$ROOT/$(LUA) $$ROOT/memmap.lua \
 	-reset -html  -smooth \
 	-mach=?? -from=4000 -map -hot=colors -hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
-	-@cmd /c start $*/memmap.html
+	-@start $@
 
 %/dcmoto_trace.txt: %/dcmoto_trace.txt.7z
 	$(7Z) -so -y x "$<" "$@" > "$@"
