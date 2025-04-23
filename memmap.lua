@@ -2333,6 +2333,12 @@ local HINTS = OPT_HINTS and {
 							(BCC=='BRA' and 'JMP ' or 'JSR ')..arg)
 					end
 				end
+			elseif opcode=='JMP' and hexa:sub(1,2)=='7E' then
+				local o = tonumber(hexa:sub(-4),16) - (tonumber(addr,16)+2)
+				if -128<=o and o<=127 then 
+					self:_newBranchHint(addr, hexa, arg, 'short-jump', -1, 'BRA '..arg)
+					.cycles  = function(self, mem, orig) return orig and mem.cycles or 3 end
+				end
 			end
 		end,
 		_puls_rts = function(self, addr, hexa, opcode, arg, regs)
