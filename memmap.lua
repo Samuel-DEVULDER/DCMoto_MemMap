@@ -2295,7 +2295,7 @@ local HINTS = OPT_HINTS and {
             local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
             local LONG,BCC = opcode:match('^(L?)(B..)$')
 			if BCC and self._bcom[BCC] then LONG = LONG=='L'
-				local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(remove)')
+				local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(removed)')
                 h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
                     if self.cnt_taken>0 then self._valid = false end
                 end
@@ -2337,7 +2337,7 @@ local HINTS = OPT_HINTS and {
 				local o = tonumber(hexa:sub(-4),16) - (tonumber(addr,16)+2)
 				if -128<=o and o<=127 then 
 					self:_newBranchHint(addr, hexa, arg, 'short-jump', -1, 'BRA '..arg)
-					.cycles  = function(self, mem, orig) return orig and mem.cycles or 3 end
+					.cycles  = function(self, mem, orig) return orig and tonumber(mem.cycles) or 3 end
 				end
 			end
 		end,
@@ -2410,9 +2410,26 @@ local HINTS = OPT_HINTS and {
 				end
 			end
 		end,
+		_ld_twice = function(self, addr, hexa, opcode, arg, regs)
+			local REG = opcode:match('^LD([ABDXYUS])$') or opcode:match('^CLR([AB])$')
+			if REG then
+				local h = self:_newHint(addr, hexa, 'reg-trashed', 0, '(removed)')
+				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
+				h.check = function(self, addr, hexa, opcode, arg, regs) 
+					if addr ~= self.addr then
+						self._valid = opcode=='CLR'..REG or opcode=='LD'..REG
+							     or (opcode=='LDD' and (REG=='A' or REG=='B'))
+					end
+				end
+				h.cycles  = function(self, mem, orig) 
+					return orig and tonumber(mem.cycles) or 0
+				end
+			end
+		end,
+		_done = {},
 		analyze = function(self, addr, hexa, opcode, arg, regs)
-			local hints = self[addr]
-			if type(hints)=='table' then
+			if self._done[addr] then
+				local hints = self[addr] if hints then
 				for i=#hints,1,-1 do local h = hints[i]
 					if h._valid then
 						if h.addr==addr and h.hexa~=hexa then 
@@ -2425,9 +2442,9 @@ local HINTS = OPT_HINTS and {
 						-- print('invalid', h.addr,  h.lbl)
 						table.remove(hints,i) 
 					end
-				end
-			elseif hints==nil and arg then self[addr] = {}
-                local n = tonumber(addr,16)
+				end end
+			else self._done[addr] = true
+				local n = tonumber(addr,16)
                 if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
                     self:_lbranch             (addr, hexa, opcode, arg, regs)
                     self:_puls_rts            (addr, hexa, opcode, arg, regs) 
@@ -2441,8 +2458,8 @@ local HINTS = OPT_HINTS and {
                     self:_byte_index          (addr, hexa, opcode, arg, regs) 
                     self:_branch_always_false (addr, hexa, opcode, arg, regs)
                     self:_branch_always_true  (addr, hexa, opcode, arg, regs)
+					self:_ld_twice            (addr, hexa, opcode, arg, regs)
                 end
-				if 0==#self[addr] then self[addr] = false end
 			end
 		end,
 		getAllHints = function(self)
@@ -2630,7 +2647,7 @@ local mem = {
 			local total1,total2,total3,last=0,0,0
 			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
 			writer:id("hints")
-			writer:title('Optimization Hints (%d / %.2f ms)', #l, total3/1000)
+			writer:title('Optimization hints (%d / %.2f ms)', #l, total3/1000)
 			writer:header{'>"Addr','"Hint','>vCount','>v(~)','"Initial Code','>v(~)','"Suggested Code','>vGain(~)','>vGain(ms)'}
 			for i,h in ipairs(l) do
 				-- if last and last~=h.lbl then
