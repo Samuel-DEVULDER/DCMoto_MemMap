@@ -23,7 +23,7 @@ EXE=
 BAT=.sh
 MKEXE=chmod a+rx
 
-CC=gcc
+CC?=gcc
 CFLAGS=-O3 -Wall
 
 ifeq ($(OS),_NT)
@@ -35,7 +35,10 @@ ifeq ($(OS),Cygwin)
 endif
 
 ifeq ($(OS),win)
-	CC?=i686-w64-mingw32-gcc -m32
+	# 32bits exe
+	# CC=i686-w64-mingw32-gcc -m32
+	# 64bits exe
+	# CC=x86_64-w64-mingw32-gcc -m64
 	MACHINE=x86
 	EXE=.exe
 
