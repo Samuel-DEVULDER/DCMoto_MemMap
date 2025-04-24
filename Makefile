@@ -190,6 +190,10 @@ $(LUA): LuaJIT $(wildcard LuaJIT/src/*)
 	$(CP) $</src/luajit$(EXE) "$@"
 	$(CP) $</COPYRIGHT "$@"-COPYRIGHT
 	$(STRIP) "$@"
+	@echo ==================================================
+	-@file "$@"
+	-@ldd "$@"
+	@echo ==================================================
 
 LuaJIT:
 	$(GIT) clone https://github.com/LuaJIT/LuaJIT.git
