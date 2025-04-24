@@ -2423,7 +2423,7 @@ local HINTS = OPT_HINTS and {
 								  or  opcode=='LD'..REG
 								  or (opcode=='LDD' and AB)
                         if     arg:match(','..REG) and not AB then self._valid = false 
-                        elseif arg:match(REG..',') and AB     then self._valid = false end
+                        elseif arg:match(REG..',') and     AB then self._valid = false end
                     end
 				end
 				h.cycles  = function(self, mem, orig) 
