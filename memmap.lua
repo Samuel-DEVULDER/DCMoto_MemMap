@@ -2413,12 +2413,18 @@ local HINTS = OPT_HINTS and {
 		_ld_twice = function(self, addr, hexa, opcode, arg, regs)
 			local REG = opcode:match('^LD([ABDXYUS])$') or opcode:match('^CLR([AB])$')
 			if REG then
-				local h = self:_newHint(addr, hexa, 'reg-trashed', 0, '(removed)')
+				local h = self:_newHint(addr, hexa, 'reg-overridden', 0, '(removed)')
 				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
 					if addr ~= self.addr then
-						self._valid = opcode=='CLR'..REG or opcode=='LD'..REG
-							     or (opcode=='LDD' and (REG=='A' or REG=='B'))
+						local AB = REG=='A' or REG=='B'
+						if self._valid then
+							self._valid = opcode=='CLR'..REG 
+									  or  opcode=='LD'..REG
+									  or (opcode=='LDD' and AB)
+						end
+						if self._valid and     AB and arg:match(REG..',') then self._valid = false end
+						if self._valid and not AB and arg:match(','..REG) then self._valid = false end
 					end
 				end
 				h.cycles  = function(self, mem, orig) 
