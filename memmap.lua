@@ -2682,15 +2682,9 @@ local mem = {
 					fmt(false,   h.g/1000),
 					nil}
 				total1,total2 = total1+h.t0*h.x,total2+h.t1*h.x
-<<<<<<< Updated upstream
 				do local k = kinds[h.lbl] if k==nil then k = {g=0,n=0}; kinds[h.lbl] = k end
 					k.n,k.g = k.n + 1, k.g + h.g
 				end
-=======
-				-- do local k = kinds[h.lbl] if k==nil then k = {g=0,n=0}; kinds[h.lbl] = k end
-					-- k.n,k.g = k.n + 1, k.g + h.g
-				-- end
->>>>>>> Stashed changes
 			end
 			writer:footer{'Total',
 				'',
