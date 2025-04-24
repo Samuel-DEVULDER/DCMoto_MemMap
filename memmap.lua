@@ -2443,11 +2443,12 @@ local HINTS = OPT_HINTS and {
 							h:check(addr, hexa, opcode, arg, regs) 
 						end
 					end
-					if nil==h._valid then 
+					if not h._valid then 
 						-- print('invalid', h.addr,  h.lbl)
 						table.remove(hints,i) 
 					end
 				end
+                if #hints==0 then self[addr] = nil end
 			elseif not self._done[addr] then self._done[addr] = true
 				local n = tonumber(addr,16)
                 if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
