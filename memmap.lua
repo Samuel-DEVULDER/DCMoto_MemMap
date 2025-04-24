@@ -2699,7 +2699,6 @@ local mem = {
 				fmt(true,total2),'',
 				'',
 				fmt(false,total3/1000)}
-<<<<<<< Updated upstream
 			
 			-- another table
 			writer:blank()
@@ -2714,23 +2713,6 @@ local mem = {
 				writer:row{k, h.n, fmt(false,100*h.n/#l), fmt(true, h.g), fmt(false,100*h.g/total3)}
 			end
 			writer:footer()
-=======
-			-- another table
-			if false then
-				local l = {} for k,_ in pairs(kind) do table.insert(l,k) end
-				table.sort(l, function(x,y) local a,b=kinds[x],kinds[y]
-					local d = a.g - b.g
-					if d==0 then d = a.n - b.n end
-					return d>0 or d==0 and x<y 
-				end)
-				writer:id('kints_2')
-				writer:header{'"Hint','>vCount','>vGain(~)'}
-				for _,k in ipairs(l) do local h = kinds[k]
-					writer:row{k, h.n, h.g}
-				end
-				writer:footer()
-			end
->>>>>>> Stashed changes
 		end
         profile:_()
 	end,
