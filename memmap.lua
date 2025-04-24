@@ -2696,15 +2696,15 @@ local mem = {
 			
 			-- another table
 			writer:blank()
-			local l = {} for k,_ in pairs(kinds) do table.insert(l,k) end
-			table.sort(l, function(x,y) local a,b=kinds[x],kinds[y]
+			local l_ = {} for k,_ in pairs(kinds) do table.insert(l_,k) end
+			table.sort(l_, function(x,y) local a,b=kinds[x],kinds[y]
 				local d = a.g - b.g
 				if d==0 then d = a.n - b.n end
 				return d>0 or d==0 and x<y 
 			end)
-			writer:header{'/"Hint','>vCount','>*vGain(~)'}
-			for _,k in ipairs(l) do local h = kinds[k]
-				writer:row{k, h.n, fmt(true, h.g)}
+			writer:header{'/"Hint','>vCount','>v(%)','>*vGain(~)', '>v(%)'}
+			for _,k in ipairs(l_) do local h = kinds[k]
+				writer:row{k, h.n, fmt(false,100*h.n/#l), fmt(true, h.g), fmt(false,100*h.g/total3)}
 			end
 			writer:footer()
 		end
