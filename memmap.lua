@@ -2171,6 +2171,7 @@ local HINTS = OPT_HINTS and {
 				lbl     = lbl,
 				addr    = addr,
 				hexa    = hexa,
+                _nxt    = hex(tonumber(addr,16) + hexa:len()/2),
 				_asm    = asm,
 				_gain   = gain,
 				_valid  = true,
@@ -2207,7 +2208,7 @@ local HINTS = OPT_HINTS and {
 					REG=='Y' and 'LEAY ,Y' or
 					'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
 				-- verifier si suivi par BEQ ou BNE
-				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
+				self:_add(h._nxt, h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
 					if addr~=self.addr 
 					and opcode ~= 'BNE'  and opcode ~= 'BEQ'
@@ -2253,7 +2254,7 @@ local HINTS = OPT_HINTS and {
         _newBranchHint = function(self, addr, hexa, arg, lbl, gain, explain, asm)
             local h = self:_newHint(addr, hexa, lbl, gain, explain, asm)
             h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
-            h.adr_nottaken = hex(tonumber(h.addr,16) + h.hexa:len()/2)
+            h.adr_nottaken = h._nxt
             h.cnt_taken    = 0
             h.cnt_nottaken = 0
             h.extra_check  = function(self, addr, hexa, opcode, arg, regs) end
@@ -2344,7 +2345,7 @@ local HINTS = OPT_HINTS and {
 		_puls_rts = function(self, addr, hexa, opcode, arg, regs)
 			if opcode=='PULS' and not arg:match(',PC$') then
 				local h = self:_newHint(addr, hexa, 'puls-rts', -3, opcode..' '..arg..',PC', opcode..' '..arg..':RTS')
-				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
+				self:_add(h._nxt, h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
 					if addr ~= self.addr then
 						self._valid = hexa=='39'
@@ -2410,22 +2411,20 @@ local HINTS = OPT_HINTS and {
 				end
 			end
 		end,
-		_ld_twice = function(self, addr, hexa, opcode, arg, regs)
+		_reg_trashed = function(self, addr, hexa, opcode, arg, regs)
 			local REG = opcode:match('^LD([ABDXYUS])$') or opcode:match('^CLR([AB])$')
 			if REG then
-				local h = self:_newHint(addr, hexa, 'reg-overridden', 0, '(removed)')
-				self:_add(hex(tonumber(addr,16) + hexa:len()/2),h)
+				local h = self:_newHint(addr, hexa, 'reg-trashed', 0, '(removed)')
+				self:_add(h._nxt, h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
-					if addr ~= self.addr then
+					if addr ~= self.addr and self._valid then
 						local AB = REG=='A' or REG=='B'
-						if self._valid then
-							self._valid = opcode=='CLR'..REG 
-									  or  opcode=='LD'..REG
-									  or (opcode=='LDD' and AB)
-						end
-						if self._valid and     AB and arg:match(REG..',') then self._valid = false end
-						if self._valid and not AB and arg:match(','..REG) then self._valid = false end
-					end
+						self._valid = opcode=='CLR'..REG 
+								  or  opcode=='LD'..REG
+								  or (opcode=='LDD' and AB)
+                        if     arg:match(','..REG) and not AB then self._valid = false 
+                        elseif arg:match(REG..',') and AB     then self._valid = false end
+                    end
 				end
 				h.cycles  = function(self, mem, orig) 
 					return orig and tonumber(mem.cycles) or 0
@@ -2434,8 +2433,8 @@ local HINTS = OPT_HINTS and {
 		end,
 		_done = {},
 		analyze = function(self, addr, hexa, opcode, arg, regs)
-			if self._done[addr] then
-				local hints = self[addr] if hints then
+			local hints = self[addr]
+            if hints then
 				for i=#hints,1,-1 do local h = hints[i]
 					if h._valid then
 						if h.addr==addr and h.hexa~=hexa then 
@@ -2448,8 +2447,8 @@ local HINTS = OPT_HINTS and {
 						-- print('invalid', h.addr,  h.lbl)
 						table.remove(hints,i) 
 					end
-				end end
-			else self._done[addr] = true
+				end
+			elseif not self._done[addr] then self._done[addr] = true
 				local n = tonumber(addr,16)
                 if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
                     self:_lbranch             (addr, hexa, opcode, arg, regs)
@@ -2464,7 +2463,7 @@ local HINTS = OPT_HINTS and {
                     self:_byte_index          (addr, hexa, opcode, arg, regs) 
                     self:_branch_always_false (addr, hexa, opcode, arg, regs)
                     self:_branch_always_true  (addr, hexa, opcode, arg, regs)
-					self:_ld_twice            (addr, hexa, opcode, arg, regs)
+					self:_reg_trashed         (addr, hexa, opcode, arg, regs)
                 end
 			end
 		end,
