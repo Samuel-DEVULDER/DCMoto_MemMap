@@ -1,7 +1,7 @@
 sep=\t	(use a tabulation of 8)
 
 CLI Arguments	-reset -html -smooth -mach=?? -from=4000 -map -hot=colors -hints \n-times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
-Current Date	2025-04-24 11:59:32                                                                                                     
+Current Date	2025-04-24 23:14:45                                                                                                     
 Total Cycles	31999999 (~32s)                                                                                                         
 Machine Type	TO7(70)/TO8/TO9(+)                                                                                                      
 Stack (guessed)	$6111                                                                                                                   
@@ -22704,14 +22704,14 @@ Hot spots (runtime: ~30.97s):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Number	Addr	Assembly	Label	  Count	         Percent (Time)
 =======================================================================
-#1	737A	PSHS  A 		   1799	        20.70% (6.409s)
+#1	737A	PSHS  A 		   1799	       227.65% (6.409s)
 	....	...     		   1799	                       
 	7394	MUL     		   1914	                       
 	7395	LDA   ,X+		 367391	                       
 	....	...     		 367391	                       
 	739F	RTS     		   2054	                       
 		        		       	                       
-#2	7117	PSHS  B,A		    257	        15.17% (4.699s)
+#2	7117	PSHS  B,A		    257	       166.91% (4.699s)
 	....	...     		    257	                       
 	7120	PULS  A,B		    257	                       
 	7122	PSHS  B,A		  32786	                       
@@ -22720,7 +22720,7 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	....	...     		  95970	                       
 	7142	RTS     		   1884	                       
 		        		       	                       
-#3	6D54	LDU   #$7C39		    256	         8.80% (2.725s)
+#3	6D54	LDU   #$7C39		    256	        96.81% (2.725s)
 	....	...     		    256	                       
 	6D6E	ASLA    		    256	                       
 	6D6F	PSHS  B,A		  16426	                       
@@ -22732,7 +22732,7 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	....	...     		  49281	                       
 	6D91	RTS     		    257	                       
 		        		       	                       
-#4	69AC	JSR   $6599		    256	         7.24% (2.242s)
+#4	69AC	JSR   $6599		    256	        79.63% (2.242s)
 	....	...     		    256	                       
 	69D9	BPL   $69DD		    256	                       
 	69DD	LDD   #$2C06		    256	                       
@@ -22741,7 +22741,7 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	....	...     		  67584	                       
 	69F9	RTS     		    256	                       
 		        		       	                       
-#5	701F	LDA   $980E		  33908	         6.97% (2.157s)
+#5	701F	LDA   $980E		  33908	        76.62% (2.157s)
 	....	...     		  33908	                       
 	7061	BMI   $7073		   2960	                       
 	7073	NEGA    		   2827	                       
@@ -22758,11 +22758,11 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	7114	LEAS  $02,S		   2959	                       
 	7116	RTS     		   2959	                       
 		        		       	                       
-#6	6DA7	PSHS  A 		  28625	         6.38% (1.975s)
+#6	6DA7	PSHS  A 		  28625	        70.16% (1.975s)
 	....	...     		  28625	                       
 	6DBC	RTS     		  28625	                       
 		        		       	                       
-#7	657C	LDA   $03,X		    256	         4.75% (1.472s)
+#7	657C	LDA   $03,X		    256	        52.28% (1.472s)
 	....	...     		    256	                       
 	6584	LDD   #$2C06		    256	                       
 	6587	PSHS  U,B,A		  11264	                       
@@ -22770,15 +22770,15 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	....	...     		  67584	                       
 	6598	RTS     		    256	                       
 		        		       	                       
-#8	73BD	PSHS  B 		  27072	         4.55% (1.408s)
+#8	73BD	PSHS  B 		  27072	        50.01% (1.408s)
 	....	...     		  27072	                       
 	73D1	PULS  B,PC		  27072	                       
 		        		       	                       
-#9	7012	PSHS  A 		  33908	         3.49% (1.080s)
+#9	7012	PSHS  A 		  33908	        38.36% (1.080s)
 	....	...     		  33908	                       
 	701E	RTS     		   5735	                       
 		        		       	                       
-#10	73A0	LDD   ,X++		    141	         3.23% (1.002s)
+#10	73A0	LDD   ,X++		    141	        35.58% (1.002s)
 	73A2	ASLA    		    141	                       
 	73A3	LEAY  -$01,Y		    141	                       
 	73A5	PSHS  Y,B,A		   8128	                       
@@ -22835,6 +22835,18 @@ Optimization hints (41 / 31.12 ms):
    9FCD	always-true	      7	      3	BLS $9FD1	      3	BRA $9FD1       	      0	           0.00
   Total	        	       	 105292	        	  74172	                	       	          31.12
 ===============================================================================================
+
+
+Hint	  Count	Gain(~)
+=======================
+short-branch	      6	  27917
+puls-rts	      4	   1560
+addr-reg	      1	    668
+leax-abx	      1	    665
+rarely-taken	      1	    310
+always-true	     26	      0
+clear-reg	      2	      0
+=======================
 
 Memory map: $4100 -> $A17F:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

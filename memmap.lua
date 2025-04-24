@@ -92,7 +92,7 @@ end
 
 -- hexa 16 bits
 local function hex(n)
-    return sprintf('%04X', n)
+    return n and sprintf('%04X', n)
 end
 
 -- addition 16 bits
@@ -971,6 +971,7 @@ local function newBasicWriter()
         header = not_implemented,
         row    = not_implemented,
         footer = not_implemented,
+		blank  = not_implemented,
     nil}
 end
 
@@ -992,6 +993,7 @@ local function newParallelWriter(...)
     function w:header(...) self:_dispatch('header', ...) end
     function w:row   (...) self:_dispatch('row',    ...) end
     function w:footer(...) self:_dispatch('footer', ...) end
+    function w:blank (...) self:_dispatch('blank',  ...) end
     return w
 end
 
@@ -1026,7 +1028,7 @@ local function newTSVWriter(file, tablen)
         self.hsep = ''
         cols = {}
         for i,n in ipairs(columns) do
-            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^v"]?)(.*)')
+            local tag,font,italic,sorted,txt = n:match('^([<=>]?)([%*]?)([/]?)([%^v"]?)(.*)')
             self.align[i], cols[i], self.clen[i] = tag=='' and '<' or tag, txt, 0
             if empty and trim(txt) then empty = false end
         end
@@ -1066,6 +1068,9 @@ local function newTSVWriter(file, tablen)
 		t = t:gsub('\n','\\n')
         self:printf('%s\n', t=='' and t or t:sub(2))
     end
+	function w:blank()
+		self:printf('\n')
+	end
     log('Created CSV writer (tab=%d).', tablen)
     return w
 end
@@ -1107,7 +1112,7 @@ local function newHtmlWriter(file, mem)
             local RWX = mem:RWX(m)
             local opt_asm_addr, opt_asm = m.x>0 and addr, m.asm
             -- on utilise opt_last si l'adresse n'est pas pile sur le début de l'instruction
-            if opt_asm_addr and not opt_asm and opt_last then opt_asm_addr, opt_asm = hex(opt_last), mem[opt_last].asm end
+            if opt_asm_addr and not opt_asm and opt_last then opt_asm_addr, opt_asm = hex(opt_last), mem[opt_last] and mem[opt_last].asm end
             --
             local anchor = ''
             if opt_asm_addr and (RWX=='X--' or (RWX=='XR-' and m.asm)) then anchor = opt_asm_addr
@@ -1302,14 +1307,15 @@ local function newHtmlWriter(file, mem)
         local family = {['*'] = 'bold'}
         local cols, sort, empty = {}, {}, true
         for i,n in ipairs(columns) do
-            local tag,font,sorted,txt = n:match('^([<=>]?)([%*]?)([%^v"]?)(.*)')
+            local tag,font,italic,sorted,txt = n:match('^([<=>]?)([%*]?)([/]?)([%^v"]?)(.*)')
             cols[i] = trim(txt)
             if cols[i] then empty=false else cols[i]='' end
 			sort[i] = sorted=='"' and "txt" 
 			       or sorted=="^" and "num+"
 				   or sorted=="v" and "num-"
             self:_style('    #', id, ' td:nth-of-type(', i, ') {\n', family[font] and
-                        '      font-weight:' .. family[font]..';\n' or '',
+                        '      font-weight:' .. family[font]..';\n' or '', italic~='' and
+						'      font-style: italic;\n' or '',
                         '      text-align: ', align[tag], ';\n',
                         '    }\n')
         end
@@ -1347,6 +1353,10 @@ local function newHtmlWriter(file, mem)
 		end
 		self:_body('  <tbody>\n')
     end
+
+	function w:blank()
+		self:_body('<p>\n')
+	end
 
     -- fonction de fermeture. C'est ici qu'on écrit vraiment dans
     -- le fichier après avoir collecté toutes les infos de style.
@@ -2414,7 +2424,7 @@ local HINTS = OPT_HINTS and {
 		_reg_trashed = function(self, addr, hexa, opcode, arg, regs)
 			local REG = opcode:match('^LD([ABDXYUS])$') or opcode:match('^CLR([AB])$')
 			if REG then
-				local h = self:_newHint(addr, hexa, 'reg-trashed', 0, '(removed)')
+				local h = self:_newHint(addr, hexa, 'trashed-reg', 0, '(removed)')
 				self:_add(h._nxt, h)
 				h.check = function(self, addr, hexa, opcode, arg, regs) 
 					if addr ~= self.addr and self._valid then
@@ -2650,6 +2660,7 @@ local mem = {
 				return sprintf(fmt, x) 
 			end
 			
+			local kinds = {}
 			local total1,total2,total3,last=0,0,0
 			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
 			writer:id("hints")
@@ -2671,6 +2682,9 @@ local mem = {
 					fmt(false,   h.g/1000),
 					nil}
 				total1,total2 = total1+h.t0*h.x,total2+h.t1*h.x
+				do local k = kinds[h.lbl] if k==nil then k = {g=0,n=0}; kinds[h.lbl] = k end
+					k.n,k.g = k.n + 1, k.g + h.g
+				end
 			end
 			writer:footer{'Total',
 				'',
@@ -2679,6 +2693,20 @@ local mem = {
 				fmt(true,total2),'',
 				'',
 				fmt(false,total3/1000)}
+			
+			-- another table
+			writer:blank()
+			local l = {} for k,_ in pairs(kinds) do table.insert(l,k) end
+			table.sort(l, function(x,y) local a,b=kinds[x],kinds[y]
+				local d = a.g - b.g
+				if d==0 then d = a.n - b.n end
+				return d>0 or d==0 and x<y 
+			end)
+			writer:header{'/"Hint','>vCount','>*vGain(~)'}
+			for _,k in ipairs(l) do local h = kinds[k]
+				writer:row{k, h.n, fmt(true, h.g)}
+			end
+			writer:footer()
 		end
         profile:_()
 	end,
@@ -2711,7 +2739,7 @@ local mem = {
 						asm,
 						EQUATES[p] or '',
 						x_times, 
-						j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000) 
+						j==1 and sprintf('%5.2f%% (%.3fs)',  1100*s.t/total, s.t/1000000) 
 						or EMPTY,
 					nil}
 				end
