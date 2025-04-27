@@ -2745,7 +2745,7 @@ local mem = {
 	_saveVars = function(self, writer)
 		profile:_()
 		-- collect stats
-		local total_r, total_w, list, void, last_w = 0, 0, {}, {}
+		local total_r, total_w, list, void = 0, 0, {}, {}
 		for i=(OPT_MIN or 0),(OPT_MAX or 65535) do local m = self[i] 
 			if m and (m.r_from or m.w_from) and m.x==0 then 
 				local xt, rw, a, r, w, r_, w_ = 0, false, hex(i), 0, 0, 0, 0
@@ -2764,16 +2764,13 @@ local mem = {
 				if xt == r_ + w_ then -- tout le temps accedée en étendu ==> vraie variable
 					total_r, total_w = total_r+r, total_w+w
 					table.insert(list, {i=i,a=a,r=r,w=w,r_=r_,w_=w_,comment=
-							r==0 and last_w~=w and 'never read' or
-							w==0               and 'never modified' or
-							w>1.2*r            and 'low read/write ratio' or
-							r_==1 and not rw   and 'consider inlining' or
+							r==0             and 'never read' or
+							w==0             and 'never modified' or
+							w>1.2*r          and 'low read/write ratio' or
+							r_==1 and not rw and 'consider inlining' or
 							nil
 					})
 				end
-				last_w = w
-			else
-				last_w = nil
 			end 
 		end
 		-- frequent vars go to dp
