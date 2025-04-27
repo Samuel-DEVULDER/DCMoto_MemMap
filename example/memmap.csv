@@ -1,7 +1,7 @@
 sep=\t	(use a tabulation of 8)
 
 CLI Arguments	-reset -html -smooth -mach=?? -from=4000 -map -vars -hot=colors \n-hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
-Current Date	2025-04-27 14:14:45                                                                                                             
+Current Date	2025-04-27 14:38:21                                                                                                             
 Total Cycles	31999999 (~32s)                                                                                                                 
 Machine Type	TO7(70)/TO8/TO9(+)                                                                                                              
 Stack (guessed)	$6111                                                                                                                           
@@ -22836,7 +22836,8 @@ Optimization hints (41 / 31.12 ms):
   Total	        	       	 105292	        	  74172	                	       	          31.12
 ===============================================================================================
 
-
+Summary:
+~~~~~~~~
 Hint	  Count	    (%)	Gain(~)	    (%)
 =======================================
 short-branch	      6	  14.63	  27917	  89.71
@@ -22911,6 +22912,17 @@ C606    	    128	      0	    128	      1	      0	              1	never modified
 C608    	    256	      0	    256	      1	      0	              1	never modified  
 CA40    	     38	      0	     38	      1	      0	              1	never modified  
 =======================================================================
+
+Summary:
+~~~~~~~~
+Comment	  Count
+===============
+none	     24
+never modified	     12
+low read/write ratio	      8
+consider inlining	      8
+relocate to dp  	      6
+===============
 
 Memory map: $4100 -> $A17F:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

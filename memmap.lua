@@ -970,6 +970,7 @@ local function newBasicWriter()
         printf = not_implemented,
         id     = not_implemented,
         title  = not_implemented,
+        title2 = not_implemented,
         header = not_implemented,
         row    = not_implemented,
         footer = not_implemented,
@@ -992,6 +993,7 @@ local function newParallelWriter(...)
     function w:printf(...) self:_dispatch('printf', ...) end
     function w:id    (...) self:_dispatch('id',     ...) end
     function w:title (...) self:_dispatch('title',  ...) end
+    function w:title2(...) self:_dispatch('title2', ...) end
     function w:header(...) self:_dispatch('header', ...) end
     function w:row   (...) self:_dispatch('row',    ...) end
     function w:footer(...) self:_dispatch('footer', ...) end
@@ -1022,6 +1024,9 @@ local function newTSVWriter(file, tablen)
         local txt = sprintf(...) .. ':'
         self:printf("%s\n%s\n", txt, string.rep('~', txt:len()))
     end
+	function w:title2(...)
+		w:title(...)
+	end
     function w:header(columns)
         local empty = true
         self.align = {}
@@ -1274,6 +1279,9 @@ local function newHtmlWriter(file, mem)
 						esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
                    '</',self.HEADING,'>','\n')
     end
+	function w:title2(...)
+		self:_body('<h2>',esc(sprintf(...)),'</h2>','\n')
+	end
 
     -- fin de table
     function w:footer(cels)
@@ -1713,8 +1721,8 @@ local function newHtmlWriter(file, mem)
 		
 		var  title = 'Viewing $' + addr + ' (' + index + ' out of ' + list.length + ')';
 		if(list.length>1) title += index==list.length ? '\nclick to view first' : '\nclick to view next';
+		if(_rollLink_prev!==null && _rollLink_prev!==elt) _rollLink_prev.title = 'click to view';
 		elt.title = title;
-		if(_rollLink_prev!==null) _rollLink_prev.title = 'click to view';
 		_rollLink_prev = elt;
 		
 		if(document.getElementById(pfx.substring(1) + addr)==null) {
@@ -2772,6 +2780,7 @@ local mem = {
 		end
 		-- write section if not empty
 		if #list>0 then
+			local stat = {}
 			writer:id("vars")
 			writer:title('Global variables ('..#list..' / '..commented..' of interrest)')
 			writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^#R/loc','>^#W/loc','>v#R+W/loc','/"Comment'}
@@ -2785,7 +2794,16 @@ local mem = {
 					v.r_ + v.w_,
 					v.comment or '',
 				nil}
+				stat[v.comment or 'none'] = (stat[v.comment or 'none'] or 0) + 1
 			end
+			writer:footer()
+			-- statistics
+			writer:title2('Summary')
+			local l = {}
+			for k,_ in pairs(stat) do table.insert(l,k) end
+			table.sort(l, function(a,b) return stat[a]>stat[b] end)
+			writer:header{'Comment',">vCount"}
+			for _,k in ipairs(l) do writer:row{k,stat[k]} end
 			writer:footer()
 		end
 		profile:_()
@@ -2846,7 +2864,7 @@ local mem = {
 				fmt(false,total3/1000)}
 			
 			-- another table
-			writer:blank()
+			writer:title2('Summary')
 			local l_ = {} for k,_ in pairs(kinds) do table.insert(l_,k) end
 			table.sort(l_, function(x,y) local a,b=kinds[x],kinds[y]
 				local d = a.g - b.g
