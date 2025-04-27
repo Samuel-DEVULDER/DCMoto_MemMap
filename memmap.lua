@@ -3172,7 +3172,7 @@ local function stack(reg, ptr, dir, args)
     local stkop = usePC and reg=='S'
     ptr = tonumber(ptr,16)
     local function mk(len)
-        if dir>0 then mem:w(ptr, len, stkop) else mem:r(add16(ptr,-len), len, stkop) end
+        if dir>0 then mem:r(ptr, len, stkop) else mem:w(add16(ptr,-len), len, stkop) end
         ptr = add16(ptr,dir*len)
     end
     if usePC            then mk(2) end
