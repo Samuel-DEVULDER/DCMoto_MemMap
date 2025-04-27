@@ -970,7 +970,6 @@ local function newBasicWriter()
         printf = not_implemented,
         id     = not_implemented,
         title  = not_implemented,
-        title2 = not_implemented,
         header = not_implemented,
         row    = not_implemented,
         footer = not_implemented,
@@ -993,7 +992,6 @@ local function newParallelWriter(...)
     function w:printf(...) self:_dispatch('printf', ...) end
     function w:id    (...) self:_dispatch('id',     ...) end
     function w:title (...) self:_dispatch('title',  ...) end
-    function w:title2(...) self:_dispatch('title2', ...) end
     function w:header(...) self:_dispatch('header', ...) end
     function w:row   (...) self:_dispatch('row',    ...) end
     function w:footer(...) self:_dispatch('footer', ...) end
@@ -1020,13 +1018,10 @@ local function newTSVWriter(file, tablen)
         self.file:write(sprintf(...))
     end
     function w:id() end
-    function w:title(...)
+    function w:title(level, ...)
         local txt = sprintf(...) .. ':'
         self:printf("%s\n%s\n", txt, string.rep('~', txt:len()))
     end
-	function w:title2(...)
-		w:title(...)
-	end
     function w:header(columns)
         local empty = true
         self.align = {}
@@ -1257,31 +1252,34 @@ local function newHtmlWriter(file, mem)
                               or  self._id.id .. '_' .. self._id.no,
                self._id.no==0
     end
+	
+	function w:_title(HEADING, ...)
+        local txt,id = sprintf(...),self:_nxId()
+		if HEADING==self.HEADING then
+			if nil==w._toc then
+				-- add Table of Contents
+				w._toc = {}
+				table.insert(self._body_, function(w) 
+					if w._toc[2] then
+						local t = '<'..self.HEADING..' id="TOC">Table of Contents</'..self.HEADING..'>\n<ol>\n'
+						for _,entry in ipairs(w._toc) do
+							t = t..'<li><a href="#'..entry.id..'">'..esc(entry.title)..'</a></li>\n'
+						end
+						return t..'</ol>\n'
+					end
+				end)
+			end
+			table.insert(w._toc, {title=txt, id=id}) 
+		end
+        self:_body('<',HEADING,' id="', id, '" class=\'clickable\' title=\'Click for Table of Contents\' onclick="document.location.href=\'#TOC\';">',
+						esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
+                   '</',HEADING,'>','\n')
+	end
 
     -- le titre
-    function w:title(...)
-        local txt,id = sprintf(...),self:_nxId()
-		if nil==w._toc then
-			-- add Table of Contents
-			w._toc = {}
-			table.insert(self._body_, function(w) 
-				if w._toc[2] then
-					local t = '<h1 id="TOC">Table of Contents</h1>\n<ol>\n'
-					for _,entry in ipairs(w._toc) do
-						t = t..'<li><a href="#'..entry.id..'">'..esc(entry.title)..'</a></li>\n'
-					end
-					return t..'</ol>\n'
-				end
-			end)
-		end
-		table.insert(w._toc, {title=txt, id=id}) 
-        self:_body('<',self.HEADING,' id="', id, '" class=\'clickable\' title=\'Click for Table of Contents\' onclick="document.location.href=\'#TOC\';">',
-						esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
-                   '</',self.HEADING,'>','\n')
+    function w:title(level, ...)
+		w:_title(level==1 and self.HEADING or 'h'..level, ...)
     end
-	function w:title2(...)
-		self:_body('<h2>',esc(sprintf(...)),'</h2>','\n')
-	end
 
     -- fin de table
     function w:footer(cels)
@@ -2711,7 +2709,7 @@ local mem = {
 		-- if all are looping, use Hz
 		-- local useHz = true;	for _,w in ipairs(watches) do if w.to then useHz = false; break end end
 		writer:id("times")
-		writer:title("Timings")
+		writer:title(1, "Timings")
 		writer:header{'"From','"To',">^Samples",">^Min(~)",">^Avg(~)",">^Max(~)",">^Avg(VBL)", ">Avg(Hz)",">^Std Dev"}
 		for _,w in ipairs(watches) do
 			local function fmt(x)
@@ -2780,7 +2778,7 @@ local mem = {
 		if #list>0 then
 			local stat = {}
 			writer:id("vars")
-			writer:title('Global variables ('..#list..' / '..commented..' of interrest)')
+			writer:title(1, 'Global variables ('..#list..' / '..commented..' of interrest)')
 			writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^R/loc','>^W/loc','>#R+W/loc','/"Comment'}
 			for _,v in ipairs(list) do
 				local a = v.a
@@ -2796,7 +2794,7 @@ local mem = {
 			end
 			writer:footer()
 			-- statistics
-			writer:title2('Summary')
+			writer:title(2, 'Summary')
 			local l = {}
 			for k,_ in pairs(stat) do table.insert(l,k) end
 			table.sort(l, function(a,b) return stat[a]>stat[b] end)
@@ -2831,7 +2829,7 @@ local mem = {
 			local total1,total2,total3,last=0,0,0
 			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
 			writer:id("hints")
-			writer:title('Optimization hints (%d / %.2f ms)', #l, total3/1000)
+			writer:title(1, 'Optimization hints (%d / %.2f ms)', #l, total3/1000)
 			writer:header{'>"Addr','"Hint','>vCount','>v(~)','"Initial Code','>v(~)','"Suggested Code','>vGain(~)','>vGain(ms)'}
 			for i,h in ipairs(l) do
 				-- if last and last~=h.lbl then
@@ -2862,7 +2860,7 @@ local mem = {
 				fmt(false,total3/1000)}
 			
 			-- another table
-			writer:title2('Summary')
+			writer:title(2,'Summary')
 			local l_ = {} for k,_ in pairs(kinds) do table.insert(l_,k) end
 			table.sort(l_, function(x,y) local a,b=kinds[x],kinds[y]
 				local d = a.g - b.g
@@ -2882,7 +2880,7 @@ local mem = {
         profile:_()
         for i,s in ipairs(spots) do total = total + s.t end
         writer:id("hotspots")
-        writer:title('Hot spots (runtime: ~%.2fs)', total/1000000)
+        writer:title(1, 'Hot spots (runtime: ~%.2fs)', total/1000000)
         writer:header{'*Number','Addr','<*Assembly','<Label','>*Count','>Percent (Time)      '}
         for i,s in ipairs(spots) do
 			if i>1 then writer:row{'', '', '', '', '', ''} end
@@ -2958,7 +2956,7 @@ local mem = {
 
         local VOID=''
         writer:id("flatmap")
-        writer:title("Collected addresses")
+        writer:title(1, "Collected addresses")
         writer:header{"=*  Addr ", "=RdFrom", "=WrFrom", ">*ExeCnt", "<Hex code", ">(~)", "<*Asm code         "}
 
         local n,curr,last_was_blank=0,-1,true
@@ -3091,7 +3089,7 @@ local mem = {
             repeat nxt = nxt + 1 until nxt>top or isEmpty(nxt,nxt+BLOC)
             -- titre
             writer:id('memmap' .. cur)
-            writer:title('Memory map: $%04X -> $%04X', cur*OPT_COLS, nxt*OPT_COLS-1)
+            writer:title(1, 'Memory map: $%04X -> $%04X', cur*OPT_COLS, nxt*OPT_COLS-1)
             writer:header{'=','<'}
             for j=cur,nxt-1 do
                 local c1, c2 = hex(OPT_COLS*j), ''
@@ -3105,7 +3103,7 @@ local mem = {
         until cur>top
 
         writer:id('caption')
-        writer:title('Caption')
+        writer:title(2,'Caption')
         local code = {}
         for k,_ in pairs(short) do table.insert(code, sprintf('%4s',k)) end
         table.sort(code)

@@ -1,7 +1,7 @@
 sep=\t	(use a tabulation of 8)
 
 CLI Arguments	-reset -html -smooth -mach=?? -from=4000 -map -vars -hot=colors \n-hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
-Current Date	2025-04-27 14:55:44                                                                                                             
+Current Date	2025-04-27 16:41:24                                                                                                             
 Total Cycles	31999999 (~32s)                                                                                                                 
 Machine Type	TO7(70)/TO8/TO9(+)                                                                                                              
 Stack (guessed)	$6111                                                                                                                           
@@ -22851,7 +22851,7 @@ clear-reg	      2	   4.88	      0	   0.00
 
 Global variables (18 / 15 of interrest):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Addr	     #R	     #W	   #R+W	 #R/loc	 #W/loc	       #R+W/loc	Comment
+Addr	     #R	     #W	   #R+W	  R/loc	  W/loc	       #R+W/loc	Comment
 =======================================================================
 78E3	      2	      0	      2	      1	      0	              1	never modified
 78E6	    130	      0	    130	      1	      0	              1	never modified
@@ -22878,7 +22878,7 @@ Summary:
 Comment	  Count
 ===============
 never modified	     12
-none    	      3
+<none>  	      3
 relocate to dp	      2
 consider inlining	      1
 ===============
