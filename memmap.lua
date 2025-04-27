@@ -31,6 +31,7 @@ local OPT_HOT     = false              -- hotspots ?
 local OPT_HOT_COL = false              -- colored hotspots 
 local OPT_HINTS   = false              -- add hint comments on the html
 local OPT_TIMES   = false              -- measure times
+local OPT_VARS    = false              -- list variables
 local OPT_MAP     = false              -- ajoute une version graphique de la map
 local OPT_HTML    = false              -- produit une analyse html?
 local OPT_SMOOTH  = "auto"             -- type de scroll html
@@ -325,6 +326,7 @@ for i,v in ipairs(ARGV) do local t
     elseif l=='-reset'      then OPT_RESET   = true
     elseif l=='-map'        then OPT_MAP     = true
     elseif v=='-hints'      then OPT_HINTS   = true
+    elseif v=='-vars'       then OPT_VARS    = true
     elseif l=='-hot'        then OPT_HOT     = true
     elseif l=='-hot=colors' then OPT_HOT     = true; OPT_HOT_COL = true; OPT_HTML = true
     elseif l=='-equ'        then OPT_EQU     = true
@@ -1298,6 +1300,7 @@ local function newHtmlWriter(file, mem)
         if id:match('times')    then self._row = self._times_row end
         if id:match('hotspots') then self._row = self._hotspot_row end
         if id:match('hints')    then self._row = self._hints_row   end
+        if id:match('vars')     then self._row = self._vars_row   end
         if id:match('memmap')   then self._row = self._memmap_row  end
         if id:match('caption')  then self._row = self._caption_row end
 
@@ -1306,10 +1309,12 @@ local function newHtmlWriter(file, mem)
         local align  = {[''] = 'left', ['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
         local family = {['*'] = 'bold'}
         local cols, sort, empty = {}, {}, true
+		self._addr_col = nil
         for i,n in ipairs(columns) do
             local tag,font,italic,sorted,txt = n:match('^([<=>]?)([%*]?)([/]?)([%^v"]?)(.*)')
             cols[i] = trim(txt)
             if cols[i] then empty=false else cols[i]='' end
+			if 'Addr'==cols[i] and not _times_row then self._addr_col = i end
 			sort[i] = sorted=='"' and "txt" 
 			       or sorted=="^" and "num+"
 				   or sorted=="v" and "num-"
@@ -1417,10 +1422,12 @@ local function newHtmlWriter(file, mem)
     a {
       font-weight:     bold;
       text-decoration: none;
+	  color:           blue;
     }
     a:hover {
       background-color: yellow;
       text-decoration:  underline;
+	  cursor:           pointer;
     }
     a:active {
        background-color :gold;
@@ -1530,6 +1537,7 @@ local function newHtmlWriter(file, mem)
         width:   1em;
         height:  1em;
     }
+	.
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #1c1c1e;
@@ -1561,10 +1569,11 @@ local function newHtmlWriter(file, mem)
     function on(event, color) {
         document.addEventListener(event,function(event) {
             if(event.target.tagName==="A") {
-                const id  = event.target.getAttribute("href").substring(1);
-                const elt = document.getElementById(id);
+				const href = event.target.getAttribute("href"); if(href==null) return;
+                const id   = href.substring(1);
+                const elt  = document.getElementById(id);
                 if(elt!==null) {
-                    const style = document.getElementById(id).style;
+                    const style = elt.style;
                     if(color!==null) {
                         style.background = color;
                         style.color = "black";
@@ -1692,6 +1701,28 @@ local function newHtmlWriter(file, mem)
 	   }
 	   header[n].innerHTML +=  dir>0 ? up : down;
 	}
+	var _rollLink_prev = null;
+	function rollLink(elt,list) {
+		const pfx  = '#fm';
+		const href = document.location.href;
+		
+		let index = href.indexOf(pfx);
+		if(index>=0) index = list.indexOf(href.substring(index + pfx.length)) + 1;
+		if(index<0 || index>=list.length) index = 0;
+		const addr = list[index++]
+		
+		var  title = 'Viewing $' + addr + ' (' + index + ' out of ' + list.length + ')';
+		if(list.length>1) title += index==list.length ? '\nclick to view first' : '\nclick to view next';
+		elt.title = title;
+		if(_rollLink_prev!==null) _rollLink_prev.title = 'click to view';
+		_rollLink_prev = elt;
+		
+		if(document.getElementById(pfx.substring(1) + addr)==null) {
+			alert('Address $' + addr +' is not visible');
+		} else {
+			document.location.href = pfx + addr;
+		}
+	}
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
@@ -1759,9 +1790,12 @@ local function newHtmlWriter(file, mem)
     -- ligne standard
     function w:_std_row(tag, columns)
         local cols, patt = {}, '(.-%$)'..self.HEXADDR..'(.*)'
-        for i,v in ipairs(columns) do
-            local t = esc(trim(v) or ' ')
+        for i,v in ipairs(columns) do v = trim(v) 
+            local t = esc(v or ' ')
             local before,a,after = t:match(patt)
+			if not a and i==self._addr_col then 
+				  before,a,after = v:match('(.-)'..self.HEXADDR..'(.*)') 
+			end
             if a then
                 t = before .. closest_ahref(a) .. after
             end
@@ -1840,6 +1874,46 @@ local function newHtmlWriter(file, mem)
         end
         self:_raw_row(tag,cols)
     end
+	
+	function w:_vars_row(tag,columns)
+        local cols,m = {}
+		m = mem[tonumber(columns[1]:sub(1,4),16)]
+		local function rollLink(txt, lists)
+			local refs,a,a_ = {},'',''
+			for _,l in ipairs(lists) do 
+				for a,_ in pairs(l or {}) do table.insert(refs, a) end
+			end
+			table.sort(refs)
+			if #refs>0 then
+				a  = '<a onclick="rollLink(this,['
+				for i,r in ipairs(refs) do
+					if i>1 then a = a .."," end
+					a = a .. "'"..r.."'"
+				end
+				a = a..'])" title="click to view">'
+				a_ = '</a>'
+			end
+			return a..esc(txt)..a_
+		end
+        for i,v in ipairs(columns) do
+            v = trim(v) or ''
+            if i==1 then
+				local a,b = v:match('(%x%x%x%x)(.*)')
+				if a then v = closest_ahref(a)..esc(b) else v = esc(v) end
+			elseif i==5 then
+				v = rollLink(v, {m.r_from})
+			elseif i==6 then
+				v = rollLink(v, {m.w_from})
+			elseif i==7 then
+				v = rollLink(v, {m.r_from, m.w_from})
+            else
+                v = esc(v)--:gsub(' ','&nbsp;')
+            end
+            cols[i] = v
+        end
+        self:_raw_row(tag,cols)
+    end
+		
 	
 	-- ligne hints
 	function w:_hints_row(tag,columns)
@@ -2265,11 +2339,14 @@ local HINTS = OPT_HINTS and {
             local h = self:_newHint(addr, hexa, lbl, gain, explain, asm)
             h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
             h.adr_nottaken = h._nxt
+			h.cnt          = 0
             h.cnt_taken    = 0
             h.cnt_nottaken = 0
             h.extra_check  = function(self, addr, hexa, opcode, arg, regs) end
             h.check        = function(self, addr, hexa, opcode, arg, regs) 
-                if addr == self.adr_taken then
+				if addr == self.adr then
+					self.cnt       = self.cnt + 1
+                elseif addr == self.adr_taken then
                     self.cnt_taken = self.cnt_taken + 1
                 elseif addr == self.adr_nottaken then
                     self.cnt_nottaken = self.cnt_nottaken + 1
@@ -2308,7 +2385,7 @@ local HINTS = OPT_HINTS and {
 			if BCC and self._bcom[BCC] then LONG = LONG=='L'
 				local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(removed)')
                 h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
-                    if self.cnt_taken>0 then self._valid = false end
+                    if  self.cnt_taken>0 then self._valid = false end
                 end
                 h.cycles  = function(self, mem, orig) 
                     return orig and (LONG and 5 or 3) or 0
@@ -2544,23 +2621,34 @@ local mem = {
     end,
     -- marque "addr" comme lue depuis le compteur programme courant
     r = function(self, addr, len, stack)
+		local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.r, m.s = self.PC, m.s or stack
+			m.r_from = m.r_from or {}
+			m.r_from[PC] = (m.r_from[PC] or 0) + 1
         end
-        return self
+		return self
     end,
     -- marque "addr" comme écrite depuis le compteur programme courant
     w = function(self, addr, len, stack)
+		local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
-            m.w, m.s = self.PC, m.s or stack
+            m.w, m.s = PC, m.s or stack
+			m.w_from = m.w_from or {}
+			m.w_from[PC] = (m.w_from[PC] or 0) + 1
         end
         return self
     end,
     -- marque "addr" comme lue/écrit depuis le compteur programme courant
     -- la partie écrite n'est pas changée si elle est écrite ailleurs
     rw = function(self, addr, len, stack)
+		local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
-            m.r, m.w, m.s = self.PC, m.w==NOADDR and self.PC or m.w, stack
+            m.r, m.w, m.s = PC, m.w==NOADDR and self.PC or m.w, stack
+			m.r_from = m.w_from or {}
+			m.w_from = m.w_from or {}
+			m.r_from[PC] = (m.r_from[PC] or 0) + 1
+			m.w_from[PC] = (m.w_from[PC] or 0) + 1
         end
         return self
     end,
@@ -2637,6 +2725,69 @@ local mem = {
 			nil}
 		end
 		writer:footer()
+		profile:_()
+	end,
+	_saveVars = function(self, writer)
+		profile:_()
+		-- collect stats
+		local total_r, total_w, list, void, last_w = 0, 0, {}, {}
+		for i=(OPT_MIN or 0),(OPT_MAX or 65535) do local m = self[i] 
+			if m and (m.r_from or m.w_from) and m.x==0 then 
+				local xt, rw, a, r, w, r_, w_ = false, false, hex(i), 0, 0, 0, 0
+				local function cnt(x,x_,v,k,other) 
+					if not xt then
+						local m = self[tonumber(k,16)] 
+						if  m 
+						and m.hex 
+						and m.hex:sub(-4)==a
+						and m.asm
+						and m.asm:find(' $'..a) then xt = true end
+					end
+					if other[k] then rw = true end
+					return x+v, x_+1
+				end
+				for k,v in pairs(m.r_from or void) do r,r_ = cnt(r,r_,v,k,m.w_from or void) end
+				for k,v in pairs(m.w_from or void) do w,w_ = cnt(w,w_,v,k,m.r_from or void) end
+				if xt then
+					total_r, total_w = total_r+r, total_w+w
+					table.insert(list, {i=i,a=a,r=r,w=w,r_=r_,w_=w_,comment=
+							r==0 and last_w~=w and 'never read' or
+							w==0               and 'never modified' or
+							w>1.2*r            and 'low read/write ratio' or
+							r_==1 and not rw   and 'consider inlining' or
+							nil
+					})
+				end
+				last_w = w
+			else
+				last_w = nil
+			end 
+		end
+		-- frequent vars go to dp
+		local total, commented = total_r + total_w,0
+		for i=#list,1,-1 do local v = list[i]
+			if v.r+v.w>1.2*(total/#list) and nil==v.comment then v.comment = 'relocate to dp' end
+			-- if nil==v.comment then table.remove(list, i) end
+			if v.comment then commented = commented + 1 end
+		end
+		-- write section if not empty
+		if #list>0 then
+			writer:id("vars")
+			writer:title('Global variables ('..#list..' / '..commented..' of interrest)')
+			writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^#R/loc','>^#W/loc','>v#R+W/loc','/"Comment'}
+			for _,v in ipairs(list) do
+				local a = v.a
+				local t = EQUATES[a] if t then a = a ..' ('..t..')' end
+				writer:row{a,
+					v.r, v.w,
+					v.r + v.w, 
+					v.r_, v.w_,
+					v.r_ + v.w_,
+					v.comment or '',
+				nil}
+			end
+			writer:footer()
+		end
 		profile:_()
 	end,
 	_saveHints = function(self, writer)
@@ -2956,7 +3107,8 @@ local mem = {
         self:_saveFlatMap(writer)     if OPT_TIMES then 
 		self:_saveTimes(writer)   end if OPT_HOT   then
         self:_saveHotspot(writer) end if OPT_HINTS then
-		self:_saveHints(writer)   end if OPT_MAP   then
+		self:_saveHints(writer)   end if OPT_VARS  then
+		self:_saveVars(writer)    end if OPT_MAP   then
         self:_save_Memmap(writer) end
         return writer
     end

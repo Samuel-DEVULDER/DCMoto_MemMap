@@ -178,7 +178,7 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	cd $*; time \
 	$$ROOT/$(LUA) $$ROOT/memmap.lua \
 	-reset -html  -smooth \
-	-mach=?? -from=4000 -map -hot=colors -hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
+	-mach=?? -from=4000 -map -vars -hot=colors -hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
 	-@start $@
 
 %/dcmoto_trace.txt: %/dcmoto_trace.txt.7z
