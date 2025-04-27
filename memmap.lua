@@ -2741,22 +2741,20 @@ local mem = {
 		local total_r, total_w, list, void, last_w = 0, 0, {}, {}
 		for i=(OPT_MIN or 0),(OPT_MAX or 65535) do local m = self[i] 
 			if m and (m.r_from or m.w_from) and m.x==0 then 
-				local xt, rw, a, r, w, r_, w_ = false, false, hex(i), 0, 0, 0, 0
+				local xt, rw, a, r, w, r_, w_ = 0, false, hex(i), 0, 0, 0, 0
 				local function cnt(x,x_,v,k,other) 
-					if not xt then
-						local m = self[tonumber(k,16)] 
-						if  m 
-						and m.hex 
-						and m.hex:sub(-4)==a
-						and m.asm
-						and m.asm:find(' $'..a) then xt = true end
-					end
+					local m = self[tonumber(k,16)] 
+					if  m 
+					and m.hex 
+					and m.hex:sub(-4)==a
+					and m.asm
+					and m.asm:find(' $'..a) then xt = xt + 1 end
 					if other[k] then rw = true end
 					return x+v, x_+1
 				end
 				for k,v in pairs(m.r_from or void) do r,r_ = cnt(r,r_,v,k,m.w_from or void) end
 				for k,v in pairs(m.w_from or void) do w,w_ = cnt(w,w_,v,k,m.r_from or void) end
-				if xt then
+				if xt == r_ + w_ then -- tout le temps accedée en étendu ==> vraie variable
 					total_r, total_w = total_r+r, total_w+w
 					table.insert(list, {i=i,a=a,r=r,w=w,r_=r_,w_=w_,comment=
 							r==0 and last_w~=w and 'never read' or
@@ -2783,7 +2781,7 @@ local mem = {
 			local stat = {}
 			writer:id("vars")
 			writer:title('Global variables ('..#list..' / '..commented..' of interrest)')
-			writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^#R/loc','>^#W/loc','>v#R+W/loc','/"Comment'}
+			writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^R/loc','>^W/loc','>#R+W/loc','/"Comment'}
 			for _,v in ipairs(list) do
 				local a = v.a
 				local t = EQUATES[a] if t then a = a ..' ('..t..')' end
@@ -2794,7 +2792,7 @@ local mem = {
 					v.r_ + v.w_,
 					v.comment or '',
 				nil}
-				stat[v.comment or 'none'] = (stat[v.comment or 'none'] or 0) + 1
+				stat[v.comment or '<none>'] = (stat[v.comment or '<none>'] or 0) + 1
 			end
 			writer:footer()
 			-- statistics
