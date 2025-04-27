@@ -1109,6 +1109,15 @@ local function newHtmlWriter(file, mem)
                 return ''
             end
         end
+		local function and_others(list)
+			if list and #list==2 then
+				return " and 1 other location"
+			elseif list and #list>2  then
+				return " and "..(#list-1).." other locations"
+			else
+				return ''
+			end
+		end
         local m = mem[tonumber(addr,16)]
         if m then
             local RWX = mem:RWX(m)
@@ -1129,8 +1138,8 @@ local function newHtmlWriter(file, mem)
             local equate_ptn = equate:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
             local title  = '$' .. addr .. ' : ' .. RWX .. equate ..
                            (opt_asm and '\nX = ' .. opt_asm:gsub(equate_ptn,'') or '') ..
-                           code('\nR = ', m.r):gsub(equate_ptn,'')..
-                           code('\nW = ',  m.w):gsub(equate_ptn,'')
+                           code('\nR = ', m.r):gsub(equate_ptn,'')..and_others(m.r_from)..
+                           code('\nW = ',  m.w):gsub(equate_ptn,'')..and_others(m.w_from)
 
             -- if m.r~=m.w then title = title .. code(m.w):gsub(equate_ptn,'') end
 
@@ -1707,7 +1716,6 @@ local function newHtmlWriter(file, mem)
 	   }
 	   header[n].innerHTML +=  dir>0 ? up : down;
 	}
-	var _rollLink_prev = null;
 	function rollLink(elt,list) {
 		const pfx  = '#fm';
 		const href = document.location.href;
@@ -1716,13 +1724,7 @@ local function newHtmlWriter(file, mem)
 		if(index>=0) index = list.indexOf(href.substring(index + pfx.length)) + 1;
 		if(index<0 || index>=list.length) index = 0;
 		const addr = list[index++]
-		
-		var  title = 'Viewing $' + addr + ' (' + index + ' out of ' + list.length + ')';
-		if(list.length>1) title += index==list.length ? '\nclick to view first' : '\nclick to view next';
-		if(_rollLink_prev!==null && _rollLink_prev!==elt) _rollLink_prev.title = 'click to view';
-		elt.title = title;
-		_rollLink_prev = elt;
-		
+				
 		if(document.getElementById(pfx.substring(1) + addr)==null) {
 			alert('Address $' + addr +' is not visible');
 		} else {
@@ -1890,13 +1892,20 @@ local function newHtmlWriter(file, mem)
 				for a,_ in pairs(l or {}) do table.insert(refs, a) end
 			end
 			table.sort(refs)
+			-- remove duplicates
+			for i=#refs,2,-1 do if refs[i]==refs[i-1] then table.remove(refs,i) end end
 			if #refs>0 then
 				a  = '<a onclick="rollLink(this,['
 				for i,r in ipairs(refs) do
 					if i>1 then a = a .."," end
 					a = a .. "'"..r.."'"
 				end
-				a = a..'])" title="click to view">'
+				a = a..'])" title="click to view:'
+				for i,r in ipairs(refs) do
+					local m = mem[tonumber(r,16)]
+					a = a.. '\n '..i..'.  $'..r..(m and m.asm and '  '..m.asm or '')
+				end
+				a = a:gsub('[ ][ ]+','\t') .. '">'
 				a_ = '</a>'
 			end
 			return a..esc(txt)..a_
@@ -2651,7 +2660,7 @@ local mem = {
 		local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.r, m.w, m.s = PC, m.w==NOADDR and self.PC or m.w, stack
-			m.r_from = m.w_from or {}
+			m.r_from = m.r_from or {}
 			m.w_from = m.w_from or {}
 			m.r_from[PC] = (m.r_from[PC] or 0) + 1
 			m.w_from[PC] = (m.w_from[PC] or 0) + 1
