@@ -1,13 +1,13 @@
 sep=\t	(use a tabulation of 8)
 
 CLI Arguments	-reset -html -smooth -mach=?? -from=4000 -map -vars -hot=colors \n-hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
-Current Date	2025-04-27 21:24:50                                                                                                             
+Current Date	2025-04-28 02:32:55                                                                                                             
 Total Cycles	31999999 (~32s)                                                                                                                 
 Machine Type	TO7(70)/TO8/TO9(+)                                                                                                              
 Stack (guessed)	$6111                                                                                                                           
 Start Address	$4000                                                                                                                           
 Stop Address	$DFFF                                                                                                                           
-Optimization Hints	41 / 31119 cycles                                                                                                               
+Optimization Hints	62 / 461052 cycles                                                                                                              
 
 Collected addresses:
 ~~~~~~~~~~~~~~~~~~~~
@@ -7014,6 +7014,7 @@ Collected addresses:
  6179	 ----	 ----	      2	B6981F  	      5	LDA   $981F     
  617C	 ----	 ----	      2	813C    	      2	CMPA  #$3C      
  617E	 ----	 ----	      2	2503    	      3	BCS   $6183     
+   	   	   	       	        	   HINT	(removed)       
  6180	 ----	 ----	      2	BD61BD  	      8	JSR   $61BD     
  6183	 ----	 ----	      2	CE78DC  	      3	LDU   #$78DC    
  6186	 ----	 ----	      2	EC81    	      8	LDD   ,X++      
@@ -7084,6 +7085,7 @@ Collected addresses:
  62E4	 675A	 ----	   2180	3476    	     13	PSHS  U,Y,X,B,A 
  62E6	 ----	 ----	   2180	7D9841  	      7	TST   $9841     
  62E9	 ----	 ----	   2180	264F    	      3	BNE   $633A     
+   	   	   	       	        	   HINT	(removed)       
  62EB	 ----	 ----	   2180	B6982E  	      5	LDA   $982E     
  62EE	 ----	 ----	   2180	F6981D  	      5	LDB   $981D     
  62F1	 ----	 ----	   2180	C181    	      2	CMPB  #$81      
@@ -7153,6 +7155,7 @@ Collected addresses:
  6386	 ----	 ----	    130	3402    	      6	PSHS  A         
  6388	 ----	 ----	    130	841F    	      2	ANDA  #$1F      
  638A	 ----	 ----	    130	2711    	      3	BEQ   $639D     
+   	   	   	       	        	   HINT	(removed)       
  638C	 ----	 ----	    130	BD686F  	      8	JSR   $686F     
  638F	 ----	 ----	    130	A607    	      5	LDA   $07,X     
  6391	 ----	 ----	    130	8508    	      2	BITA  #$08      
@@ -7254,6 +7257,7 @@ Collected addresses:
  64B2	 ----	 ----	   1032	BD6AD0  	      8	JSR   $6AD0     
  64B5	 ----	 ----	   1032	6D84    	      6	TST   ,X        
  64B7	 ----	 ----	   1032	102700B2	    6/5	LBEQ  $656D     
+   	   	   	       	        	   HINT	BNE *+5 : JMP $656D
  64BB	 ----	 ----	    516	BD65D1  	      8	JSR   $65D1     
  64BE	 ----	 ----	    516	F67D7B  	      5	LDB   $7D7B     
  64C1	 ----	 ----	    516	B67D7C  	      5	LDA   $7D7C     
@@ -7303,6 +7307,7 @@ Collected addresses:
  6571	 ----	 ----	   1548	B7981A  	      5	STA   $981A     
  6574	 ----	 ----	   1548	8103    	      2	CMPA  #$03      
  6576	 ----	 ----	   1548	1025FF2F	    6/5	LBCS  $64A9     
+   	   	   	       	        	   HINT	BCC *+5 : JMP $64A9
  657A	 ----	 ----	    516	3596    	     11	PULS  A,B,X,PC  
 
  657C	 6998	 ----	    256	A603    	      5	LDA   $03,X     
@@ -7443,6 +7448,7 @@ Collected addresses:
  667F	 ----	 ----	     59	260B    	      3	BNE   $668C     
  6681	 ----	 ----	     38	C540    	      2	BITB  #$40      
  6683	 ----	 ----	     38	2607    	      3	BNE   $668C     
+   	   	   	       	        	   HINT	(removed)       
  6685	 ----	 ----	     38	CA10    	      2	ORB   #$10      
  6687	 ----	 ----	     38	F5CA40  	      5	BITB  $CA40     
 
@@ -7691,6 +7697,7 @@ Collected addresses:
  68CE	 687F	 ----	     80	A684    	      4	LDA   ,X        
  68D0	 ----	 ----	     80	8103    	      2	CMPA  #$03      
  68D2	 ----	 ----	     80	2440    	      3	BCC   $6914     
+   	   	   	       	        	   HINT	(removed)       
  68D4	 ----	 ----	     80	B69810  	      5	LDA   $9810     
  68D7	 ----	 ----	     80	840F    	      2	ANDA  #$0F      
  68D9	 ----	 ----	     80	260F    	      3	BNE   $68EA     
@@ -7730,6 +7737,7 @@ Collected addresses:
  691B	 ----	 ----	      7	3402    	      6	PSHS  A         
  691D	 ----	 ----	      7	E1E0    	      6	CMPB  ,S+       
  691F	 ----	 ----	      7	27D6    	      3	BEQ   $68F7     
+   	   	   	       	        	   HINT	(removed)       
  6921	 ----	 ----	      7	8504    	      2	BITA  #$04      
  6923	 ----	 ----	      7	2704    	      3	BEQ   $6929     
  6925	 ----	 ----	      5	6A04    	      7	DEC   $04,X     
@@ -7737,6 +7745,7 @@ Collected addresses:
 
  6929	 6923	 ----	      2	8508    	      2	BITA  #$08      
  692B	 ----	 ----	      2	27CA    	      3	BEQ   $68F7     
+   	   	   	       	        	   HINT	(removed)       
  692D	 ----	 ----	      2	6C04    	      7	INC   $04,X     
  692F	 ----	 ----	      2	20C6    	      3	BRA   $68F7     
 
@@ -7848,6 +7857,7 @@ Collected addresses:
  69E2	 69EF	 ----	  67584	A6A0    	      6	LDA   ,Y+       
  69E4	 ----	 ----	  67584	11834141	      5	CMPU  #$4141 <-VRAM.L8+1
  69E8	 ----	 ----	  67584	2502    	      3	BCS   $69EC     
+   	   	   	       	        	   HINT	(removed)       
  69EA	 ----	 ----	  67584	A7C4    	      4	STA   ,U        
  69EC	 ----	 ----	  67584	3341    	      5	LEAU  $01,U     
  69EE	 ----	 ----	  67584	5A      	      2	DECB            
@@ -7992,6 +8002,7 @@ Collected addresses:
  6ADF	 ----	 ----	    256	8DEF    	      7	BSR   $6AD0     
  6AE1	 ----	 ----	    256	A684    	      4	LDA   ,X        
  6AE3	 ----	 ----	    256	2705    	      3	BEQ   $6AEA     
+   	   	   	       	        	   HINT	(removed)       
  6AE5	 ----	 ----	    256	BD6F85  	      8	JSR   $6F85     
  6AE8	 ----	 ----	    256	3510    	      7	PULS  X         
    	   	   	       	        	   HINT	PULS X,PC       
@@ -8218,6 +8229,7 @@ Collected addresses:
 
  6F85	 6AE5	 ----	    256	6D84    	      6	TST   ,X                
  6F87	 ----	 ----	    256	102BFE31	    6/5	LBMI  $6DBC             
+   	   	   	       	        	   HINT	(removed)               
  6F8B	 ----	 ----	    256	F69814  	      5	LDB   $9814             
  6F8E	 ----	 ----	    256	BD6599  	      8	JSR   $6599             
  6F91	 ----	 ----	    256	10BF9812	      7	STY   $9812             
@@ -8292,6 +8304,7 @@ Collected addresses:
  701F	 7014	 ----	  33908	B6980E  	      5	LDA   $980E             
  7022	 ----	 ----	  33908	8105    	      2	CMPA  #$05              
  7024	 ----	 ----	  33908	24EB    	      3	BCC   $7011             
+   	   	   	       	        	   HINT	(removed)               
  7026	 ----	 ----	  33908	FC980C  	      6	LDD   $980C             
  7029	 ----	 ----	  33908	C109    	      2	CMPB  #$09              
  702B	 ----	 ----	  33908	24E4    	      3	BCC   $7011             
@@ -8302,6 +8315,7 @@ Collected addresses:
  7036	 ----	 ----	  24500	B79808  	      5	STA   $9808             
  7039	 ----	 ----	  24500	8540    	      2	BITA  #$40              
  703B	 ----	 ----	  24500	26D4    	      3	BNE   $7011             
+   	   	   	       	        	   HINT	(removed)               
  703D	 ----	 ----	  24500	843F    	      2	ANDA  #$3F              
  703F	 ----	 ----	  24500	27D0    	      3	BEQ   $7011             
  7041	 ----	 ----	   2960	BD7143  	      8	JSR   $7143             
@@ -8350,9 +8364,11 @@ Collected addresses:
  709C	 ----	 ----	   2960	5D      	      2	TSTB                    
  709D	 ----	 ----	   2960	102B0073	    6/5	LBMI  $7114             
    	   	   	       	        	   HINT	BMI $7114               
+   	   	   	       	        	   HINT	(removed)               
  70A1	 ----	 ----	   2960	4D      	      2	TSTA                    
  70A2	 ----	 ----	   2960	102B006E	    6/5	LBMI  $7114             
    	   	   	       	        	   HINT	BMI $7114               
+   	   	   	       	        	   HINT	(removed)               
  70A6	 ----	 ----	   2960	3402    	      6	PSHS  A                 
  70A8	 ----	 ----	   2960	862C    	      2	LDA   #$2C              
  70AA	 ----	 ----	   2960	7D9806  	      7	TST   $9806             
@@ -8374,11 +8390,13 @@ Collected addresses:
  70CB	 ----	 ----	   1744	B09801  	      5	SUBA  $9801             
  70CE	 ----	 ----	   1744	2744    	      3	BEQ   $7114             
  70D0	 ----	 ----	   1720	2B42    	      3	BMI   $7114             
+   	   	   	       	        	   HINT	(removed)               
  70D2	 ----	 ----	   1720	B79809  	      5	STA   $9809             
  70D5	 ----	 ----	   1720	C606    	      2	LDB   #$06              
  70D7	 ----	 ----	   1720	F09803  	      5	SUBB  $9803             
  70DA	 ----	 ----	   1720	2738    	      3	BEQ   $7114             
  70DC	 ----	 ----	   1657	2B36    	      3	BMI   $7114             
+   	   	   	       	        	   HINT	(removed)               
  70DE	 ----	 ----	   1657	F19809  	      5	CMPB  $9809             
  70E1	 ----	 ----	   1657	2303    	      3	BLS   $70E6             
  70E3	 ----	 ----	    964	F69809  	      5	LDB   $9809             
@@ -8386,6 +8404,7 @@ Collected addresses:
  70E6	 70E1	 ----	   1657	B6980A  	      5	LDA   $980A             
  70E9	 ----	 ----	   1657	B09800  	      5	SUBA  $9800             
  70EC	 ----	 ----	   1657	2726    	      3	BEQ   $7114             
+   	   	   	       	        	   HINT	(removed)               
  70EE	 ----	 ----	   1657	B79809  	      5	STA   $9809             
  70F1	 ----	 ----	   1657	862C    	      2	LDA   #$2C              
  70F3	 ----	 ----	   1657	B09802  	      5	SUBA  $9802             
@@ -8610,6 +8629,7 @@ Collected addresses:
  7293	 ----	 ----	      6	26B9    	      3	BNE   $724E             
  7295	 ----	 ----	      2	843F    	      2	ANDA  #$3F              
  7297	 ----	 ----	      2	1027FF68	    6/5	LBEQ  $7203             
+   	   	   	       	        	   HINT	(removed)               
  729B	 ----	 ----	      2	8407    	      2	ANDA  #$07              
  729D	 ----	 ----	      2	6F1F    	      7	CLR   -$01,X            
  729F	 ----	 ----	      2	3402    	      6	PSHS  A                 
@@ -17630,6 +17650,7 @@ Collected addresses:
 
  9F0C	 6C77	 ----	      2	B69844  	      5	LDA   $9844             
  9F0F	 ----	 ----	      2	2712    	      3	BEQ   $9F23             
+   	   	   	       	        	   HINT	(removed)               
  9F11	 ----	 ----	      2	CE5D66  	      3	LDU   #$5D66 <-VRAM.L188+6
 
  9F14	 9F21	 ----	     28	3440    	      7	PSHS  U                 
@@ -22788,65 +22809,87 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	73BB	BRA   $739C		    141	                       
 =======================================================================
 
-Optimization hints (41 / 31.12 ms):
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Optimization hints (62 / 461.05 ms):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    Addr	Hint	  Count	    (~)	Initial Code	    (~)	Suggested Code	Gain(~)	       Gain(ms)
 ===============================================================================================
-   70B4	short-branch	   2960	   5.58	LBCS $7114	   3.00	BCS $7114	   2.58	           7.64
-   70A2	short-branch	   2960	   5.50	LBMI $7114	   3.00	BMI $7114	   2.50	           7.40
-   709D	short-branch	   2960	   5.50	LBMI $7114	   3.00	BMI $7114	   2.50	           7.40
-   71EB	short-branch	   1620	   5.90	LBNE $71D4	   3.00	BNE $71D4	   2.90	           4.70
-   700F	puls-rts	    256	     12	PULS X:RTS	      9	PULS X,PC	      3	           0.77
-   6AE8	puls-rts	    256	     12	PULS X:RTS	      9	PULS X,PC	      3	           0.77
-   6304	addr-reg	    668	      5	LDB $78DF	      4	LDB ,X  	      1	           0.67
-   706F	leax-abx	    133	      8	LEAX D,X	      3	ABX     	      5	           0.67
-   71F5	short-branch	    180	   5.90	LBNE $71D0	   3.00	BNE $71D0	   2.90	           0.52
-   64AE	rarely-taken	   1548	   5.60	LBEQ $656D	   5.40	BNE *+5:JMP $656D	   0.20	           0.31
+   69E8	always-false	  67584	      3	BCS $69EC	      0	(removed)	      3	         202.75
+   7024	always-false	  33908	      3	BCC $7011	      0	(removed)	      3	         101.72
+   703B	always-false	  24500	      3	BNE $7011	      0	(removed)	      3	          73.50
+   70A2	always-false	   2960	   5.00	LBMI $7114	   0.00	(removed)	   5.00	          14.80
+   709D	always-false	   2960	   5.00	LBMI $7114	   0.00	(removed)	   5.00	          14.80
+   70B4	short-branch	   2960	   5.28	LBCS $7114	   3.00	BCS $7114	   2.28	           6.73
+   62E9	always-false	   2180	      3	BNE $633A	      0	(removed)	      3	           6.54
+   709D	short-branch	   2960	   5.00	LBMI $7114	   3.00	BMI $7114	   2.00	           5.92
+   70A2	short-branch	   2960	   5.00	LBMI $7114	   3.00	BMI $7114	   2.00	           5.92
+   70D0	always-false	   1720	      3	BMI $7114	      0	(removed)	      3	           5.16
+   70EC	always-false	   1657	      3	BEQ $7114	      0	(removed)	      3	           4.97
+   70DC	always-false	   1657	      3	BMI $7114	      0	(removed)	      3	           4.97
+   71EB	short-branch	   1620	   5.89	LBNE $71D4	   3.00	BNE $71D4	   2.89	           4.68
+   64AE	rarely-taken	   1548	   5.33	LBEQ $656D	   4.33	BNE *+5:JMP $656D	   1.00	           1.55
+   6F87	always-false	    256	   5.00	LBMI $6DBC	   0.00	(removed)       	   5.00	           1.28
+   700F	puls-rts	    256	     12	PULS X:RTS	      9	PULS X,PC       	      3	           0.77
+   6AE3	always-false	    256	      3	BEQ $6AEA	      0	(removed)       	      3	           0.77
+   6AE8	puls-rts	    256	     12	PULS X:RTS	      9	PULS X,PC       	      3	           0.77
+   6304	addr-reg	    668	      5	LDB $78DF	      4	LDB ,X          	      1	           0.67
+   706F	leax-abx	    133	      8	LEAX D,X	      3	ABX             	      5	           0.67
+   71F5	short-branch	    180	   5.89	LBNE $71D0	   3.00	BNE $71D0       	   2.89	           0.52
+   64B7	rarely-taken	   1032	   5.50	LBEQ $656D	   5.00	BNE *+5:JMP $656D	   0.50	           0.52
+   638A	always-false	    130	      3	BEQ $639D	      0	(removed)       	      3	           0.39
    6C9B	short-branch	    130	   5.02	LBNE $6CEC	   3.00	BNE $6CEC       	   2.02	           0.26
-   72D9	puls-rts	      4	     16	PULS A,B,X,U:RTS	     13	PULS A,B,X,U,PC 	      3	           0.01
+   68D2	always-false	     80	      3	BCC $6914	      0	(removed)       	      3	           0.24
+   6683	always-false	     38	      3	BNE $668C	      0	(removed)       	      3	           0.11
+   691F	always-false	      7	      3	BEQ $68F7	      0	(removed)       	      3	           0.02
    62A3	puls-rts	      4	     11	PULS B:RTS	      8	PULS B,PC       	      3	           0.01
-   6626	always-true	    516	      3	BNE $662A	      3	BRA $662A       	      0	           0.00
-   71BE	clear-reg	      4	      2	LDB #$00	      2	CLRB            	      0	           0.00
-   6325	always-true	    668	      3	BEQ $633A	      3	BRA $633A       	      0	           0.00
-   717B	always-true	   2960	      3	BCC $717E	      3	BRA $717E       	      0	           0.00
-   63AA	always-true	    130	      3	BEQ $63B9	      3	BRA $63B9       	      0	           0.00
-   6393	always-true	    130	      3	BEQ $639B	      3	BRA $639B       	      0	           0.00
-   63BB	always-true	    130	      3	BEQ $63C2	      3	BRA $63C2       	      0	           0.00
-   6312	always-true	    668	      3	BPL $631F	      3	BRA $631F       	      0	           0.00
-   72CF	always-true	      4	      3	BEQ $72D3	      3	BRA $72D3       	      0	           0.00
-   9DF9	always-true	      1	      3	BNE $9DFF	      3	BRA $9DFF       	      0	           0.00
-   7252	always-true	      4	      3	BNE $7208	      3	BRA $7208       	      0	           0.00
-   9CF5	always-true	    128	      3	BEQ $9D09	      3	BRA $9D09       	      0	           0.00
-   62F7	always-true	   1080	      3	BNE $633A	      3	BRA $633A       	      0	           0.00
-   65F8	always-true	    516	      3	BEQ $6601	      3	BRA $6601       	      0	           0.00
-   63D6	always-true	      9	      3	BEQ $63DB	      3	BRA $63DB       	      0	           0.00
-   6DC0	always-true	    128	      3	BEQ $6DDF	      3	BRA $6DDF       	      0	           0.00
-   6981	clear-reg	    644	      2	LDB #$00	      2	CLRB            	      0	           0.00
-   69D9	always-true	    256	      3	BPL $69DD	      3	BRA $69DD       	      0	           0.00
-   68FE	always-true	     80	      3	BNE $6908	      3	BRA $6908       	      0	           0.00
-   66E6	always-true	    116	      3	BEQ $66EF	      3	BRA $66EF       	      0	           0.00
-   63E1	always-true	    130	      3	BEQ $63E6	      3	BRA $63E6       	      0	           0.00
-   650B	always-true	     57	      3	BHI $656D	      3	BRA $656D       	      0	           0.00
+   72D9	puls-rts	      4	     16	PULS A,B,X,U:RTS	     13	PULS A,B,X,U,PC 	      3	           0.01
+   7297	always-false	      2	   5.00	LBEQ $7203	   0.00	(removed)       	   5.00	           0.01
+   692B	always-false	      2	      3	BEQ $68F7	      0	(removed)       	      3	           0.01
+   617E	always-false	      2	      3	BCS $6183	      0	(removed)       	      3	           0.01
+   9F0F	always-false	      2	      3	BEQ $9F23	      0	(removed)       	      3	           0.01
    9EA2	always-true	    130	      3	BEQ $9ED1	      3	BRA $9ED1       	      0	           0.00
-   6CF1	always-true	      2	      3	BNE $6D1B	      3	BRA $6D1B       	      0	           0.00
+   717B	always-true	   2960	      3	BCC $717E	      3	BRA $717E       	      0	           0.00
+   7252	always-true	      4	      3	BNE $7208	      3	BRA $7208       	      0	           0.00
+   9DF9	always-true	      1	      3	BNE $9DFF	      3	BRA $9DFF       	      0	           0.00
+   71BE	clear-reg	      4	      2	LDB #$00	      2	CLRB            	      0	           0.00
+   9CF5	always-true	    128	      3	BEQ $9D09	      3	BRA $9D09       	      0	           0.00
+   72CF	always-true	      4	      3	BEQ $72D3	      3	BRA $72D3       	      0	           0.00
    6C7D	always-true	      2	      3	BEQ $6C87	      3	BRA $6C87       	      0	           0.00
-   6CBD	always-true	    128	      3	BNE $6C87	      3	BRA $6C87       	      0	           0.00
+   6CF1	always-true	      2	      3	BNE $6D1B	      3	BRA $6D1B       	      0	           0.00
+   63AA	always-true	    130	      3	BEQ $63B9	      3	BRA $63B9       	      0	           0.00
+   63BB	always-true	    130	      3	BEQ $63C2	      3	BRA $63C2       	      0	           0.00
+   63D6	always-true	      9	      3	BEQ $63DB	      3	BRA $63DB       	      0	           0.00
+   63E1	always-true	    130	      3	BEQ $63E6	      3	BRA $63E6       	      0	           0.00
+   6393	always-true	    130	      3	BEQ $639B	      3	BRA $639B       	      0	           0.00
+   6312	always-true	    668	      3	BPL $631F	      3	BRA $631F       	      0	           0.00
+   6325	always-true	    668	      3	BEQ $633A	      3	BRA $633A       	      0	           0.00
+   62F7	always-true	   1080	      3	BNE $633A	      3	BRA $633A       	      0	           0.00
+   6DC0	always-true	    128	      3	BEQ $6DDF	      3	BRA $6DDF       	      0	           0.00
+   650B	always-true	     57	      3	BHI $656D	      3	BRA $656D       	      0	           0.00
+   65F8	always-true	    516	      3	BEQ $6601	      3	BRA $6601       	      0	           0.00
+   69D9	always-true	    256	      3	BPL $69DD	      3	BRA $69DD       	      0	           0.00
    6CAD	always-true	    128	      3	BNE $6CB7	      3	BRA $6CB7       	      0	           0.00
+   6CBD	always-true	    128	      3	BNE $6C87	      3	BRA $6C87       	      0	           0.00
+   6576	rarely-taken	   1548	   5.67	LBCS $64A9	   5.67	BCC *+5:JMP $64A9	   0.00	           0.00
+   6981	clear-reg	    644	      2	LDB #$00	      2	CLRB            	      0	           0.00
+   66E6	always-true	    116	      3	BEQ $66EF	      3	BRA $66EF       	      0	           0.00
+   68FE	always-true	     80	      3	BNE $6908	      3	BRA $6908       	      0	           0.00
+   6626	always-true	    516	      3	BNE $662A	      3	BRA $662A       	      0	           0.00
    9FCD	always-true	      7	      3	BLS $9FD1	      3	BRA $9FD1       	      0	           0.00
-  Total	        	       	 105292	        	  74172	                	       	          31.12
+  Total	        	       	 547505	        	  86453	                	       	         461.05
 ===============================================================================================
 
 Summary:
 ~~~~~~~~
 Hint	  Count	    (%)	Gain(~)	    (%)
 =======================================
-short-branch	      6	  14.63	  27917	  89.71
-puls-rts	      4	   9.76	   1560	   5.01
-addr-reg	      1	   2.44	    668	   2.15
-leax-abx	      1	   2.44	    665	   2.14
-rarely-taken	      1	   2.44	    310	   0.99
-always-true	     26	  63.41	      0	   0.00
-clear-reg	      2	   4.88	      0	   0.00
+always-false	     19	  30.65	 432059	  93.71
+short-branch	      6	   9.68	  24036	   5.21
+rarely-taken	      3	   4.84	   2064	   0.45
+puls-rts	      4	   6.45	   1560	   0.34
+addr-reg	      1	   1.61	    668	   0.14
+leax-abx	      1	   1.61	    665	   0.14
+always-true	     26	  41.94	      0	   0.00
+clear-reg	      2	   3.23	      0	   0.00
 =======================================
 
 Global variables (18 / 15 of interrest):

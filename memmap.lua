@@ -2354,21 +2354,20 @@ local HINTS = OPT_HINTS and {
             local h = self:_newHint(addr, hexa, lbl, gain, explain, asm)
             h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
             h.adr_nottaken = h._nxt
-			h.cnt          = 0
+			h.pending      = true
             h.cnt_taken    = 0
             h.cnt_nottaken = 0
             h.extra_check  = function(self, addr, hexa, opcode, arg, regs) end
             h.check        = function(self, addr, hexa, opcode, arg, regs) 
-				if addr == self.adr then
-					self.cnt       = self.cnt + 1
-                elseif addr == self.adr_taken then
-                    self.cnt_taken = self.cnt_taken + 1
-                elseif addr == self.adr_nottaken then
-                    self.cnt_nottaken = self.cnt_nottaken + 1
-                elseif addr ~= self.addr then
-                    error(addr..' '..self.adr_taken..'/'..self.adr_nottaken)
-                end
-                self:extra_check(addr, hexa, opcode, arg, regs)
+				if addr == self.addr then
+					self.pending = true
+                elseif addr == self.adr_taken and self.pending then
+                    self.cnt_taken,self.pending = self.cnt_taken + 1,false
+					self:extra_check(addr, hexa, opcode, arg, regs)
+               elseif addr == self.adr_nottaken and self.pending then
+                    self.cnt_nottaken,self.pending = self.cnt_nottaken + 1,false
+					self:extra_check(addr, hexa, opcode, arg, regs)
+				end
             end
             h.valid         = function(self)
                 -- print(self.addr, self._valid, self.cnt_taken, self.cnt_nottaken)
@@ -2400,7 +2399,7 @@ local HINTS = OPT_HINTS and {
 			if BCC and self._bcom[BCC] then LONG = LONG=='L'
 				local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(removed)')
                 h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
-                    if  self.cnt_taken>0 then self._valid = false end
+                    if self.cnt_taken>0 then self._valid = false end
                 end
                 h.cycles  = function(self, mem, orig) 
                     return orig and (LONG and 5 or 3) or 0
@@ -2429,6 +2428,10 @@ local HINTS = OPT_HINTS and {
 							local total = self.cnt_taken + self.cnt_nottaken
 							return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
 							             or (7*self.cnt_taken + 3*self.cnt_nottaken)/total
+						end
+						h.valid2 = h.valid
+						h.valid = function(self)
+							return self:valid2() and self.cnt_taken>0
 						end
 					elseif BCC=='BRA' or BCC=='BSR' then
 						self:_newHint(addr, hexa, 'slow-long-branch', 
@@ -2589,11 +2592,10 @@ local HINTS = OPT_HINTS and {
 		end,
 		getHints = function(self, addr)
 			local ret,hints = {},self[addr]
-			if type(hints)=='table' then
-				for _,h in ipairs(hints) do
-					if h.addr==addr and h:valid() then
-						table.insert(ret, h)
-					end
+			for _,h in ipairs(hints or {}) do
+			if addr=='69EF' then print(h.lbl, h._valid, h.cnt_taken, h.cnt_nottaken) end
+				if h.addr==addr and h:valid() then
+					table.insert(ret, h)
 				end
 			end
 			return ret
