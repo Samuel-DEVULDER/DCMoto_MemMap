@@ -43,10 +43,9 @@ L'option `-mach=TO` ou `-mach=MO` selectionne un type de machine. La zone analys
 
 
 Ce fonctionnement de base de l'outil peut être étendu par quelques optons de la ligne de commande:
-* __-reset__  
-    Par défault l'outil cumule les valeurs des analyses précédentes. Cela permet d'amméliorer la qualité de l'analyse. Cependant si la trace présente ne correspond pas au programme à étudier il faut l'ignorer. C'est précisément ce que permet cette option. Avec elle le fichier de trace déjà présent ne sera pas lu et l'outil partira de zéro dans son analyse avant de reboucler si demandé (voir option suivante).
-* __-loop__  
-    Si cette option est présente, l'outil efface le fichier de trace lu et reboucle en attente d'un nouveau. Il faut alors le stopper en faisant `ctrl-c`.
+* __-during=number__  
+* __-during=number(min|sec|s|ms|us|cycles)__  
+    Par défault l'outil analyse la trace complète, mais si on utilise cette option il n'analyse que pour la durée ou le nombre de cycles cpu indiqué (environ). Si la trace est trop petite, l'outil efface la trace lue, puis attends l'apparition d'une nouvelle trace; Il accumule alors les résultats de cette trace à ceux de la précédente et ainsi de suite jusqu'à avoir accumulé le nombre de cycles désirés. Cela permet d'amméliorer la qualité de l'analyse.
 
 Plusieurs options gouvernent le contenu du fichier produit:
 * __-equ__  

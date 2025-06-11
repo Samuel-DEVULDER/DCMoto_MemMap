@@ -23,8 +23,6 @@ local MACH_XX     = '?'                -- deviner la machine
 local MACH_TO     = "TO."              -- TO7 etc.
 local MACH_MO     = "MO."              -- MO5 etc.
 
-local OPT_LOOP    = false              -- reboucle ?
-local OPT_RESET   = false              -- ignore les analyses précédentes ?
 local OPT_MIN     = nil                -- adresse de départ
 local OPT_MAX     = nil                -- adresse de fin
 local OPT_HOT     = false              -- hotspots ?
@@ -39,7 +37,7 @@ local OPT_COLS    = 128                -- nb de colonnes de la table map
 local OPT_EQU     = false              -- utilise les equates
 local OPT_MACH    = nil                -- type de machine
 local OPT_VERBOSE = 0                  -- niveau de détail
-local OPT_AUTOARG = false              -- rejoue les arguments précédents
+local OPT_DURING  = nil                -- accumulate
 
 ------------------------------------------------------------------------------
 -- utilitaires
@@ -320,10 +318,8 @@ for i,v in ipairs(ARGV) do local t
     if l=='-h'
     or l=='?'
     or l=='--help'   then usage()
-    elseif l=='-loop'       then OPT_LOOP    = true
     elseif l=='-html'       then OPT_HTML    = true
     elseif l=='-smooth'     then OPT_SMOOTH  = "smooth"
-    elseif l=='-reset'      then OPT_RESET   = true
     elseif l=='-map'        then OPT_MAP     = true
     elseif v=='-hints'      then OPT_HINTS   = true
     elseif v=='-vars'       then OPT_VARS    = true
@@ -337,12 +333,13 @@ for i,v in ipairs(ARGV) do local t
 	else t=v:match('%-trace=(.+)')     if t then TRACE       = t
     else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t																
     else t=v:match('%-times=(.+)')     if t then OPT_TIMES   = t																
+    else t=v:match('%-during=(.+)')    if t then OPT_DURING  = t																
     else t=l:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
     else t=l:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=l:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
     else t=l:match('%-verbose=(%d+)')  if t then OPT_VERBOSE = tonumber(t)
     else io.stdout:write('Unknown option: ' .. v .. '\n\n'); usage(21, true)
-    end end end end end end end end
+    end end end end end end end end end
 end
 
 ------------------------------------------------------------------------------
@@ -3281,8 +3278,9 @@ end
 
 -- ouverture et analyse du fichier de trace
 local function read_trace(filename)
-    local num,f = 0, assert(io.open(filename,'r'))
-    local size = f:seek('end') f:seek('set')
+    local num,f   = 0, assert(io.open(filename,'r'))
+    local size	  = f:seek('end') f:seek('set')
+	local rd_size = 0
 
     local start_time = os.clock()
 
@@ -3335,6 +3333,7 @@ local function read_trace(filename)
 	-- local byte,space3 = string.byte,function(a,b,c) return 0x202020==c+b*256+a*65536 end
     profile:_()
     for s in f:lines() do
+		rd_size = rd_size + s:len()
         -- print(s) io.stdout:flush()
         if 50000==num then num = 0
             local txt = sprintf('%6.02f%%', 100*f:seek()/size)
@@ -3392,6 +3391,11 @@ local function read_trace(filename)
                 -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
                 if nomem then nomem_asm[sig] = {asm,cycles} end
             end
+			
+			if OPT_DURING and OPT_DURING<mem.cycles + tonumber(last:sub(48,57)) then
+				OPT_DURING = nil
+				break 
+			end
         else
             jmp = nil
         end
@@ -3422,7 +3426,7 @@ local function read_trace(filename)
         end
     end
 
-    local mb, time = size/1024/1024, (os.clock() -start_time)
+    local mb, time = rd_size/1024/1024, (os.clock() -start_time)
     log('Analyzed %.3f Mb of trace (%.3f Mb/s).', mb, mb / time)
 end
 
@@ -3451,6 +3455,14 @@ end
 ------------------------------------------------------------------------------
 -- boucle principale (sortie par ctrl-c)
 ------------------------------------------------------------------------------
+if OPT_DURING then
+	local multiplier = 1
+	for k,v in pairs{s=1000000, ms=1000, us=1, sec=1000000, min=60000000,cycles=1} do
+		local t = OPT_DURING:match('(%S+)%s*'..k..'%s*$') 
+		if t then OPT_DURING=tonumber(t)*v break end
+	end
+	if type(OPT_DURING)=='string' then OPT_DURING = tonumber(OPT_DURING) end
+end
 repeat
     -- attente de l'arrivée d'un fichier de trace
     wait_for_file(TRACE)
@@ -3464,15 +3476,16 @@ repeat
     -- lecture fichier de trace
     read_trace(TRACE)
 
-    -- écriture résultat TSV & html
-    mem:save(newParallelWriter(
-        newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
-        OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
-    )):close()
-
     -- effacement fichier trace consomé
-    if OPT_LOOP then log('Removing trace.'); assert(os.remove(TRACE)); log('Do it again...') end
-
-    --  si le min/max n'est pas encore trouvé
-    OPT_MIN,OPT_MAX = _MIN,_MAX
-until not OPT_LOOP
+    if OPT_DURING then 
+		log('Removing trace.'); assert(os.remove(TRACE)); 
+		log('Do it again...') 
+		--  si le min/max n'est pas encore trouvé
+		OPT_MIN,OPT_MAX = _MIN,_MAX
+	end
+until not OPT_DURING
+-- écriture résultat TSV & html
+mem:save(newParallelWriter(
+	newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
+	OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
+)):close()

@@ -153,9 +153,9 @@ tst_h: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	@X="$(DISTRO)/$(LUA) $< -h"; \
 	echo -n Testing $$X...;\
 	X=`$$X | wc -l`; \
-	if test $$X -ne 150; then \
+	if test $$X -ne 145; then \
 		echo; \
-		echo "Error: expected 150, got $$X"; \
+		echo "Error: expected 145, got $$X"; \
 		exit 15; \
 	else \
 		echo ok; \
@@ -177,8 +177,10 @@ tst_dummy: $(DISTRO)/memmap.lua $(DISTRO)/$(LUA)
 	ROOT=$(shell realpath --relative-to=$*/ .); \
 	cd $*; time \
 	$$ROOT/$(LUA) $$ROOT/memmap.lua \
-	-reset -html  -smooth \
-	-mach=?? -from=4000 -map -vars -hot=colors -hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 -equ -verbose=2
+	-equ -verbose=2 \
+	-during=20s -html -smooth \
+	-mach=?? -from=4000 -map -vars -hot=colors \
+	-hints -times=737A-739F,7117-7142,69AC-69F9,6DA7 
 	-@start $@
 
 %/dcmoto_trace.txt: %/dcmoto_trace.txt.7z
