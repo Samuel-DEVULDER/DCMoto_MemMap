@@ -3207,11 +3207,11 @@ local function stack(reg, ptr, dir, args)
 end
 -- lecture depuis la pile "reg"
 local function pull(reg, args, regs)
-    stack(reg, regs:match(reg..'=(%x%x%x%x)'),-1,args)
+    stack(reg, regs:match(reg..'=(%x%x%x%x)'), 1, args)
 end
 -- écriture depuis la pile "reg"
 local function push(reg, args, regs)
-    stack(reg,regs:match(reg..'=(%x%x%x%x)'), 1,args)
+    stack(reg, regs:match(reg..'=(%x%x%x%x)'), -1, args)
 end
 
 ------------------------------------------------------------------------------
