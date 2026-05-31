@@ -917,7 +917,7 @@ local TIMES TIMES = {
 			_sum1 = 0,
 			_sum2 = 0,
 			_stop = function(self, tick)
-				if self._t>=0 then local t = tick - self._t
+				if self._t>=0 then local t = TIMES.mem.cycles + tick - self._t
 					self._t, self.count  , self._sum1    , self._sum2
 					=	 -1, self.count+1, self._sum1 + t, self._sum2 + t*t
 					if t>self.max then self.max = t end
@@ -925,7 +925,7 @@ local TIMES TIMES = {
 				end
 			end,
 			_start = function(self, tick)
-				if self._t<0 then self._t = tick end
+				if self._t<0 then self._t = tick + TIMES.mem.cycles end
 			end,
 		nil}
 		-- skip if already exist
@@ -3233,11 +3233,11 @@ local function stack(reg, ptr, dir, args)
 end
 -- lecture depuis la pile "reg"
 local function pull(reg, args, regs)
-    stack(reg, regs:match(reg..'=(%x%x%x%x)'),-1,args)
+    stack(reg, regs:match(reg..'=(%x%x%x%x)'), 1, args)
 end
 -- écriture depuis la pile "reg"
 local function push(reg, args, regs)
-    stack(reg,regs:match(reg..'=(%x%x%x%x)'), 1,args)
+    stack(reg, regs:match(reg..'=(%x%x%x%x)'), -1, args)
 end
 
 ------------------------------------------------------------------------------
@@ -3353,6 +3353,7 @@ local function read_trace(filename)
     -- parse = memoize:ret_n(parse)
 
 	HINTS.mem = mem
+	TIMES.mem = mem
     local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',
 							  48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,
 							  nil}
@@ -3483,7 +3484,9 @@ end
 ------------------------------------------------------------------------------
 if OPT_DURING then
 	local multiplier = 1
-	for k,v in pairs{s=1000000, ms=1000, us=1, sec=1000000, min=60000000,cycles=1} do
+	for k,v in pairs{s=1000000, ms=1000, us=1, c=1, 
+	                 sec=1000000, min=60000000, 
+	                 secs=1000000, millis=1000, micros=1, cycles=1, mins=60000000} do
 		local t = OPT_DURING:match('(%S+)%s*'..k..'%s*$') 
 		if t then OPT_DURING=tonumber(t)*v break end
 	end
