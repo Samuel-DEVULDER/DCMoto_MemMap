@@ -238,7 +238,10 @@ local function exists(file)
 end
 local function isdir(file)
 	if file=='.' then return true end
-    local f = io.open(file,'r')
+    local dummy = file..'/dumy.dum'
+    local f = io.open(dummy,'w')
+    if f then f:close(); os.remove(dummy); return true; end
+    f = io.open(file,'r')
     if f then f:close(); return false; end
 	file = (file..'/'):gsub('/+','/')
 	return exists(file) or exists(file:gsub('/','\\'))
@@ -251,9 +254,9 @@ local function dir(folder)
 	local ret = {}
 	if isdir(folder) then
 		for _,cmd in ipairs{
+			"ls '"..folder.."'",
 			'DIR 2>NUL /B "'..folder:gsub('\\','/'):gsub('/','\\\\')..'"',
 			"find -maxdepth 1 -print0 '"..folder.."'",
-			"ls '"..folder.."'",
 			nil} do
 			local f = io.popen(cmd)
 			if f then
@@ -348,6 +351,28 @@ end
 
 local EQUATES = {
     _mach = '',
+    _symb = {},
+    _shorten= function(self,name,addr)
+        -- split addr wrt paths and nalme : /path/path/path:symbbol
+        local path,symb = name:match('^[%./]+(.*):([^:]+)$')
+        name = symb or name
+        addr = tonumber(addr,16)
+        if path~=nil and self._symb[name]~=nil and self._symb[name]~=addr then
+            local parts, sep = {}, ':'
+            for part in string.gmatch(path, "[^/]+") do
+                table.insert(parts, part)
+            end     
+
+            for i=#parts,1,-1 do
+                name,sep = parts[i]..sep..name,'/'
+                if self._symb[name]==nil or self._symb[name]==addr then
+                    break
+                end
+            end
+        end
+        self._symb[name] = addr
+        return name
+    end,
     m = function(self,mach)
         self._mach = mach or ''
         return self
@@ -361,6 +386,7 @@ local EQUATES = {
     -- define adresses
     d = function(self,addr,name, ...)
         if addr then
+            name = self:_shorten(name, addr)
             self[self._page .. addr] = (type(OPT_EQU)=='boolean' and (OPT_MACH==nil or OPT_MACH==MACH_XX) and self._mach or '') .. name
             self:d(...)
         end
