@@ -3419,7 +3419,7 @@ local function read_trace(filename)
                 if nomem then nomem_asm[sig] = {asm,cycles} end
             end
 			
-			if OPT_DURING and OPT_DURING<mem.cycles + tonumber(last:sub(48,57)) then
+			if OPT_DURING and OPT_DURING<mem.cycles + tonumber(last:sub(48):match('%s+(%d+)') or '0') then
 				OPT_DURING = nil
 				break 
 			end
@@ -3429,7 +3429,10 @@ local function read_trace(filename)
     end
     f:close() parse,_parse = nil
     out(string.rep(' ', 10) .. string.rep('\b',10))
-    if last then mem.cycles = mem.cycles + tonumber(last:sub(48,57)) end
+    if last then 
+        local num = last:sub(48):match('%s+(%d+)') or '0'
+        mem.cycles = mem.cycles + tonumber(num) 
+    end
     profile:_()
 
     -- nettoyage des branchements conditionnels non pris
