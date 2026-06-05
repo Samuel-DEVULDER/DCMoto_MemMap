@@ -2402,7 +2402,7 @@ local HINTS = OPT_HINTS and {
         end,
         _branch_always_true = function(self, addr, hexa, opcode, arg, regs)
 			local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
-            local LONG,BCC = opcode:match('^(L?)(B..)$')
+            local LONG,BCC = opcode:match('^(L)(B..)$') -- only important for long branches, otherwise they are harmless
             if BCC and self._bcom[BCC] then LONG = LONG=='L'
 				local h = self:_newBranchHint(addr, hexa, arg, 'always-true', 
                         0, (LONG and "JMP $" or "BRA $")..a)
