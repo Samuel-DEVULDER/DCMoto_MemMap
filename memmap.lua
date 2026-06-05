@@ -3398,7 +3398,7 @@ local function read_trace(filename)
 			HINTS:analyze(pc, hexa, opcode, args, regs)
 			TIMES:analyze(pc, s)
             if nomem_asm[sig] then
-                mem:a(nomem_asm[sig][1],nomem_asm[sig][2])
+                mem:a(nomem_asm[sig][1],nomem_asm[sig][2],nomem_asm[sig][3])
             else
                 local f = DISPATCH[opcode]
                 local nomem = nil==f or f()
@@ -3406,8 +3406,8 @@ local function read_trace(filename)
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     trim(s:sub(43,46))
-				local dp = args:match('<%$(%x%x)$') and regs:match('DP=(%x+)') or nil														 
-                -- local addr   = args:match('%$(%x%x%x%x)')
+				local dp = args:match('<%$(%x%x)$') and regs:match('DP=(%x+)') or nil		
+                -- local addr   = args:match('%$(%x%x%x%x)')²	
                 -- local equate = addr and EQUATES:t(addr) or ''
                 -- if equate~='' then -- remore duplicate
                     -- protect special chars
@@ -3416,7 +3416,7 @@ local function read_trace(filename)
                 -- end
                 mem:pc(curr_pc):a(asm,cycles,dp)
                 -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
-                if nomem then nomem_asm[sig] = {asm,cycles} end
+                if nomem then nomem_asm[sig] = {asm,cycles,dp} end
             end
 			
 			if OPT_DURING and OPT_DURING<mem.cycles + tonumber(last:sub(48):match('%s+(%d+)') or '0') then
