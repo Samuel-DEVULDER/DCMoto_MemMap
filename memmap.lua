@@ -2349,6 +2349,12 @@ local HINTS = OPT_HINTS and {
 				self:_newHint(addr, hexa, 'clear-reg', 0, 'CLR'..REG)
 			end
 		end,
+		_0lsb = function(self, addr, hexa, opcode, arg, regs)
+			local MSB = (opcode=='ADDD' or opcode=='SUBD') and arg:match('#$(%x%x)00')
+			if MSB then
+				self:_newHint(addr, hexa, 'zero-lsb', -2, opcode:sub(1,3)..'A #$'..MSB)
+			end
+		end,
 		_ldd = function(self, addr, hexa, opcode, arg, regs)
 			if opcode=='LDD' then
 				local A,B = arg:match('^#%$(%x%x)(%x%x)$')
@@ -2593,6 +2599,7 @@ local HINTS = OPT_HINTS and {
                     self:_branch_always_false (addr, hexa, opcode, arg, regs)
                     self:_branch_always_true  (addr, hexa, opcode, arg, regs)
 					self:_reg_trashed         (addr, hexa, opcode, arg, regs)
+					self:_0lsb                (addr, hexa, opcode, arg, regs)
                 end
 			end
 		end,
