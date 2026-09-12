@@ -26,9 +26,10 @@ local MACH_MO     = "MO."              -- MO5 etc.
 local OPT_MIN     = nil                -- adresse de départ
 local OPT_MAX     = nil                -- adresse de fin
 local OPT_HOT     = false              -- hotspots ?
-local OPT_HOT_COL = false              -- colored hotspots 
+local OPT_HOT_COL = false              -- colored hotspots
 local OPT_HINTS   = false              -- add hint comments on the html
 local OPT_TIMES   = false              -- measure times
+local OPT_EXECS   = false              -- measure execution frequency
 local OPT_VARS    = false              -- list variables
 local OPT_MAP     = false              -- ajoute une version graphique de la map
 local OPT_HTML    = false              -- produit une analyse html?
@@ -231,46 +232,46 @@ local function exists(file)
          return true
       end
       local f = io.open(file,'r')
-	  if f then f:close() ok,err=true end
+      if f then f:close() ok,err=true end
    end
 -- print('EXIST',file,ok,err,code)
    return ok, err
 end
 local function isdir(file)
-	if file=='.' then return true end
+    if file=='.' then return true end
     local dummy = file..'/dumy.dum'
     local f = io.open(dummy,'w')
     if f then f:close(); os.remove(dummy); return true; end
     f = io.open(file,'r')
     if f then f:close(); return false; end
-	file = (file..'/'):gsub('/+','/')
-	return exists(file) or exists(file:gsub('/','\\'))
+    file = (file..'/'):gsub('/+','/')
+    return exists(file) or exists(file:gsub('/','\\'))
 end
 local function isfile(file)
    local f = io.open(file,'r')
    if f then f:close() return true else return false end
 end
 local function dir(folder)
-	local ret = {}
-	if isdir(folder) then
-		for _,cmd in ipairs{
-			"ls '"..folder.."'",
-			'DIR 2>NUL /B "'..folder:gsub('\\','/'):gsub('/','\\\\')..'"',
-			"find -maxdepth 1 -print0 '"..folder.."'",
-			nil} do
-			local f = io.popen(cmd)
-			if f then
-				for entry in f:lines() do 
-					if not entry:match('^%.') then
-						table.insert(ret, entry) 
-					end
-				end
-				f:close()
-				break
-			end
-		end
-	end
-	return ret
+    local ret = {}
+    if isdir(folder) then
+        for _,cmd in ipairs{
+            "ls '"..folder.."'",
+            'DIR 2>NUL /B "'..folder:gsub('\\','/'):gsub('/','\\\\')..'"',
+            "find -maxdepth 1 -print0 '"..folder.."'",
+            nil} do
+            local f = io.popen(cmd)
+            if f then
+                for entry in f:lines() do
+                    if not entry:match('^%.') then
+                        table.insert(ret, entry)
+                    end
+                end
+                f:close()
+                break
+            end
+        end
+    end
+    return ret
 end
 
 ------------------------------------------------------------------------------
@@ -287,33 +288,33 @@ local function machMO()
 end
 
 -- reuse previous command-line arguments
-for _,v in ipairs(ARGV) do if v==PREVCLI then 
-	local args, f = {}, io.open(RESULT..'.csv','r')
-	local function add(l)
-		l = trim(l)
-		local k = l:match('^(.+)=') 
-		if nil==k then k = l end
-		if k~='' then args[k] = l end		
-	end
-	if f then
-		for l in f:lines() do 
-			local c1,c2 = l:match('^([^\t]+)\t(.*)$')
-			if c1=='CLI Arguments' then
-				c2 = c2:gsub('^%s*%-',''):gsub('\\n',' '):gsub('\\t',' ')..' -'
-				for entry in string.gmatch(c2, '%s*(.-)%s+%-') do
-					add('-'..entry)
-				end
-				break
-			end
-		end
-		f:close()
-	end
-	-- override with actual cmd-line args
-	for _,l in ipairs(ARGV) do add(l) end
-	args[PREVCLI] = nil
-	ARGV = {}
-	for _,v in pairs(args) do table.insert(ARGV, v) end
-	break
+for _,v in ipairs(ARGV) do if v==PREVCLI then
+    local args, f = {}, io.open(RESULT..'.csv','r')
+    local function add(l)
+        l = trim(l)
+        local k = l:match('^(.+)=')
+        if nil==k then k = l end
+        if k~='' then args[k] = l end
+    end
+    if f then
+        for l in f:lines() do
+            local c1,c2 = l:match('^([^\t]+)\t(.*)$')
+            if c1=='CLI Arguments' then
+                c2 = c2:gsub('^%s*%-',''):gsub('\\n',' '):gsub('\\t',' ')..' -'
+                for entry in string.gmatch(c2, '%s*(.-)%s+%-') do
+                    add('-'..entry)
+                end
+                break
+            end
+        end
+        f:close()
+    end
+    -- override with actual cmd-line args
+    for _,l in ipairs(ARGV) do add(l) end
+    args[PREVCLI] = nil
+    ARGV = {}
+    for _,v in pairs(args) do table.insert(ARGV, v) end
+    break
 end end
 
 for i,v in ipairs(ARGV) do local t
@@ -326,6 +327,7 @@ for i,v in ipairs(ARGV) do local t
     elseif l=='-map'        then OPT_MAP     = true
     elseif v=='-hints'      then OPT_HINTS   = true
     elseif v=='-vars'       then OPT_VARS    = true
+    elseif v=='-execs'      then OPT_EXECS   = true
     elseif l=='-hot'        then OPT_HOT     = true
     elseif l=='-hot=colors' then OPT_HOT     = true; OPT_HOT_COL = true; OPT_HTML = true
     elseif l=='-equ'        then OPT_EQU     = true
@@ -333,10 +335,10 @@ for i,v in ipairs(ARGV) do local t
     elseif l=='-mach=??'    then OPT_MACH    = MACH_XX; OPT_EQU  = true
     elseif l=='-mach=to'    then machTO()
     elseif l=='-mach=mo'    then machMO()
-	else t=v:match('%-trace=(.+)')     if t then TRACE       = t
-    else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t																
-    else t=v:match('%-times=(.+)')     if t then OPT_TIMES   = t																
-    else t=v:match('%-during=(.+)')    if t then OPT_DURING  = t																
+    else t=v:match('%-trace=(.+)')     if t then TRACE       = t
+    else t=v:match('%-equ=(.+)')       if t then OPT_EQU     = t
+    else t=v:match('%-times=(.+)')     if t then OPT_TIMES   = t
+    else t=v:match('%-during=(.+)')    if t then OPT_DURING  = t
     else t=l:match('%-from=(-?%x+)')   if t then OPT_MIN     = (tonumber(t,16)+65536)%65536
     else t=l:match('%-to=(-?%x+)')     if t then OPT_MAX     = (tonumber(t,16)+65536)%65536
     else t=l:match('%-map=(%d+)')      if t then OPT_COLS    = tonumber(t)
@@ -361,7 +363,7 @@ local EQUATES = {
             local parts, sep = {}, ':'
             for part in string.gmatch(path, "[^/]+") do
                 table.insert(parts, part)
-            end     
+            end
 
             for i=#parts,1,-1 do
                 name,sep = parts[i]..sep..name,'/'
@@ -407,19 +409,19 @@ local EQUATES = {
         or   self[add2 or ''] and BRAKET[1]..self[add2]..BRAKET[2]
         or   '') or ''
     end,
-	-- resolve symbol -> addr
-	r = function(self, symbol) 
-		local function norm(x) return x:upper() end
-		if nil==self._resolve then self._resolve = {}
-			for a,s in pairs(self) do 
-				if type(s)=='string' then self._resolve[norm(s)] = a end 
-			end
-		end
-		local s = norm(symbol)
-		return self[s] and s
-		    or self._resolve[s]
-			or tonumber(symbol, 16) and s
-	end,
+    -- resolve symbol -> addr
+    r = function(self, symbol)
+        local function norm(x) return x:upper() end
+        if nil==self._resolve then self._resolve = {}
+            for a,s in pairs(self) do
+                if type(s)=='string' then self._resolve[norm(s)] = a end
+            end
+        end
+        local s = norm(symbol)
+        return self[s] and s
+            or self._resolve[s]
+            or tonumber(symbol, 16) and s
+    end,
     -- init equates for video ram
     iniVRAM = function(self, base)
         for i=0,8191 do local j,t
@@ -778,68 +780,68 @@ local EQUATES = {
            'E2B3','LOADFILE',
            nil)
     end,
-	readASM6809_lst = function(self, file, single)
+    readASM6809_lst = function(self, file, single)
         -- ASM6809 output of ugbasic
-		file = file or 'main.lst'
+        file = file or 'main.lst'
         f = io.open(file,'r')
         if f then local prof
             for l in f:lines() do
                 local a,lbl = l:match('^(%x+)                  (%S+)$')
-                if lbl then 
-					if not prof then prof = true profile:_('Reading ASM6809 symbols from ' .. file) end
-					self:d(a,lbl) 
-				end
+                if lbl then
+                    if not prof then prof = true profile:_('Reading ASM6809 symbols from ' .. file) end
+                    self:d(a,lbl)
+                end
             end
             f:close()
-			if prof then profile:_() end
+            if prof then profile:_() end
         end
-	end,
-	readLWASM_txt = function(self, file, single)
-		file = file or 'main.txt'
-		f = io.open(file,'r')
-		if f then local prof
-			for l in f:lines() do
+    end,
+    readLWASM_txt = function(self, file, single)
+        file = file or 'main.txt'
+        f = io.open(file,'r')
+        if f then local prof
+            for l in f:lines() do
                 local a,b,lbl = l:match('(%x%x%x%x)                  %(%s*(%S+)%):%d+%s+(%S+):')
-                if lbl then 
-					if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
-					self:d(a,(not file or single) and lbl or b:gsub('//','')..':'..lbl) 
-				end	
+                if lbl then
+                    if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
+                    self:d(a,(not file or single) and lbl or b:gsub('//','')..':'..lbl)
+                end
             end
-			f:close()
-			if prof then profile:_() end
-		end
-	end,
-	readLWASM_lwmap = function(self, file, single)
-		file = file  or 'main.lwmap'
-		f = io.open(file,'r')
-		if f then local prof
+            f:close()
+            if prof then profile:_() end
+        end
+    end,
+    readLWASM_lwmap = function(self, file, single)
+        file = file  or 'main.lwmap'
+        f = io.open(file,'r')
+        if f then local prof
             for l in f:lines() do
                 local lbl,b,a = l:match('Symbol: (%S+) %((.*)%) = (%x%x%x%x)')
-                if a then 
-					if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
-					self:d(a, (not file or single) and lbl or b..':'..lbl) 
-				end	
-            end
-			f:close()
-			if prof then profile:_() end
-		end
-	end,
-	readC6809_lst = function(self, file, single)
-		file = file or 'codes.lst'
-        local f = io.open(file,'r')
-        if f then local prof
-			for l in f:lines() do
-                local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
-                if lbl then 
-					if not prof then prof = true profile:_('Reading C6809 symbols from ' .. file) end
-					self:d(a,lbl) 
-				end
+                if a then
+                    if not prof then prof = true profile:_('Reading LWASM symbols from ' .. file) end
+                    self:d(a, (not file or single) and lbl or b..':'..lbl)
+                end
             end
             f:close()
-			if prof then profile:_() end
+            if prof then profile:_() end
         end
-	end,
-	ini = function(self)
+    end,
+    readC6809_lst = function(self, file, single)
+        file = file or 'codes.lst'
+        local f = io.open(file,'r')
+        if f then local prof
+            for l in f:lines() do
+                local a,lbl = l:match('%s+%d+x%s+Label%s+(%x+)%s+(%S+)%s*')
+                if lbl then
+                    if not prof then prof = true profile:_('Reading C6809 symbols from ' .. file) end
+                    self:d(a,lbl)
+                end
+            end
+            f:close()
+            if prof then profile:_() end
+        end
+    end,
+    ini = function(self)
         for k,v in pairs(self) do if k:match('^%x%x%x%x$') then self[k] = nil end end
         self
         :d('FFFE','VEC.RESET',
@@ -854,35 +856,35 @@ local EQUATES = {
         local setTO = set{MACH_XX, MACH_TO}
         if setMO[OPT_MACH or MACH_XX] then self:iniMO() end
         if setTO[OPT_MACH or MACH_XX] then self:iniTO() end
-		if OPT_EQU==true then
-			self:readC6809_lst()
-			self:readASM6809_lst()
-			self:readLWASM_txt()
-			self:readLWASM_lwmap()
-		end
-		if type(OPT_EQU)=='string' then
-			local files = {}
-			local function collect(entry)
+        if OPT_EQU==true then
+            self:readC6809_lst()
+            self:readASM6809_lst()
+            self:readLWASM_txt()
+            self:readLWASM_lwmap()
+        end
+        if type(OPT_EQU)=='string' then
+            local files = {}
+            local function collect(entry)
                 entry = entry:gsub('/+','/')
                 if isdir(entry) then
-					for _,e in ipairs(dir(entry)) do collect(entry..'/'..e) end
-				elseif isfile(entry) then
-					table.insert(files, entry)
-				else
-					-- print('ignored', entry)
-				end
-			end
-			for entry in string.gmatch(OPT_EQU, '%s*([^,]+)%s*') do
-				collect(entry)
-			end
-			local single = files[2]==nil
-			for _,file in ipairs(files) do
-				if file:match("%.lst$")       then self:readASM6809_lst (file, single) end
-				if file:match("%.txt$")       then self:readLWASM_txt   (file, single) end
-				if file:match("%.lwmap$")     then self:readLWASM_lwmap (file, single) end
-				if file:match("/codes%.lst$") then self:readC6809_lst   (file, single) end
-			end
-		end
+                    for _,e in ipairs(dir(entry)) do collect(entry..'/'..e) end
+                elseif isfile(entry) then
+                    table.insert(files, entry)
+                else
+                    -- print('ignored', entry)
+                end
+            end
+            for entry in string.gmatch(OPT_EQU, '%s*([^,]+)%s*') do
+                collect(entry)
+            end
+            local single = files[2]==nil
+            for _,file in ipairs(files) do
+                if file:match("%.lst$")       then self:readASM6809_lst (file, single) end
+                if file:match("%.txt$")       then self:readLWASM_txt   (file, single) end
+                if file:match("%.lwmap$")     then self:readLWASM_lwmap (file, single) end
+                if file:match("/codes%.lst$") then self:readC6809_lst   (file, single) end
+            end
+        end
     end,
 nil} EQUATES:ini()
 
@@ -890,95 +892,95 @@ nil} EQUATES:ini()
 -- chronomètres
 ------------------------------------------------------------------------------
 local TIMES TIMES = {
-	active = false,
-	_watches = {},
-	_attach = function(self, addr, sw) 
-		local list = self[addr]
-		if nil==list then list = {}; self[addr] = list end
-		table.insert(list, sw)
-	end,
-	_newStopWatch = function(self, from, to) 
-		local w = {
-			-- public
-			from  = from,
-			to    = to,
-			count = 0,
-			min  = math.huge,
-			max  = 0,
-			mean = function(self)
-				return self._sum1/self.count
-			end,
-			stddev = function(self)
-				local iN,s1,s2 = 1/self.count,self._sum1,self._sum2
-				return math.sqrt((s2 - s1*s1*iN)*iN)
-			end,
-			-- private
-			_t    = -1,
-			_sum1 = 0,
-			_sum2 = 0,
-			_stop = function(self, tick)
-				if self._t>=0 then local t = TIMES.mem.cycles + tick - self._t
-					self._t, self.count  , self._sum1    , self._sum2
-					=	 -1, self.count+1, self._sum1 + t, self._sum2 + t*t
-					if t>self.max then self.max = t end
-					if t<self.min then self.min = t end
-				end
-			end,
-			_start = function(self, tick)
-				if self._t<0 then self._t = tick + TIMES.mem.cycles end
-			end,
-		nil}
-		-- skip if already exist
-		local list = self[from]	if list then
-			for _,w2 in ipairs(list) do
-				if w2.to == w.to then return end
-			end
-		end
-		self.active = true
-		-- add to data structure
-		table.insert(self._watches, w)
-		self:_attach(from, w); if to and from~=to then self:_attach(to, w) end
-		return w
-	end,
-	lastline = '                                                        0',
-	analyze = function(self, addr, fullline)
-		if self.active then
-			local l = self[addr]
-			if l then 
-				local t1,t2 = tonumber(self.lastline:sub(47,58)) 
-				for _,sw in ipairs(l) do 
-					if sw.to then
-						if sw.from == addr then sw:_start(t1) end
-						if sw.to   == addr then 
-							t2 = t2 or tonumber(fullline:sub(47,58))
-							sw:_stop(t2)  
-						end
-					else
-						sw:_stop(t1)
-						sw:_start(t1)
-					end
-				end
-			end
-			self.lastline = fullline
-		end
-	end,
-	getWatches = function(self)
-		return self._watches -- sort ?
-	end,
-	init = function(self, args)
-		if type(args)~='string' then return end
-		for entry in string.gmatch(args, '%s*([^,]+)%s*') do
-			local a,b = entry:match('%s*(%S+)%s*-%s*(%S+)%s*')
-			if not a then a = entry:match('%s*(%S+)%s*') end
-			local function check(symb)
-				local t = symb and symb:gsub('^%$','')
-				local addr = t and EQUATES:r(t)
-				if symb~=nil and addr==nil then error('Can not find/resolve "'..symb..'"') end
-				return addr
-			end
-			self:_newStopWatch(check(a),check(b))
-		end
-	end
+    active = false,
+    _watches = {},
+    _attach = function(self, addr, sw)
+        local list = self[addr]
+        if nil==list then list = {}; self[addr] = list end
+        table.insert(list, sw)
+    end,
+    _newStopWatch = function(self, from, to)
+        local w = {
+            -- public
+            from  = from,
+            to    = to,
+            count = 0,
+            min  = math.huge,
+            max  = 0,
+            mean = function(self)
+                return self._sum1/self.count
+            end,
+            stddev = function(self)
+                local iN,s1,s2 = 1/self.count,self._sum1,self._sum2
+                return math.sqrt((s2 - s1*s1*iN)*iN)
+            end,
+            -- private
+            _t    = -1,
+            _sum1 = 0,
+            _sum2 = 0,
+            _stop = function(self, tick)
+                if self._t>=0 then local t = TIMES.mem.cycles + tick - self._t
+                    self._t, self.count  , self._sum1    , self._sum2
+                    =    -1, self.count+1, self._sum1 + t, self._sum2 + t*t
+                    if t>self.max then self.max = t end
+                    if t<self.min then self.min = t end
+                end
+            end,
+            _start = function(self, tick)
+                if self._t<0 then self._t = tick + TIMES.mem.cycles end
+            end,
+        nil}
+        -- skip if already exist
+        local list = self[from] if list then
+            for _,w2 in ipairs(list) do
+                if w2.to == w.to then return end
+            end
+        end
+        self.active = true
+        -- add to data structure
+        table.insert(self._watches, w)
+        self:_attach(from, w); if to and from~=to then self:_attach(to, w) end
+        return w
+    end,
+    lastline = '                                                        0',
+    analyze = function(self, addr, fullline)
+        if self.active then
+            local l = self[addr]
+            if l then
+                local t1,t2 = tonumber(self.lastline:sub(47,58))
+                for _,sw in ipairs(l) do
+                    if sw.to then
+                        if sw.from == addr then sw:_start(t1) end
+                        if sw.to   == addr then
+                            t2 = t2 or tonumber(fullline:sub(47,58))
+                            sw:_stop(t2)
+                        end
+                    else
+                        sw:_stop(t1)
+                        sw:_start(t1)
+                    end
+                end
+            end
+            self.lastline = fullline
+        end
+    end,
+    getWatches = function(self)
+        return self._watches -- sort ?
+    end,
+    init = function(self, args)
+        if type(args)~='string' then return end
+        for entry in string.gmatch(args, '%s*([^,]+)%s*') do
+            local a,b = entry:match('%s*(%S+)%s*-%s*(%S+)%s*')
+            if not a then a = entry:match('%s*(%S+)%s*') end
+            local function check(symb)
+                local t = symb and symb:gsub('^%$','')
+                local addr = t and EQUATES:r(t)
+                if symb~=nil and addr==nil then error('Can not find/resolve "'..symb..'"') end
+                return addr
+            end
+            self:_newStopWatch(check(a),check(b))
+        end
+    end
 } TIMES:init(OPT_TIMES)
 
 ------------------------------------------------------------------------------
@@ -996,7 +998,7 @@ local function newBasicWriter()
         header = not_implemented,
         row    = not_implemented,
         footer = not_implemented,
-		blank  = not_implemented,
+        blank  = not_implemented,
     nil}
 end
 
@@ -1065,7 +1067,7 @@ local function newTSVWriter(file, tablen)
         end
     end
     function w:footer(cels)
-		if cels then self:row(cels) end
+        if cels then self:row(cels) end
         self.file:write(self.hsep .. '\n')
     end
     function w:row(cels)
@@ -1090,12 +1092,12 @@ local function newTSVWriter(file, tablen)
                 t = t .. n .. string.rep(' ', self.clen[i] - n:len() - tablen)
             end
         end
-		t = t:gsub('\n','\\n')
+        t = t:gsub('\n','\\n')
         self:printf('%s\n', t=='' and t or t:sub(2))
     end
-	function w:blank()
-		self:printf('\n')
-	end
+    function w:blank()
+        self:printf('\n')
+    end
     log('Created CSV writer (tab=%d).', tablen)
     return w
 end
@@ -1132,15 +1134,15 @@ local function newHtmlWriter(file, mem)
                 return ''
             end
         end
-		local function and_others(list)
-			if list and #list==2 then
-				return " and 1 other location"
-			elseif list and #list>2  then
-				return " and "..(#list-1).." other locations"
-			else
-				return ''
-			end
-		end
+        local function and_others(list)
+            if list and #list==2 then
+                return " and 1 other location"
+            elseif list and #list>2  then
+                return " and "..(#list-1).." other locations"
+            else
+                return ''
+            end
+        end
         local m = mem[tonumber(addr,16)]
         if m then
             local RWX = mem:RWX(m)
@@ -1284,43 +1286,43 @@ local function newHtmlWriter(file, mem)
                               or  self._id.id .. '_' .. self._id.no,
                self._id.no==0
     end
-	
-	function w:_title(HEADING, ...)
+
+    function w:_title(HEADING, ...)
         local txt,id = sprintf(...),self:_nxId()
-		if HEADING==self.HEADING then
-			if nil==w._toc then
-				-- add Table of Contents
-				w._toc = {}
-				table.insert(self._body_, function(w) 
-					if w._toc[2] then
-						local t = '<'..self.HEADING..' id="TOC">Table of Contents</'..self.HEADING..'>\n<ol>\n'
-						for _,entry in ipairs(w._toc) do
-							t = t..'<li><a href="#'..entry.id..'">'..esc(entry.title)..'</a></li>\n'
-						end
-						return t..'</ol>\n'
-					end
-				end)
-			end
-			table.insert(w._toc, {title=txt, id=id}) 
-		end
+        if HEADING==self.HEADING then
+            if nil==w._toc then
+                -- add Table of Contents
+                w._toc = {}
+                table.insert(self._body_, function(w)
+                    if w._toc[2] then
+                        local t = '<'..self.HEADING..' id="TOC">Table of Contents</'..self.HEADING..'>\n<ol>\n'
+                        for _,entry in ipairs(w._toc) do
+                            t = t..'<li><a href="#'..entry.id..'">'..esc(entry.title)..'</a></li>\n'
+                        end
+                        return t..'</ol>\n'
+                    end
+                end)
+            end
+            table.insert(w._toc, {title=txt, id=id})
+        end
         self:_body('<',HEADING,' id="', id, '" class=\'clickable\' title=\'Click for Table of Contents\' onclick="document.location.href=\'#TOC\';">',
-						esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
+                        esc(txt):gsub('%$'..self.HEXADDR, function(a) return "$" .. closest_ahref(a) end),
                    '</',HEADING,'>','\n')
-	end
+    end
 
     -- le titre
     function w:title(level, ...)
-		w:_title(level==1 and self.HEADING or 'h'..level, ...)
+        w:_title(level==1 and self.HEADING or 'h'..level, ...)
     end
 
     -- fin de table
     function w:footer(cels)
-		self:_body('  </tbody>\n')
-		if cels then
-			self:_body('  <tfoot>\n')
-			self:row(cels)
-			self:_body('  </tfoot>\n')
-		end
+        self:_body('  </tbody>\n')
+        if cels then
+            self:_body('  <tfoot>\n')
+            self:row(cels)
+            self:_body('  </tfoot>\n')
+        end
         self:_body('  </table>\n')
         if self._footer_callback then
             self._footer_callback(self)
@@ -1347,18 +1349,18 @@ local function newHtmlWriter(file, mem)
         local align  = {[''] = 'left', ['<'] = 'left', ['='] = 'center', ['>'] = 'right'}
         local family = {['*'] = 'bold'}
         local cols, sort, empty = {}, {}, true
-		self._addr_col = nil
+        self._addr_col = nil
         for i,n in ipairs(columns) do
             local tag,font,italic,sorted,txt = n:match('^([<=>]?)([%*]?)([/]?)([%^v"]?)(.*)')
             cols[i] = trim(txt)
             if cols[i] then empty=false else cols[i]='' end
-			if 'Addr'==cols[i] and not _times_row then self._addr_col = i end
-			sort[i] = sorted=='"' and "txt" 
-			       or sorted=="^" and "num+"
-				   or sorted=="v" and "num-"
+            if 'Addr'==cols[i] and not _times_row then self._addr_col = i end
+            sort[i] = sorted=='"' and "txt"
+                   or sorted=="^" and "num+"
+                   or sorted=="v" and "num-"
             self:_style('    #', id, ' td:nth-of-type(', i, ') {\n', family[font] and
                         '      font-weight:' .. family[font]..';\n' or '', italic~='' and
-						'      font-style: italic;\n' or '',
+                        '      font-style: italic;\n' or '',
                         '      text-align: ', align[tag], ';\n',
                         '    }\n')
         end
@@ -1373,33 +1375,33 @@ local function newHtmlWriter(file, mem)
             -- self:_body('<noscript>\n')
             -- self._footer_callback = function(self) self:_body('</noscript>\n') end
         else
-			self:_body('  <div style="display:flex">\n')
+            self:_body('  <div style="display:flex">\n')
             self._footer_callback = function(self)
-				if id:match('hotspots') then
-					self:_hotspot_footer()
-				end
-			    self:_body('  </div>\n')
+                if id:match('hotspots') then
+                    self:_hotspot_footer()
+                end
+                self:_body('  </div>\n')
             end
         end
 
         self:_body('  <table id="',id,'"', class ,'>\n')
-        if not empty then 
-			self:_body('  <thead>\n')
-			self:_std_row(function(i,v) 
-				local t = "th title=\"click to sort\" class=\"clickable\" onclick=\"sortTable('"..id.."',"..(i-1)
-				return sort[i] == "txt"  and t..",false,+1)\"" or
-				       sort[i] == "num+" and t..",true,+1)\"" or
-				       sort[i] == "num-" and t..",true,-1)\"" or
-				       "th"
-			end, cols) 
-			self:_body('  </thead>\n')
-		end
-		self:_body('  <tbody>\n')
+        if not empty then
+            self:_body('  <thead>\n')
+            self:_std_row(function(i,v)
+                local t = "th title=\"click to sort\" class=\"clickable\" onclick=\"sortTable('"..id.."',"..(i-1)
+                return sort[i] == "txt"  and t..",false,+1)\"" or
+                       sort[i] == "num+" and t..",true,+1)\"" or
+                       sort[i] == "num-" and t..",true,-1)\"" or
+                       "th"
+            end, cols)
+            self:_body('  </thead>\n')
+        end
+        self:_body('  <tbody>\n')
     end
 
-	function w:blank()
-		self:_body('<p>\n')
-	end
+    function w:blank()
+        self:_body('<p>\n')
+    end
 
     -- fonction de fermeture. C'est ici qu'on écrit vraiment dans
     -- le fichier après avoir collecté toutes les infos de style.
@@ -1460,12 +1462,12 @@ local function newHtmlWriter(file, mem)
     a {
       font-weight:     bold;
       text-decoration: none;
-	  color:           blue;
+      color:           blue;
     }
     a:hover {
       background-color: yellow;
       text-decoration:  underline;
-	  cursor:           pointer;
+      cursor:           pointer;
     }
     a:active {
        background-color :gold;
@@ -1494,7 +1496,7 @@ local function newHtmlWriter(file, mem)
     table tr:hover {
       background-color: lightgray !important;
     }
-	.clickable:hover {cursor:pointer;}
+    .clickable:hover {cursor:pointer;}
 
     /* trucs globaux: couleurs */
     .c0 {background-color:#111;}
@@ -1505,9 +1507,9 @@ local function newHtmlWriter(file, mem)
     .c5 {background-color:#e1e;}
     .c6 {background-color:#1ee;}
     .c7 {background-color:#eee;}
-	
-	.hint td:nth-of-type(6) {background-color: yellow; text-align: center !important; font-weight: bold;	}
-	.hint td:nth-of-type(7) {color: gray; font-style: italic;}
+
+    .hint td:nth-of-type(6) {background-color: yellow; text-align: center !important; font-weight: bold;    }
+    .hint td:nth-of-type(7) {color: gray; font-style: italic;}
 
     /* loading screen */
     #loadingPage {
@@ -1575,7 +1577,7 @@ local function newHtmlWriter(file, mem)
         width:   1em;
         height:  1em;
     }
-	.
+    .
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #1c1c1e;
@@ -1607,7 +1609,7 @@ local function newHtmlWriter(file, mem)
     function on(event, color) {
         document.addEventListener(event,function(event) {
             if(event.target.tagName==="A") {
-				const href = event.target.getAttribute("href"); if(href==null) return;
+                const href = event.target.getAttribute("href"); if(href==null) return;
                 const id   = href.substring(1);
                 const elt  = document.getElementById(id);
                 if(elt!==null) {
@@ -1644,116 +1646,116 @@ local function newHtmlWriter(file, mem)
             block: 'nearest',
         });
     }
-	function hs(id, no) {
-		const e = document.getElementById(id);
-		if(e !== null) {
-			e.className += " hs" + no;
-			e.title      = "Hot spot #" + no;
-			if(id.startsWith('fm')) {
-				var hs = id.replace('fm','hs')
-				if(document.getElementById(hs) == null) {
-					/* find prevous value */
-					var i = Number(id.replace('fm','0x'))
-					do {
-						hs = 'hs_'+('0000'+i.toString(16).toUpperCase()).slice(-4);
-						i = i - 1;
-					} while(i>=0 &&	 document.getElementById(hs) == null);
-					if(i<0) {hs = null;}
-				}
-				if(hs !== null) {
-					e.title     += "\n(click to view)";
-					e.onclick    = function() {document.location.href='#'+hs;}
-				}
-			}
-		}
+    function hs(id, no) {
+        const e = document.getElementById(id);
+        if(e !== null) {
+            e.className += " hs" + no;
+            e.title      = "Hot spot #" + no;
+            if(id.startsWith('fm')) {
+                var hs = id.replace('fm','hs')
+                if(document.getElementById(hs) == null) {
+                    /* find prevous value */
+                    var i = Number(id.replace('fm','0x'))
+                    do {
+                        hs = 'hs_'+('0000'+i.toString(16).toUpperCase()).slice(-4);
+                        i = i - 1;
+                    } while(i>=0 &&  document.getElementById(hs) == null);
+                    if(i<0) {hs = null;}
+                }
+                if(hs !== null) {
+                    e.title     += "\n(click to view)";
+                    e.onclick    = function() {document.location.href='#'+hs;}
+                }
+            }
+        }
     }
-	function cmp(a,b,n,number,dir) {
-		var ta = a.cells[n].innerText, tb = b.cells[n].innerText;
-		var d = number ? (parseFloat(ta) - parseFloat(tb))*dir : ta.localeCompare(tb)*dir;
-		for(let i = 0; Math.abs(d)<0.01 && i<a.cells.length; ++i) {
-			ta = a.cells[i].innerText;
-			tb = b.cells[i].innerText;
-			d = ta.localeCompare(tb);
-		}
-		return d;
-	}
-	// https://en.wikipedia.org/wiki/Insertion_sort
-	function insertionSort(rows,n,number,direction) {
-		let no_change = true, parent = rows[0].parentElement, i, j, x;
-		for(i = 1; i<rows.length; ++i) {
-			x = rows[i];
-			for(j = i; j>0 && cmp(rows[j-1],x,n,number,direction)>0;--j);
-			if(j < i) {
-				no_change = false;
-				parent.insertBefore(x,rows[j]);
-			}
-		}
-		return no_change;
-	}
-	// https://en.wikipedia.org/wiki/Shellsort
-	function shellSort(rows,n,number,direction) {
-		const len     = rows.length;
-		const parent  = rows[0].parentElement;
-		const gaps    = [4,10,23,57,132,301,701];
-		let   changed = false,i,j,k,l,x,y;
-		// Start with a big gap, then reduce the gap
-		for(j = gaps.length; --j>=0;) {
-			// Do a gapped insertion sort for this gap size.
-			for (i = k = gaps[j]; i < len; ++i) {
-				for(x = rows[l=i]; (l-=k) >= 0 && 
-					cmp(y = rows[l],x,n,number,direction)>0;) {
-					parent.insertBefore(y,x);
-					parent.insertBefore(x, rows[l]);
-					changed = true;
-				}
-			}
-		}
-		// last is insert
-		if(!insertionSort(rows,n,number,direction)) changed = true;
-		return !changed;
-	}
-	function sort(rows,n,number,direction) {
-		const len     = rows.length;
-		const parent  = rows[0].parentElement;
-		const array   = [];
-		let   changed = false, i;
-		for(i=rows.length; --i>=0;) array.push(parent.removeChild(rows[i]));
-		array.sort(function(a,b) {return cmp(a,b,n,number,direction);});
-		for(i=0; i<array.length; ++i) {
-			parent.appendChild(array[i]);
-			if(array[i]!=rows[i]) changed = true;
-		}
-		return changed;
-	}
-	function sortTable(id,n,number,dir) {
-	  const table  = document.getElementById(id);
-	  const header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
-	  const rows   = table.tBodies[0].rows;
-	  if(header[n].innerHTML.endsWith(up))   dir = -1;
-	  if(header[n].innerHTML.endsWith(down)) dir = +1;
-	  if(sort(rows,n,number,dir)) {sort(rows,n,number,dir = -dir);}
-	  for(let i=0; i<header.length; ++i)  {
-		const html = header[i].innerHTML;
-		if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
-		if(html.endsWith(down)) {header[i].innerHTML = html.slice(0,-down.length);}
-	   }
-	   header[n].innerHTML +=  dir>0 ? up : down;
-	}
-	function rollLink(elt,list) {
-		const pfx  = '#fm';
-		const href = document.location.href;
-		
-		let index = href.indexOf(pfx);
-		if(index>=0) index = list.indexOf(href.substring(index + pfx.length)) + 1;
-		if(index<0 || index>=list.length) index = 0;
-		const addr = list[index++]
-				
-		if(document.getElementById(pfx.substring(1) + addr)==null) {
-			alert('Address $' + addr +' is not visible');
-		} else {
-			document.location.href = pfx + addr;
-		}
-	}
+    function cmp(a,b,n,number,dir) {
+        var ta = a.cells[n].innerText, tb = b.cells[n].innerText;
+        var d = number ? (parseFloat(ta) - parseFloat(tb))*dir : ta.localeCompare(tb)*dir;
+        for(let i = 0; Math.abs(d)<0.01 && i<a.cells.length; ++i) {
+            ta = a.cells[i].innerText;
+            tb = b.cells[i].innerText;
+            d = ta.localeCompare(tb);
+        }
+        return d;
+    }
+    // https://en.wikipedia.org/wiki/Insertion_sort
+    function insertionSort(rows,n,number,direction) {
+        let no_change = true, parent = rows[0].parentElement, i, j, x;
+        for(i = 1; i<rows.length; ++i) {
+            x = rows[i];
+            for(j = i; j>0 && cmp(rows[j-1],x,n,number,direction)>0;--j);
+            if(j < i) {
+                no_change = false;
+                parent.insertBefore(x,rows[j]);
+            }
+        }
+        return no_change;
+    }
+    // https://en.wikipedia.org/wiki/Shellsort
+    function shellSort(rows,n,number,direction) {
+        const len     = rows.length;
+        const parent  = rows[0].parentElement;
+        const gaps    = [4,10,23,57,132,301,701];
+        let   changed = false,i,j,k,l,x,y;
+        // Start with a big gap, then reduce the gap
+        for(j = gaps.length; --j>=0;) {
+            // Do a gapped insertion sort for this gap size.
+            for (i = k = gaps[j]; i < len; ++i) {
+                for(x = rows[l=i]; (l-=k) >= 0 &&
+                    cmp(y = rows[l],x,n,number,direction)>0;) {
+                    parent.insertBefore(y,x);
+                    parent.insertBefore(x, rows[l]);
+                    changed = true;
+                }
+            }
+        }
+        // last is insert
+        if(!insertionSort(rows,n,number,direction)) changed = true;
+        return !changed;
+    }
+    function sort(rows,n,number,direction) {
+        const len     = rows.length;
+        const parent  = rows[0].parentElement;
+        const array   = [];
+        let   changed = false, i;
+        for(i=rows.length; --i>=0;) array.push(parent.removeChild(rows[i]));
+        array.sort(function(a,b) {return cmp(a,b,n,number,direction);});
+        for(i=0; i<array.length; ++i) {
+            parent.appendChild(array[i]);
+            if(array[i]!=rows[i]) changed = true;
+        }
+        return changed;
+    }
+    function sortTable(id,n,number,dir) {
+      const table  = document.getElementById(id);
+      const header = table.rows[0].getElementsByTagName("th"), up = '&nbsp;\u25B2', down = '&nbsp;\u25BC';
+      const rows   = table.tBodies[0].rows;
+      if(header[n].innerHTML.endsWith(up))   dir = -1;
+      if(header[n].innerHTML.endsWith(down)) dir = +1;
+      if(sort(rows,n,number,dir)) {sort(rows,n,number,dir = -dir);}
+      for(let i=0; i<header.length; ++i)  {
+        const html = header[i].innerHTML;
+        if(html.endsWith(up))   {header[i].innerHTML = html.slice(0,-up.length);} else
+        if(html.endsWith(down)) {header[i].innerHTML = html.slice(0,-down.length);}
+       }
+       header[n].innerHTML +=  dir>0 ? up : down;
+    }
+    function rollLink(elt,list) {
+        const pfx  = '#fm';
+        const href = document.location.href;
+
+        let index = href.indexOf(pfx);
+        if(index>=0) index = list.indexOf(href.substring(index + pfx.length)) + 1;
+        if(index<0 || index>=list.length) index = 0;
+        const addr = list[index++]
+
+        if(document.getElementById(pfx.substring(1) + addr)==null) {
+            alert('Address $' + addr +' is not visible');
+        } else {
+            document.location.href = pfx + addr;
+        }
+    }
   </script>
   <div id="loadingPage">
     <div id="loadingGray"></div>
@@ -1774,9 +1776,9 @@ local function newHtmlWriter(file, mem)
         -- écriture du body avec la progression
         local nxt, size = 0, #self._body_
         for i,txt in ipairs(self._body_) do
-			if type(txt) == 'function' then
-				txt = txt(self)
-			end
+            if type(txt) == 'function' then
+                txt = txt(self)
+            end
             f(txt)
             if txt and txt:len()>0 and txt:sub(-1)=='\n' and i>nxt then
                 f('<script>progress(', (i-1)/size, ')</script>\n')
@@ -1804,12 +1806,12 @@ local function newHtmlWriter(file, mem)
         add('    ','<tr')
         local id,orig = self:_nxId()
         if orig then add(' id="',id,'"') end
-		if extra then add(' ',extra) end
+        if extra then add(' ',extra) end
         add('>')
 
         local span = #html_cols~=self.ncols and #html_cols or -1
         for i,v in ipairs(html_cols) do
-			local tg = type(tag)=='function' and tag(i,v) or tag
+            local tg = type(tag)=='function' and tag(i,v) or tag
             add('<', tg)
             if i==span then add(' style="text-align:left;" colspan="', self.ncols - i + 1,'"') end
             add('>', v, '</',tg:gsub('%s.*$',''),'>')
@@ -1821,12 +1823,12 @@ local function newHtmlWriter(file, mem)
     -- ligne standard
     function w:_std_row(tag, columns)
         local cols, patt = {}, '(.-%$)'..self.HEXADDR..'(.*)'
-        for i,v in ipairs(columns) do v = trim(v) 
+        for i,v in ipairs(columns) do v = trim(v)
             local t = esc(v or ' ')
             local before,a,after = t:match(patt)
-			if not a and i==self._addr_col then 
-				  before,a,after = v:match('(.-)'..self.HEXADDR..'(.*)') 
-			end
+            if not a and i==self._addr_col then
+                  before,a,after = v:match('(.-)'..self.HEXADDR..'(.*)')
+            end
             if a then
                 t = before .. closest_ahref(a) .. after
             end
@@ -1875,29 +1877,29 @@ local function newHtmlWriter(file, mem)
             end
             cols[i] = v
         end
-		if columns[6]=='HINT' and w._lastADDR then 
-			extra = ' class="hint clickable"'	..
-					' title="click for details"'..
-			        ' onclick="document.location.href=\'#hint'..w._lastADDR..'\'"' 
-		end
-		w._lastADDR = ADDR
+        if columns[6]=='HINT' and w._lastADDR then
+            extra = ' class="hint clickable"'   ..
+                    ' title="click for details"'..
+                    ' onclick="document.location.href=\'#hint'..w._lastADDR..'\'"'
+        end
+        w._lastADDR = ADDR
         self:_raw_row(tag,cols,extra)
     end
 
-	function w:_times_row(tag,columns)
-		if nil==self._times_row_first then self._times_row_first=false
-			self:_style([[
-	#times_1 td:nth-of-type(5)         {background-color: #FFA;font-weight:bold;}
-	#times_1 td:nth-of-type(9)         {background-color: #AFF;}
-			]])
-		end
-		
+    function w:_times_row(tag,columns)
+        if nil==self._times_row_first then self._times_row_first=false
+            self:_style([[
+    #times_1 td:nth-of-type(5)         {background-color: #FFA;font-weight:bold;}
+    #times_1 td:nth-of-type(9)         {background-color: #AFF;}
+            ]])
+        end
+
         local cols = {}
         for i,v in ipairs(columns) do
             v = trim(v) or ''
             if i<=2 then
-				local a,b = v:match('(%x%x%x%x)(.*)')
-				if a then v = ahref('',a,a)..esc(b) else v = esc(v) end
+                local a,b = v:match('(%x%x%x%x)(.*)')
+                if a then v = ahref('',a,a)..esc(b) else v = esc(v) end
             else
                 v = esc(v)--:gsub(' ','&nbsp;')
             end
@@ -1905,45 +1907,45 @@ local function newHtmlWriter(file, mem)
         end
         self:_raw_row(tag,cols)
     end
-	
-	function w:_vars_row(tag,columns)
+
+    function w:_vars_row(tag,columns)
         local cols,m = {}
-		m = mem[tonumber(columns[1]:sub(1,4),16)]
-		local function rollLink(txt, lists)
-			local refs,a,a_ = {},'',''
-			for _,l in ipairs(lists) do 
-				for a,_ in pairs(l or {}) do table.insert(refs, a) end
-			end
-			table.sort(refs)
-			-- remove duplicates
-			for i=#refs,2,-1 do if refs[i]==refs[i-1] then table.remove(refs,i) end end
-			if #refs>0 then
-				a  = '<a onclick="rollLink(this,['
-				for i,r in ipairs(refs) do
-					if i>1 then a = a .."," end
-					a = a .. "'"..r.."'"
-				end
-				a = a..'])" title="click to view:'
-				for i,r in ipairs(refs) do
-					local m = mem[tonumber(r,16)]
-					a = a.. '\n '..i..'.  $'..r..(m and m.asm and '  '..m.asm or '')
-				end
-				a = a:gsub('[ ][ ]+','\t') .. '">'
-				a_ = '</a>'
-			end
-			return a..esc(txt)..a_
-		end
+        m = mem[tonumber(columns[1]:sub(1,4),16)]
+        local function rollLink(txt, lists)
+            local refs,a,a_ = {},'',''
+            for _,l in ipairs(lists) do
+                for a,_ in pairs(l or {}) do table.insert(refs, a) end
+            end
+            table.sort(refs)
+            -- remove duplicates
+            for i=#refs,2,-1 do if refs[i]==refs[i-1] then table.remove(refs,i) end end
+            if #refs>0 then
+                a  = '<a onclick="rollLink(this,['
+                for i,r in ipairs(refs) do
+                    if i>1 then a = a .."," end
+                    a = a .. "'"..r.."'"
+                end
+                a = a..'])" title="click to view:'
+                for i,r in ipairs(refs) do
+                    local m = mem[tonumber(r,16)]
+                    a = a.. '\n '..i..'.  $'..r..(m and m.asm and '  '..m.asm or '')
+                end
+                a = a:gsub('[ ][ ]+','\t') .. '">'
+                a_ = '</a>'
+            end
+            return a..esc(txt)..a_
+        end
         for i,v in ipairs(columns) do
             v = trim(v) or ''
             if i==1 then
-				local a,b = v:match('(%x%x%x%x)(.*)')
-				if a then v = closest_ahref(a)..esc(b) else v = esc(v) end
-			elseif i==5 then
-				v = rollLink(v, {m.r_from})
-			elseif i==6 then
-				v = rollLink(v, {m.w_from})
-			elseif i==7 then
-				v = rollLink(v, {m.r_from, m.w_from})
+                local a,b = v:match('(%x%x%x%x)(.*)')
+                if a then v = closest_ahref(a)..esc(b) else v = esc(v) end
+            elseif i==5 then
+                v = rollLink(v, {m.r_from})
+            elseif i==6 then
+                v = rollLink(v, {m.w_from})
+            elseif i==7 then
+                v = rollLink(v, {m.r_from, m.w_from})
             else
                 v = esc(v)--:gsub(' ','&nbsp;')
             end
@@ -1951,27 +1953,27 @@ local function newHtmlWriter(file, mem)
         end
         self:_raw_row(tag,cols)
     end
-		
-	
-	-- ligne hints
-	function w:_hints_row(tag,columns)
-		if nil==self._hints_row_first then self._hints_row_first=false
-			self:_style([[
-	#hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
-	#hints_1 td:nth-of-type(3)         {font-weight:bold;}
-	#hints_1 td:nth-of-type(4)         {background-color: #AAF;}
-	#hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
-	#hints_1 td:nth-of-type(6)         {background-color: #FAA;}
-	#hints_1 td:nth-of-type(7)         {font-weight:bold;column-width:11em;}
-	#hints_1 td:nth-of-type(8)         {column-width:4em;}
-	#hints_1 td:nth-of-type(9)         {background-color: #AFA;column-width:4em;}
-	
-	#hints_1 th:nth-of-type(8)         {text-align:right;}
-	#hints_1 th:nth-of-type(9)         {text-align:right;}
-	#hints_1 tfoot                     {font-weight:bold;}
-			]])
-		end
-		
+
+
+    -- ligne hints
+    function w:_hints_row(tag,columns)
+        if nil==self._hints_row_first then self._hints_row_first=false
+            self:_style([[
+    #hints_1 td:nth-of-type(2)         {font-style:italic;column-width:9em;}
+    #hints_1 td:nth-of-type(3)         {font-weight:bold;}
+    #hints_1 td:nth-of-type(4)         {background-color: #AAF;}
+    #hints_1 td:nth-of-type(5)         {font-weight:bold;column-width:9em;}
+    #hints_1 td:nth-of-type(6)         {background-color: #FAA;}
+    #hints_1 td:nth-of-type(7)         {font-weight:bold;column-width:11em;}
+    #hints_1 td:nth-of-type(8)         {column-width:4em;}
+    #hints_1 td:nth-of-type(9)         {background-color: #AFA;column-width:4em;}
+
+    #hints_1 th:nth-of-type(8)         {text-align:right;}
+    #hints_1 th:nth-of-type(9)         {text-align:right;}
+    #hints_1 tfoot                     {font-weight:bold;}
+            ]])
+        end
+
         local cols = {}
         for i,v in ipairs(columns) do
             v = trim(v) or ''
@@ -1984,48 +1986,48 @@ local function newHtmlWriter(file, mem)
         end
         self:_raw_row(tag,cols, " id='hint"..columns[1].."'")
     end
-    
+
     -- ligne hotspot
     function w:_hotspot_row(tag,columns)
-		if OPT_HOT_COL then
-			local function rgb_style(id)
-				self._hotspot_row_ids = self._hotspot_row_ids or {}
-				self._hotspot_row_ids[id] = self._hotspot_row_no
-			end
-			local ADDR,no = trim(columns[2]),columns[1]:match('#(%d+)')
-			if no then
-				local rgb = {math.random(),math.random(),math.random()}
-				local max = math.max(unpack(rgb))
-				for i=1,3 do rgb[i] = math.floor(8+7*rgb[i]/max) end
-				self._hotspot_row_no  = no
-				self._hotspot_row_adr = nil
-				self:_style('	.hs',no,  ':target {background-color : gold;}\n')
-				self:_style('	.hs',no,  '        {background-color : ',string.format('#%03x',rgb[1]+rgb[2]*16+rgb[3]*256),';}\n')			
-			end
-			if ADDR and ADDR:len()==4 then 
-				if ADDR ~= "...." then
-					if self._hotspot_row_adr0 then
-						for i=self._hotspot_row_adr0+1,tonumber(ADDR,16)-1 do
-							rgb_style(string.format("fm%04X",i))
-						end
-						self._hotspot_row_adr0 = nil
-					end
-					rgb_style('hs'..ADDR)
-					rgb_style('fm'..ADDR)
-					self:id('hs'..ADDR) 
-					self._hotspot_row_adr = ADDR
-				else
-					ADDR = self._hotspot_row_adr
-					self._hotspot_row_adr0 = tonumber(ADDR,16)
-					rgb_style('hs_'..ADDR)
-					self:id('hs_'..ADDR) 
-				end
-			else
-				self._hotspot_row_adr = nil
-				self._hotspot_row_no  = nil
-			end
-		end
-		
+        if OPT_HOT_COL then
+            local function rgb_style(id)
+                self._hotspot_row_ids = self._hotspot_row_ids or {}
+                self._hotspot_row_ids[id] = self._hotspot_row_no
+            end
+            local ADDR,no = trim(columns[2]),columns[1]:match('#(%d+)')
+            if no then
+                local rgb = {math.random(),math.random(),math.random()}
+                local max = math.max(unpack(rgb))
+                for i=1,3 do rgb[i] = math.floor(8+7*rgb[i]/max) end
+                self._hotspot_row_no  = no
+                self._hotspot_row_adr = nil
+                self:_style('   .hs',no,  ':target {background-color : gold;}\n')
+                self:_style('   .hs',no,  '        {background-color : ',string.format('#%03x',rgb[1]+rgb[2]*16+rgb[3]*256),';}\n')
+            end
+            if ADDR and ADDR:len()==4 then
+                if ADDR ~= "...." then
+                    if self._hotspot_row_adr0 then
+                        for i=self._hotspot_row_adr0+1,tonumber(ADDR,16)-1 do
+                            rgb_style(string.format("fm%04X",i))
+                        end
+                        self._hotspot_row_adr0 = nil
+                    end
+                    rgb_style('hs'..ADDR)
+                    rgb_style('fm'..ADDR)
+                    self:id('hs'..ADDR)
+                    self._hotspot_row_adr = ADDR
+                else
+                    ADDR = self._hotspot_row_adr
+                    self._hotspot_row_adr0 = tonumber(ADDR,16)
+                    rgb_style('hs_'..ADDR)
+                    self:id('hs_'..ADDR)
+                end
+            else
+                self._hotspot_row_adr = nil
+                self._hotspot_row_no  = nil
+            end
+        end
+
         local cols = {}
         for i,v in ipairs(columns) do
             v = trim(v) or ''
@@ -2039,16 +2041,16 @@ local function newHtmlWriter(file, mem)
         self:_raw_row(tag,cols,self._hotspot_row_extra)
     end
     function w:_hotspot_footer()
-		if self._hotspot_row_ids then
-			local t,n = '	<script>\n\t\t',-1
-			for id,no in pairs(self._hotspot_row_ids) do
-				n = n+1 if n==5 then n,t=0,t..'\n\t\t' end
-				t = t..'hs("'..id..'",'..no..'); '
-			end
-			self:_body(t..'\n	</script>\n')
-			self._hotspot_row_ids = nil
-		end
-	end
+        if self._hotspot_row_ids then
+            local t,n = '   <script>\n\t\t',-1
+            for id,no in pairs(self._hotspot_row_ids) do
+                n = n+1 if n==5 then n,t=0,t..'\n\t\t' end
+                t = t..'hs("'..id..'",'..no..'); '
+            end
+            self:_body(t..'\n   </script>\n')
+            self._hotspot_row_ids = nil
+        end
+    end
 
     -- TODO ligne memmap
     w._memmap_color = {
@@ -2127,39 +2129,39 @@ local function findHotspots(mem)
     local function newHot()
         return {
             x = 0,                         -- count
-			t = 0,                         -- cycles
-			a = nil,                       -- start address (hex)
-			z = nil,                       -- end adress (dec, exclusive)
-			j = nil,                       -- jmp addr (hex)
-			b = nil,                       -- cond addr (hex)
-			p = {},                        -- trace (hex or -1)
+            t = 0,                         -- cycles
+            a = nil,                       -- start address (hex)
+            z = nil,                       -- end adress (dec, exclusive)
+            j = nil,                       -- jmp addr (hex)
+            b = nil,                       -- cond addr (hex)
+            p = {},                        -- trace (hex or -1)
             add = function(self,i,m)
-				if not m.asm then return self end
-				if not m.cycles then error(m.asm) end
-				if not self.a then self.a = hex(i) end
-				self.z = i + m.hex:len()/2
+                if not m.asm then return self end
+                if not m.cycles then error(m.asm) end
+                if not self.a then self.a = hex(i) end
+                self.z = i + m.hex:len()/2
                 self.x = m.x
                 self.t = self.t + self.x * (tonumber(m.cycles) or 5) -- 5 because of long jump
                 self.i = i -- dernière adresse du bloc
-				table.insert(self.p, hex(i))
-				-- if #self.p==4 then self.p[2] = -1 table.remove(self.p,3) end
-				return self
+                table.insert(self.p, hex(i))
+                -- if #self.p==4 then self.p[2] = -1 table.remove(self.p,3) end
+                return self
             end,
             push = function(self, spots)
-				local mem = mem[self.i]
+                local mem = mem[self.i]
                 local asm = mem.asm
                 local jmp,addr = asm:match('(%a+)%s+%$(%x%x%x%x)')
-				if not addr then
-					jmp,addr = asm:match('(%a+)%s+<%$(%x%x)')
-					if jmp and addr then 
-						addr = mem.dp .. addr
-					elseif asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$') then
-						jmp,addr = 'JMP','----'
-					end
-				end
-				self.z,self.i = hex(self.z) -- adresse block suivant
-				self.j = self.z
-			    if addr then
+                if not addr then
+                    jmp,addr = asm:match('(%a+)%s+<%$(%x%x)')
+                    if jmp and addr then
+                        addr = mem.dp .. addr
+                    elseif asm:match('RTS$') or asm:match('RTI$') or asm:match('PC$') then
+                        jmp,addr = 'JMP','----'
+                    end
+                end
+                self.z,self.i = hex(self.z) -- adresse block suivant
+                self.j = self.z
+                if addr then
                     if jmp=='JMP' or jmp=='BRA' or jmp=='LBRA' then
                         self.j = addr
                     elseif REL_JMP[jmp] then
@@ -2169,106 +2171,106 @@ local function findHotspots(mem)
                 spots[self.a] = self
                 return nil
             end,
-			merge = function(self, other)
-				-- simple
-				-- for _,p in ipairs(other.p) do table.insert(self.p, p) end
-				
-				-- si other suit direct self, alors on reduit la TRACE
-				for _,p in ipairs(other.p) do table.insert(self.p, p) end
-				
-				-- out('merge %s-%s and %s-%s\n', self.a, self.z, other.a, other.z)
-				self.t = self.t + other.t
-				self.x = math.max(self.x, other.x)
-				self.z = other.z
-				self.j = other.j
-				self.b = other.b
-				other.merged = true
-			end,
-			compressTrace = function(self)
-				local toKeep = {}
-				for _,a in ipairs(self.p) do
-					local m = mem[tonumber(a,16)]
-					if m.asm then
-						local b = m.asm:match('%s%$(%x%x%x%x)$')
-						if b and b<=a then toKeep[b] = true end
-					end
-				end
-			
-				local i,j,a,m = 1
-				function nxt(a)
-					a = tonumber(a,16)
-					return hex(a + mem[a].hex:len()/2)
-				end
-				while self.p[i] do 
-					j,a = i+1,nxt(self.p[i])
-					while not toKeep[a] and a==self.p[j] do j,a = j+1,nxt(self.p[j]) end
-					if j-i>=4 then -- compress
-						repeat
-							j=j-1
-							table.remove(self.p, j-1)
-						until j-i<4
-						self.p[i+1] = -1
-					end
-					i = j
-				end
-				return self
-			end
+            merge = function(self, other)
+                -- simple
+                -- for _,p in ipairs(other.p) do table.insert(self.p, p) end
+
+                -- si other suit direct self, alors on reduit la TRACE
+                for _,p in ipairs(other.p) do table.insert(self.p, p) end
+
+                -- out('merge %s-%s and %s-%s\n', self.a, self.z, other.a, other.z)
+                self.t = self.t + other.t
+                self.x = math.max(self.x, other.x)
+                self.z = other.z
+                self.j = other.j
+                self.b = other.b
+                other.merged = true
+            end,
+            compressTrace = function(self)
+                local toKeep = {}
+                for _,a in ipairs(self.p) do
+                    local m = mem[tonumber(a,16)]
+                    if m.asm then
+                        local b = m.asm:match('%s%$(%x%x%x%x)$')
+                        if b and b<=a then toKeep[b] = true end
+                    end
+                end
+
+                local i,j,a,m = 1
+                function nxt(a)
+                    a = tonumber(a,16)
+                    return hex(a + mem[a].hex:len()/2)
+                end
+                while self.p[i] do
+                    j,a = i+1,nxt(self.p[i])
+                    while not toKeep[a] and a==self.p[j] do j,a = j+1,nxt(self.p[j]) end
+                    if j-i>=4 then -- compress
+                        repeat
+                            j=j-1
+                            table.remove(self.p, j-1)
+                        until j-i<4
+                        self.p[i+1] = -1
+                    end
+                    i = j
+                end
+                return self
+            end
         }
     end
-	
+
     -- construit les sections continues
-	local BARIER = set{'JMP','BRA','LBRA','RTS','RTI'}
-	for i=OPT_MIN,OPT_MAX do if mem[i] and mem[i].asm then
+    local BARIER = set{'JMP','BRA','LBRA','RTS','RTI'}
+    for i=OPT_MIN,OPT_MAX do if mem[i] and mem[i].asm then
         local m = mem[i]
-		-- if hot and (m.r~=NOADDR or hot.z~=i) then hot = hot:push(spots) end -- jumped-in
-		-- if hot==nil then 
-			-- if m.x>0 then hot = newHot():add(i,m) end
-		-- else
-			-- hot:add(i,m)
-			-- decide end of block
-			-- local op = m.asm:match('^(%a+)')
-			-- if REL_JMP[op] or BARIER[op] or m.asm:match('PC$') then
-				-- hot = hot:push(spots)
-			-- end
-		-- end
-		if hot and hot.x~=m.x then hot = hot:push(spots) end
-		if hot and m.x==hot.x then hot:add(i,m)
-			local op = m.asm:match('^(%a+)')
-			if BARIER[op] or m.asm:match('PC$') then
-				hot = hot:push(spots)
-			end
-		elseif m.x>0 then hot = newHot():add(i,m) end
-	end end 
-	if hot then hot = hot:push(spots) end
-	
-	-- for _,h in pairs(spots) do out('1 %s-%s\n', h.a,h.z) end
-    
-	-- essaye de faire grossi les plus petits segments
-	local function f1(b) return -b.t end
-	local function f2(b) return b.t end
-	local pool = {}
-	for k,h in pairs(spots) do pool[h.a] = h end
-	while next(pool) do -- tant que pool pas vide
-		-- on trouve le plus petit avec un saut
-		local blk
-		for _,h in pairs(pool) do blk = (blk and f1(blk)<f1(h)) and blk or h end
+        -- if hot and (m.r~=NOADDR or hot.z~=i) then hot = hot:push(spots) end -- jumped-in
+        -- if hot==nil then
+            -- if m.x>0 then hot = newHot():add(i,m) end
+        -- else
+            -- hot:add(i,m)
+            -- decide end of block
+            -- local op = m.asm:match('^(%a+)')
+            -- if REL_JMP[op] or BARIER[op] or m.asm:match('PC$') then
+                -- hot = hot:push(spots)
+            -- end
+        -- end
+        if hot and hot.x~=m.x then hot = hot:push(spots) end
+        if hot and m.x==hot.x then hot:add(i,m)
+            local op = m.asm:match('^(%a+)')
+            if BARIER[op] or m.asm:match('PC$') then
+                hot = hot:push(spots)
+            end
+        elseif m.x>0 then hot = newHot():add(i,m) end
+    end end
+    if hot then hot = hot:push(spots) end
 
-		-- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
-		-- out('>>%s\n', type(hot.j))
+    -- for _,h in pairs(spots) do out('1 %s-%s\n', h.a,h.z) end
 
-		-- choix de la branche "qui vient après" pla pluds empruntée
-		local big, small = spots[blk.j], spots[blk.b]
-		if big   and (blk.j<blk.z or big.merged)   then big   = nil end -- retrait du big s'il vient avant
-		if small and (blk.b<blk.z or small.merged) then small = nil end -- idem avec small
-		if (big and f2(big) or 0)<(small and f2(small) or 0) then big,small = small,big end -- choix du plus utilisé
-		
-		-- merge de la big
-		if big then 
-			blk:merge(big) 
-		else -- on peut pas prolonger ==> retrait du block pool
-			pool[blk.a] = nil
-		end
-	end
+    -- essaye de faire grossi les plus petits segments
+    local function f1(b) return -b.t end
+    local function f2(b) return b.t end
+    local pool = {}
+    for k,h in pairs(spots) do pool[h.a] = h end
+    while next(pool) do -- tant que pool pas vide
+        -- on trouve le plus petit avec un saut
+        local blk
+        for _,h in pairs(pool) do blk = (blk and f1(blk)<f1(h)) and blk or h end
+
+        -- out('Found hot=%s (%d) j=%s, b=%s\n', hot.a, hot.x, hot.j or '-', hot.b or '-')
+        -- out('>>%s\n', type(hot.j))
+
+        -- choix de la branche "qui vient après" pla pluds empruntée
+        local big, small = spots[blk.j], spots[blk.b]
+        if big   and (blk.j<blk.z or big.merged)   then big   = nil end -- retrait du big s'il vient avant
+        if small and (blk.b<blk.z or small.merged) then small = nil end -- idem avec small
+        if (big and f2(big) or 0)<(small and f2(small) or 0) then big,small = small,big end -- choix du plus utilisé
+
+        -- merge de la big
+        if big then
+            blk:merge(big)
+        else -- on peut pas prolonger ==> retrait du block pool
+            pool[blk.a] = nil
+        end
+    end
 
     -- cree une liste ordonnée avec les non mergés
     local ret = {}
@@ -2282,121 +2284,121 @@ end
 -- Analyse des astuces potentielles
 ------------------------------------------------------------------------------
 local HINTS = OPT_HINTS and {
-		_add = function(self, addr, hint)
-			self[addr] = self[addr] or {}
-			table.insert(self[addr], hint)
-			return self
-		end,
-		_hints = {},
-		_newHint = function(self, addr, hexa, lbl, gain, explain, asm)
-			local h = {
-				lbl     = lbl,
-				addr    = addr,
-				hexa    = hexa,
+        _add = function(self, addr, hint)
+            self[addr] = self[addr] or {}
+            table.insert(self[addr], hint)
+            return self
+        end,
+        _hints = {},
+        _newHint = function(self, addr, hexa, lbl, gain, explain, asm)
+            local h = {
+                lbl     = lbl,
+                addr    = addr,
+                hexa    = hexa,
                 _nxt    = hex(tonumber(addr,16) + hexa:len()/2),
-				_asm    = asm,
-				_gain   = gain,
-				_valid  = true,
-				_xplain = explain,
-				valid   = function(self) return self._valid end,
-				check   = function(self, addr, hexa, opcode, arg, regs) end,
-				asm     = function(self, asm) return self._asm or asm:gsub('<%-unreached','') end,
-				explain = function(self) return self._xplain or self.lbl end,
-				cycles  = function(self, mem, orig) 
-					local t = tonumber(mem.cycles)
-					if t==nil then error(self.lbl) end
-					return orig and t or t + self._gain
-				end
-			}
-			self:_add(addr, h)
-			table.insert(self._hints, h)
-			return h
-		end,
-		_dp = function(self, addr, hexa, opcode, arg, regs)
-			local DP = regs:match('DP=(%x%x)')
-			if arg:match('^%$'..DP..'%x%x$') and hexa:match(DP..'%x%x$') then
-				self:_newHint(addr, hexa, 'direct-page', -1, opcode..' <$'..arg:sub(4))
-				.check = function(self, addr, hexa, opcode, arg, regs) 
-					self._valid = regs:match('DP='..DP) 
-				end
-			end
-		end,
-		_cmp0 = function(self, addr, hexa, opcode, arg, regs)
-			local REG = arg=='#$0000' and opcode:match('^CMP([DYUS])')
-			if REG=='D' then 
-				self:_newHint(addr, hexa, 'cmp-zero', -1, 'SUBD #0')
-			elseif REG then
-				local h = self:_newHint(addr, hexa, 'cmp-zero', -1,
-					REG=='Y' and 'LEAY ,Y' or
-					'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
-				-- verifier si suivi par BEQ ou BNE
-				self:_add(h._nxt, h)
-				h.check = function(self, addr, hexa, opcode, arg, regs) 
-					if addr~=self.addr 
-					and opcode ~= 'BNE'  and opcode ~= 'BEQ'
-					and opcode ~= 'LBNE' and opcode ~= 'LBEQ'
-					then self._valid = false end
-				end
-			end
-			REG = arg=='#$00' and opcode:match('^CMP([AB])')
-			if REG then
-				self:_newHint(addr, hexa, 'cmp-zero', 0,'TST'..REG)
-			end
-		end,
-		_ld0 = function(self, addr, hexa, opcode, arg, regs)
-			local REG = arg=='#$00' and opcode:match('^LD([AB])')
-			if REG then
-				self:_newHint(addr, hexa, 'clear-reg', 0, 'CLR'..REG)
-			end
-		end,
-		_0lsb = function(self, addr, hexa, opcode, arg, regs)
-			local MSB = (opcode=='ADDD' or opcode=='SUBD') and arg:match('#$(%x%x)00')
-			if MSB then
-				self:_newHint(addr, hexa, 'zero-lsb', -2, opcode:sub(1,3)..'A #$'..MSB)
-			end
-		end,
-		_ldd = function(self, addr, hexa, opcode, arg, regs)
-			if opcode=='LDD' then
-				local A,B = arg:match('^#%$(%x%x)(%x%x)$')
-				if B then
-					local function tst(REG, VAL, REGEXP)
-						if regs:match(REGEXP) then
-							local t = VAL=='00' and 'CLR'..REG or 'LD'..REG..' #$'..VAL
-							if hexa:sub(-4)~='0000' then t = t..' (flags?)' end
-							self:_newHint(addr, hexa, 
-							REG=='A' and 'lsb-ready' or 'msb-ready', -1, t)
-							.check = function(self, addr, hexa, opcode, arg, regs) 
-								self._valid = regs:match(REGEXP) 
-							end
-						end
-					end
-					tst('B',B,'D='..A..'%x%x ')
-					tst('A',A,'D=%x%x'..B..' ')
-				end
-			end
-		end,
-		_bcom = {BMI='BPL', BEQ='BNE', BVS='BVC', BCS='BCC',
-		         BPL='BMI', BNE='BEQ', BVC='BVS', BCC='BCS',
-				 BGT='BLE', BGE='BLT', BLE='BGT', BLT='BGE',
-				 BHI='BLS', BHS='BLO', BLS='BHI', BLO='BHS'},
+                _asm    = asm,
+                _gain   = gain,
+                _valid  = true,
+                _xplain = explain,
+                valid   = function(self) return self._valid end,
+                check   = function(self, addr, hexa, opcode, arg, regs) end,
+                asm     = function(self, asm) return self._asm or asm:gsub('<%-unreached','') end,
+                explain = function(self) return self._xplain or self.lbl end,
+                cycles  = function(self, mem, orig)
+                    local t = tonumber(mem.cycles)
+                    if t==nil then error(self.lbl) end
+                    return orig and t or t + self._gain
+                end
+            }
+            self:_add(addr, h)
+            table.insert(self._hints, h)
+            return h
+        end,
+        _dp = function(self, addr, hexa, opcode, arg, regs)
+            local DP = regs:match('DP=(%x%x)')
+            if arg:match('^%$'..DP..'%x%x$') and hexa:match(DP..'%x%x$') then
+                self:_newHint(addr, hexa, 'direct-page', -1, opcode..' <$'..arg:sub(4))
+                .check = function(self, addr, hexa, opcode, arg, regs)
+                    self._valid = regs:match('DP='..DP)
+                end
+            end
+        end,
+        _cmp0 = function(self, addr, hexa, opcode, arg, regs)
+            local REG = arg=='#$0000' and opcode:match('^CMP([DYUS])')
+            if REG=='D' then
+                self:_newHint(addr, hexa, 'cmp-zero', -1, 'SUBD #0')
+            elseif REG then
+                local h = self:_newHint(addr, hexa, 'cmp-zero', -1,
+                    REG=='Y' and 'LEAY ,Y' or
+                    'LEAX ,'..REG..' or LEAY ,'..REG..' (when possible)')
+                -- verifier si suivi par BEQ ou BNE
+                self:_add(h._nxt, h)
+                h.check = function(self, addr, hexa, opcode, arg, regs)
+                    if addr~=self.addr
+                    and opcode ~= 'BNE'  and opcode ~= 'BEQ'
+                    and opcode ~= 'LBNE' and opcode ~= 'LBEQ'
+                    then self._valid = false end
+                end
+            end
+            REG = arg=='#$00' and opcode:match('^CMP([AB])')
+            if REG then
+                self:_newHint(addr, hexa, 'cmp-zero', 0,'TST'..REG)
+            end
+        end,
+        _ld0 = function(self, addr, hexa, opcode, arg, regs)
+            local REG = arg=='#$00' and opcode:match('^LD([AB])')
+            if REG then
+                self:_newHint(addr, hexa, 'clear-reg', 0, 'CLR'..REG)
+            end
+        end,
+        _0lsb = function(self, addr, hexa, opcode, arg, regs)
+            local MSB = (opcode=='ADDD' or opcode=='SUBD') and arg:match('#$(%x%x)00')
+            if MSB then
+                self:_newHint(addr, hexa, 'zero-lsb', -2, opcode:sub(1,3)..'A #$'..MSB)
+            end
+        end,
+        _ldd = function(self, addr, hexa, opcode, arg, regs)
+            if opcode=='LDD' then
+                local A,B = arg:match('^#%$(%x%x)(%x%x)$')
+                if B then
+                    local function tst(REG, VAL, REGEXP)
+                        if regs:match(REGEXP) then
+                            local t = VAL=='00' and 'CLR'..REG or 'LD'..REG..' #$'..VAL
+                            if hexa:sub(-4)~='0000' then t = t..' (flags?)' end
+                            self:_newHint(addr, hexa,
+                            REG=='A' and 'lsb-ready' or 'msb-ready', -1, t)
+                            .check = function(self, addr, hexa, opcode, arg, regs)
+                                self._valid = regs:match(REGEXP)
+                            end
+                        end
+                    end
+                    tst('B',B,'D='..A..'%x%x ')
+                    tst('A',A,'D=%x%x'..B..' ')
+                end
+            end
+        end,
+        _bcom = {BMI='BPL', BEQ='BNE', BVS='BVC', BCS='BCC',
+                 BPL='BMI', BNE='BEQ', BVC='BVS', BCC='BCS',
+                 BGT='BLE', BGE='BLT', BLE='BGT', BLT='BGE',
+                 BHI='BLS', BHS='BLO', BLS='BHI', BLO='BHS'},
         _newBranchHint = function(self, addr, hexa, arg, lbl, gain, explain, asm)
             local h = self:_newHint(addr, hexa, lbl, gain, explain, asm)
             h.adr_taken    = arg:match('^%$(%x%x%x%x)$')
             h.adr_nottaken = h._nxt
-			h.pending      = true
+            h.pending      = true
             h.cnt_taken    = 0
             h.cnt_nottaken = 0
             h.extra_check  = function(self, addr, hexa, opcode, arg, regs) end
-            h.check        = function(self, addr, hexa, opcode, arg, regs) 
-				if addr == self.addr then
-					self.pending = true
+            h.check        = function(self, addr, hexa, opcode, arg, regs)
+                if addr == self.addr then
+                    self.pending = true
                 elseif addr == self.adr_taken and self.pending then
                     self.cnt_taken,self.pending = self.cnt_taken + 1,false
-					self:extra_check(addr, hexa, opcode, arg, regs)
+                    self:extra_check(addr, hexa, opcode, arg, regs)
                elseif addr == self.adr_nottaken and self.pending then
                     self.cnt_nottaken,self.pending = self.cnt_nottaken + 1,false
-					self:extra_check(addr, hexa, opcode, arg, regs)
-				end
+                    self:extra_check(addr, hexa, opcode, arg, regs)
+                end
             end
             h.valid         = function(self)
                 -- print(self.addr, self._valid, self.cnt_taken, self.cnt_nottaken)
@@ -2407,15 +2409,15 @@ local HINTS = OPT_HINTS and {
             return h
         end,
         _branch_always_true = function(self, addr, hexa, opcode, arg, regs)
-			local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
+            local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
             local LONG,BCC = opcode:match('^(L)(B..)$') -- only important for long branches, otherwise they are harmless
             if BCC and self._bcom[BCC] then LONG = LONG=='L'
-				local h = self:_newBranchHint(addr, hexa, arg, 'always-true', 
+                local h = self:_newBranchHint(addr, hexa, arg, 'always-true',
                         0, (LONG and "JMP $" or "BRA $")..a)
-                h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
+                h.extra_check = function(self, addr, hexa, opcode, arg, regs)
                     if self.cnt_nottaken>0 then self._valid = false end
                 end
-                h.cycles  = function(self, mem, orig) 
+                h.cycles  = function(self, mem, orig)
                     return LONG and orig and 6
                         or LONG and not orig and 4
                         or 3
@@ -2425,215 +2427,215 @@ local HINTS = OPT_HINTS and {
         _branch_always_false = function(self, addr, hexa, opcode, arg, regs)
             local a = arg:match('^%$(%x%x%x%x)$') if not a then return end
             local LONG,BCC = opcode:match('^(L?)(B..)$')
-			if BCC and self._bcom[BCC] then LONG = LONG=='L'
-				local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(removed)')
-                h.extra_check = function(self, addr, hexa, opcode, arg, regs) 
+            if BCC and self._bcom[BCC] then LONG = LONG=='L'
+                local h = self:_newBranchHint(addr, hexa, arg, 'always-false', 0, '(removed)')
+                h.extra_check = function(self, addr, hexa, opcode, arg, regs)
                     if self.cnt_taken>0 then self._valid = false end
                 end
-                h.cycles  = function(self, mem, orig) 
+                h.cycles  = function(self, mem, orig)
                     return orig and (LONG and 5 or 3) or 0
                 end
             end
         end,
-		_lbranch = function(self, addr, hexa, opcode, arg, regs)
-			local BCC = opcode:match('^L(B..)')
-			if BCC then
-				local o = tonumber(hexa:sub(-4),16)
-				if o>=32768 then o = o-65536 end
-				if -128<=o and o<=127 then 
-					self:_newBranchHint(addr, hexa, arg, 'short-branch', 3, BCC..' '..arg)
-					.cycles = function(self, mem, orig) 
-						local total = self.cnt_taken + self.cnt_nottaken
-						return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
-						             or 3
-					end
-				else
-					local a = arg:match('^%$(%x%x%x%x)$')
-					if self._bcom[BCC] and a then
-						local h = self:_newBranchHint(addr, hexa, arg, 'rarely-taken', 
-							'7/3',
-							self._bcom[BCC]..' *+5 : JMP '..arg)
-						h.cycles = function(self, mem, orig) 
-							local total = self.cnt_taken + self.cnt_nottaken
-							return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
-							             or (7*self.cnt_taken + 3*self.cnt_nottaken)/total
-						end
-						h.valid2 = h.valid
-						h.valid = function(self)
-							return self:valid2() and self.cnt_taken>0
-						end
-					elseif BCC=='BRA' or BCC=='BSR' then
-						self:_newHint(addr, hexa, 'slow-long-branch', 
-							-1,
-							(BCC=='BRA' and 'JMP ' or 'JSR ')..arg)
-					end
-				end
-			elseif opcode=='JMP' and hexa:sub(1,2)=='7E' then
-				local o = tonumber(hexa:sub(-4),16) - (tonumber(addr,16)+2)
-				if -128<=o and o<=127 then 
-					self:_newBranchHint(addr, hexa, arg, 'short-jump', -1, 'BRA '..arg)
-					.cycles  = function(self, mem, orig) return orig and tonumber(mem.cycles) or 3 end
-				end
-			end
-		end,
-		_puls_rts = function(self, addr, hexa, opcode, arg, regs)
-			if opcode=='PULS' and not arg:match(',PC$') then
-				local h = self:_newHint(addr, hexa, 'puls-rts', -3, opcode..' '..arg..',PC', opcode..' '..arg..':RTS')
-				self:_add(h._nxt, h)
-				h.check = function(self, addr, hexa, opcode, arg, regs) 
-					if addr ~= self.addr then
-						self._valid = hexa=='39'
-					end
-				end
-				h.cycles  = function(self, mem, orig) 
-					local t = tonumber(mem.cycles)
-					if t==nil then error(self.lbl) end
-					return orig and t+5 or t + 2
-				end
-			end
-		end,
-		_index = function(self, addr, hexa, opcode, arg, regs, XYU)
-			if opcode:match('^[L]?B[^I]') 
-			or opcode=='TFR'
-			or opcode=='EXG' then return end
-			local a = arg:match('^$(%x%x%x%x)$') 
-			if a and regs:match(XYU..'='..a) then
-				self:_newHint(addr, hexa, 'addr-reg', -1, opcode..' ,'..XYU)
-				.check = function(self, addr, hexa, opcode, arg, regs) 
-					local addr = arg:match('^$(%x%x%x%x)$') 
-					self._valid = addr and regs:match(XYU..'='..a)
-				end
-			end
-		end,
-		_abx = function(self, addr, hexa, opcode, arg, regs)
-			local h
-			if opcode=='LEAX' and (arg=='B,X' or arg=='D,X') then
-				local B = arg=='B,X'
-				local function check(arg, regs) 
-					local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
-					if B then D=D%256 if D>=128 then D=D-256 end end
-					return 0<=D and D<256
-				end
-				if check(arg, regs)  then
-					h = self:_newHint(addr, hexa, 'leax-abx', B and -3 or -5, 'ABX')
-					h.check = function(self, addr, hexa, opcode, arg, regs) 
-						self._valid = check(arg,regs)
-					end
-				end
-			end
-			return h
-		end,
-		_byte_index = function(self, addr, hexa, opcode, arg, regs)
-			local REG = arg:match('^D,([XYUS])$')
-			if REG and opcode~='TFR' and opcode~='EXG' then
-				local function check(arg, regs) 
-					local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
-					if D>=32768 then D=D-65536 end
-					return -128<=D and D<128
-				end
-				local abx = self:_abx(addr, hexa, opcode, arg, regs)
-				if check(arg, regs) then
-					local h = self:_newHint(addr, hexa, 'byte-index', -3, opcode..' B,'..REG)
-					h.check = function(self, addr, hexa, opcode, arg, regs) 
-						self._valid = check(arg,regs)
-					end
-					if abx then
-						h.valid = function(self)
-							return self._valid and not abx._valid
-						end
-					end
-				end
-			end
-		end,
-		_reg_trashed = function(self, addr, hexa, opcode, arg, regs)
-			local REG = opcode:match('^LD([ABDXYUS])$') or opcode:match('^CLR([AB])$')
-			if REG then
-				local h = self:_newHint(addr, hexa, 'trashed-reg', 0, '(removed)')
-				self:_add(h._nxt, h)
-				h.check = function(self, addr, hexa, opcode, arg, regs) 
-					if addr ~= self.addr and self._valid then
-						local AB = REG=='A' or REG=='B'
-						self._valid = opcode=='CLR'..REG 
-								  or  opcode=='LD'..REG
-								  or (opcode=='LDD' and AB)
-                        if     arg:match(','..REG) and not AB then self._valid = false 
+        _lbranch = function(self, addr, hexa, opcode, arg, regs)
+            local BCC = opcode:match('^L(B..)')
+            if BCC then
+                local o = tonumber(hexa:sub(-4),16)
+                if o>=32768 then o = o-65536 end
+                if -128<=o and o<=127 then
+                    self:_newBranchHint(addr, hexa, arg, 'short-branch', 3, BCC..' '..arg)
+                    .cycles = function(self, mem, orig)
+                        local total = self.cnt_taken + self.cnt_nottaken
+                        return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
+                                     or 3
+                    end
+                else
+                    local a = arg:match('^%$(%x%x%x%x)$')
+                    if self._bcom[BCC] and a then
+                        local h = self:_newBranchHint(addr, hexa, arg, 'rarely-taken',
+                            '7/3',
+                            self._bcom[BCC]..' *+5 : JMP '..arg)
+                        h.cycles = function(self, mem, orig)
+                            local total = self.cnt_taken + self.cnt_nottaken
+                            return orig and (6*self.cnt_taken + 5*self.cnt_nottaken)/total
+                                         or (7*self.cnt_taken + 3*self.cnt_nottaken)/total
+                        end
+                        h.valid2 = h.valid
+                        h.valid = function(self)
+                            return self:valid2() and self.cnt_taken>0
+                        end
+                    elseif BCC=='BRA' or BCC=='BSR' then
+                        self:_newHint(addr, hexa, 'slow-long-branch',
+                            -1,
+                            (BCC=='BRA' and 'JMP ' or 'JSR ')..arg)
+                    end
+                end
+            elseif opcode=='JMP' and hexa:sub(1,2)=='7E' then
+                local o = tonumber(hexa:sub(-4),16) - (tonumber(addr,16)+2)
+                if -128<=o and o<=127 then
+                    self:_newBranchHint(addr, hexa, arg, 'short-jump', -1, 'BRA '..arg)
+                    .cycles  = function(self, mem, orig) return orig and tonumber(mem.cycles) or 3 end
+                end
+            end
+        end,
+        _puls_rts = function(self, addr, hexa, opcode, arg, regs)
+            if opcode=='PULS' and not arg:match(',PC$') then
+                local h = self:_newHint(addr, hexa, 'puls-rts', -3, opcode..' '..arg..',PC', opcode..' '..arg..':RTS')
+                self:_add(h._nxt, h)
+                h.check = function(self, addr, hexa, opcode, arg, regs)
+                    if addr ~= self.addr then
+                        self._valid = hexa=='39'
+                    end
+                end
+                h.cycles  = function(self, mem, orig)
+                    local t = tonumber(mem.cycles)
+                    if t==nil then error(self.lbl) end
+                    return orig and t+5 or t + 2
+                end
+            end
+        end,
+        _index = function(self, addr, hexa, opcode, arg, regs, XYU)
+            if opcode:match('^[L]?B[^I]')
+            or opcode=='TFR'
+            or opcode=='EXG' then return end
+            local a = arg:match('^$(%x%x%x%x)$')
+            if a and regs:match(XYU..'='..a) then
+                self:_newHint(addr, hexa, 'addr-reg', -1, opcode..' ,'..XYU)
+                .check = function(self, addr, hexa, opcode, arg, regs)
+                    local addr = arg:match('^$(%x%x%x%x)$')
+                    self._valid = addr and regs:match(XYU..'='..a)
+                end
+            end
+        end,
+        _abx = function(self, addr, hexa, opcode, arg, regs)
+            local h
+            if opcode=='LEAX' and (arg=='B,X' or arg=='D,X') then
+                local B = arg=='B,X'
+                local function check(arg, regs)
+                    local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
+                    if B then D=D%256 if D>=128 then D=D-256 end end
+                    return 0<=D and D<256
+                end
+                if check(arg, regs)  then
+                    h = self:_newHint(addr, hexa, 'leax-abx', B and -3 or -5, 'ABX')
+                    h.check = function(self, addr, hexa, opcode, arg, regs)
+                        self._valid = check(arg,regs)
+                    end
+                end
+            end
+            return h
+        end,
+        _byte_index = function(self, addr, hexa, opcode, arg, regs)
+            local REG = arg:match('^D,([XYUS])$')
+            if REG and opcode~='TFR' and opcode~='EXG' then
+                local function check(arg, regs)
+                    local D = tonumber(regs:match('D=(%x%x%x%x)'),16)
+                    if D>=32768 then D=D-65536 end
+                    return -128<=D and D<128
+                end
+                local abx = self:_abx(addr, hexa, opcode, arg, regs)
+                if check(arg, regs) then
+                    local h = self:_newHint(addr, hexa, 'byte-index', -3, opcode..' B,'..REG)
+                    h.check = function(self, addr, hexa, opcode, arg, regs)
+                        self._valid = check(arg,regs)
+                    end
+                    if abx then
+                        h.valid = function(self)
+                            return self._valid and not abx._valid
+                        end
+                    end
+                end
+            end
+        end,
+        _reg_trashed = function(self, addr, hexa, opcode, arg, regs)
+            local REG = opcode:match('^LD([ABDXYUS])$') or opcode:match('^CLR([AB])$')
+            if REG then
+                local h = self:_newHint(addr, hexa, 'trashed-reg', 0, '(removed)')
+                self:_add(h._nxt, h)
+                h.check = function(self, addr, hexa, opcode, arg, regs)
+                    if addr ~= self.addr and self._valid then
+                        local AB = REG=='A' or REG=='B'
+                        self._valid = opcode=='CLR'..REG
+                                  or  opcode=='LD'..REG
+                                  or (opcode=='LDD' and AB)
+                        if     arg:match(','..REG) and not AB then self._valid = false
                         elseif arg:match(REG..',') and     AB then self._valid = false end
                     end
-				end
-				h.cycles  = function(self, mem, orig) 
-					return orig and tonumber(mem.cycles) or 0
-				end
-			end
-		end,
-		_done = {},
-		analyze = function(self, addr, hexa, opcode, arg, regs)
-			local hints = self[addr]
+                end
+                h.cycles  = function(self, mem, orig)
+                    return orig and tonumber(mem.cycles) or 0
+                end
+            end
+        end,
+        _done = {},
+        analyze = function(self, addr, hexa, opcode, arg, regs)
+            local hints = self[addr]
             if hints then
-				for i=#hints,1,-1 do local h = hints[i]
-					if h._valid then
-						if h.addr==addr and h.hexa~=hexa then 
-							h._valid = false -- invalid si le code a changé
-						else
-							h:check(addr, hexa, opcode, arg, regs) 
-						end
-					end
-					if not h._valid then 
-						-- print('invalid', h.addr,  h.lbl)
-						table.remove(hints,i) 
-					end
-				end
+                for i=#hints,1,-1 do local h = hints[i]
+                    if h._valid then
+                        if h.addr==addr and h.hexa~=hexa then
+                            h._valid = false -- invalid si le code a changé
+                        else
+                            h:check(addr, hexa, opcode, arg, regs)
+                        end
+                    end
+                    if not h._valid then
+                        -- print('invalid', h.addr,  h.lbl)
+                        table.remove(hints,i)
+                    end
+                end
                 if #hints==0 then self[addr] = nil end
-			elseif not self._done[addr] then self._done[addr] = true
-				local n = tonumber(addr,16)
+            elseif not self._done[addr] then self._done[addr] = true
+                local n = tonumber(addr,16)
                 if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
                     self:_lbranch             (addr, hexa, opcode, arg, regs)
-                    self:_puls_rts            (addr, hexa, opcode, arg, regs) 
+                    self:_puls_rts            (addr, hexa, opcode, arg, regs)
                     self:_ld0                 (addr, hexa, opcode, arg, regs)
                     self:_ldd                 (addr, hexa, opcode, arg, regs)
                     self:_cmp0                (addr, hexa, opcode, arg, regs)
-                    self:_dp                  (addr, hexa, opcode, arg, regs) 
-                    self:_index               (addr, hexa, opcode, arg, regs, 'X') 
-                    self:_index               (addr, hexa, opcode, arg, regs, 'Y') 
-                    self:_index               (addr, hexa, opcode, arg, regs, 'U') 
-                    self:_byte_index          (addr, hexa, opcode, arg, regs) 
+                    self:_dp                  (addr, hexa, opcode, arg, regs)
+                    self:_index               (addr, hexa, opcode, arg, regs, 'X')
+                    self:_index               (addr, hexa, opcode, arg, regs, 'Y')
+                    self:_index               (addr, hexa, opcode, arg, regs, 'U')
+                    self:_byte_index          (addr, hexa, opcode, arg, regs)
                     self:_branch_always_false (addr, hexa, opcode, arg, regs)
                     self:_branch_always_true  (addr, hexa, opcode, arg, regs)
-					self:_reg_trashed         (addr, hexa, opcode, arg, regs)
-					self:_0lsb                (addr, hexa, opcode, arg, regs)
+                    self:_reg_trashed         (addr, hexa, opcode, arg, regs)
+                    self:_0lsb                (addr, hexa, opcode, arg, regs)
                 end
-			end
-		end,
-		getAllHints = function(self)
-			local t = self._hints
-			for i=#t,1,-1 do if not t[i]:valid() then table.remove(t,i) end end
-			table.sort(t, function(a,b) return a.addr<b.addr end)
-			return t
-		end,
-		count = function(self)
-			return #self:getAllHints()
-		end,
-		total_gain = function(self, mem)
-			local t = 0
-			for _,h in ipairs(self:getAllHints()) do 
-				local m = mem[tonumber(h.addr,16)]
-				t = t + m.x * (h:cycles(m,true) - h:cycles(m,false))
-			end
-			return t
-		end,
-		getHints = function(self, addr)
-			local ret,hints = {},self[addr]
-			for _,h in ipairs(hints or {}) do
-			if addr=='69EF' then print(h.lbl, h._valid, h.cnt_taken, h.cnt_nottaken) end
-				if h.addr==addr and h:valid() then
-					table.insert(ret, h)
-				end
-			end
-			return ret
-		end
-	} or { -- dummy one
-		analyze = function() end, 
-		getHints = function() return {} end
-	}
+            end
+        end,
+        getAllHints = function(self)
+            local t = self._hints
+            for i=#t,1,-1 do if not t[i]:valid() then table.remove(t,i) end end
+            table.sort(t, function(a,b) return a.addr<b.addr end)
+            return t
+        end,
+        count = function(self)
+            return #self:getAllHints()
+        end,
+        total_gain = function(self, mem)
+            local t = 0
+            for _,h in ipairs(self:getAllHints()) do
+                local m = mem[tonumber(h.addr,16)]
+                t = t + m.x * (h:cycles(m,true) - h:cycles(m,false))
+            end
+            return t
+        end,
+        getHints = function(self, addr)
+            local ret,hints = {},self[addr]
+            for _,h in ipairs(hints or {}) do
+            if addr=='69EF' then print(h.lbl, h._valid, h.cnt_taken, h.cnt_nottaken) end
+                if h.addr==addr and h:valid() then
+                    table.insert(ret, h)
+                end
+            end
+            return ret
+        end
+    } or { -- dummy one
+        analyze = function() end,
+        getHints = function() return {} end
+    }
 
 ------------------------------------------------------------------------------
 -- analyseur de mémoire
@@ -2668,34 +2670,34 @@ local mem = {
     end,
     -- marque "addr" comme lue depuis le compteur programme courant
     r = function(self, addr, len, stack)
-		local PC = self.PC
+        local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.r, m.s = self.PC, m.s or stack
-			m.r_from = m.r_from or {}
-			m.r_from[PC] = (m.r_from[PC] or 0) + 1
+            m.r_from = m.r_from or {}
+            m.r_from[PC] = (m.r_from[PC] or 0) + 1
         end
-		return self
+        return self
     end,
     -- marque "addr" comme écrite depuis le compteur programme courant
     w = function(self, addr, len, stack)
-		local PC = self.PC
+        local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.w, m.s = PC, m.s or stack
-			m.w_from = m.w_from or {}
-			m.w_from[PC] = (m.w_from[PC] or 0) + 1
+            m.w_from = m.w_from or {}
+            m.w_from[PC] = (m.w_from[PC] or 0) + 1
         end
         return self
     end,
     -- marque "addr" comme lue/écrit depuis le compteur programme courant
     -- la partie écrite n'est pas changée si elle est écrite ailleurs
     rw = function(self, addr, len, stack)
-		local PC = self.PC
+        local PC = self.PC
         for i=0,(len or 1)-1 do local m = self:_get(addr+i)
             m.r, m.w, m.s = PC, m.w==NOADDR and self.PC or m.w, stack
-			m.r_from = m.r_from or {}
-			m.w_from = m.w_from or {}
-			m.r_from[PC] = (m.r_from[PC] or 0) + 1
-			m.w_from[PC] = (m.w_from[PC] or 0) + 1
+            m.r_from = m.r_from or {}
+            m.w_from = m.w_from or {}
+            m.r_from[PC] = (m.r_from[PC] or 0) + 1
+            m.w_from[PC] = (m.w_from[PC] or 0) + 1
         end
         return self
     end,
@@ -2743,176 +2745,176 @@ local mem = {
         end
         return f
     end,
-	_saveTimes = function(self, writer)
-		if not TIMES.active then return end
-		profile:_()
-		local watches = TIMES:getWatches()
-		-- if all are looping, use Hz
-		-- local useHz = true;	for _,w in ipairs(watches) do if w.to then useHz = false; break end end
-		writer:id("times")
-		writer:title(1, "Timings")
-		writer:header{'"From','"To',">^Samples",">^Min(~)",">^Avg(~)",">^Max(~)",">^Avg(VBL)", ">Avg(Hz)",">^Std Dev"}
-		for _,w in ipairs(watches) do
-			local function fmt(x)
-				return sprintf(x>=1000 and "%.0f" or '%.02f', x)
-			end
-			local function symb(x)
-				return EQUATES[x] and x..' '..EQUATES[x] or x
-			end
-			local mean = w:mean()
-			writer:row{
-				symb(w.from), w.to and symb(w.to) or '<<<<', 
-				w.count,
-				w.min,
-				fmt(mean), 
-				w.max,
-				fmt(mean/20000),
-				w.to and 'n/a' or fmt(1000000/mean),
-				fmt(100*w:stddev()/mean, false)..'%', 
-			nil}
-		end
-		writer:footer()
-		profile:_()
-	end,
-	_saveVars = function(self, writer)
-		profile:_()
-		-- collect stats
-		local total_r, total_w, list, void = 0, 0, {}, {}
-		for i=(OPT_MIN or 0),(OPT_MAX or 65535) do local m = self[i] 
-			if m and (m.r_from or m.w_from) and m.x==0 then 
-				local xt, rw, a, r, w, r_, w_ = 0, false, hex(i), 0, 0, 0, 0
-				local function cnt(x,x_,v,k,other) 
-					local m = self[tonumber(k,16)] 
-					if  m 
-					and m.hex 
-					and m.hex:sub(-4)==a
-					and m.asm
-					and m.asm:find(' $'..a) then xt = xt + 1 end
-					if other[k] then rw = true end
-					return x+v, x_+1
-				end
-				for k,v in pairs(m.r_from or void) do r,r_ = cnt(r,r_,v,k,m.w_from or void) end
-				for k,v in pairs(m.w_from or void) do w,w_ = cnt(w,w_,v,k,m.r_from or void) end
-				if xt == r_ + w_ then -- tout le temps accedée en étendu ==> vraie variable
-					total_r, total_w = total_r+r, total_w+w
-					table.insert(list, {i=i,a=a,r=r,w=w,r_=r_,w_=w_,comment=
-							r==0             and 'never read' or
-							w==0             and 'never modified' or
-							w>1.2*r          and 'low read/write ratio' or
-							r_==1 and not rw and 'consider inlining' or
-							nil
-					})
-				end
-			end 
-		end
-		-- frequent vars go to dp
-		local total, commented = total_r + total_w,0
-		for i=#list,1,-1 do local v = list[i]
-			if v.r+v.w>1.2*(total/#list) and nil==v.comment then v.comment = 'relocate to dp' end
-			-- if nil==v.comment then table.remove(list, i) end
-			if v.comment then commented = commented + 1 end
-		end
-		-- write section if not empty
-		if #list>0 then
-			local stat = {}
-			writer:id("vars")
-			writer:title(1, 'Global variables ('..#list..' / '..commented..' of interrest)')
-			writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^R/loc','>^W/loc','>#R+W/loc','/"Comment'}
-			for _,v in ipairs(list) do
-				local a = v.a
-				local t = EQUATES[a] if t then a = a ..' ('..t..')' end
-				writer:row{a,
-					v.r, v.w,
-					v.r + v.w, 
-					v.r_, v.w_,
-					v.r_ + v.w_,
-					v.comment or '',
-				nil}
-				stat[v.comment or '<none>'] = (stat[v.comment or '<none>'] or 0) + 1
-			end
-			writer:footer()
-			-- statistics
-			writer:title(2, 'Summary')
-			local l = {}
-			for k,_ in pairs(stat) do table.insert(l,k) end
-			table.sort(l, function(a,b) return stat[a]>stat[b] end)
-			writer:header{'Comment',">vCount"}
-			for _,k in ipairs(l) do writer:row{k,stat[k]} end
-			writer:footer()
-		end
-		profile:_()
-	end,
-	_saveHints = function(self, writer)
-		profile:_()
-		local l = HINTS:getAllHints()
-		if l[1] then
-			for i,h in ipairs(l) do
-				h.m   = self[tonumber(h.addr,16)]
-				h.x   = h.m.x
-				h.t0  = h:cycles(h.m, true)
-				h.t1  = h:cycles(h.m, false)
-				h.g   = (h.t0 - h.t1)*h.x
-			end
-			table.sort(l, function(a,b) 
-				return a.g > b.g
-				-- return a.lbl<b.lbl or a.lbl==b.lbl and a.x > b.x 
-			end)
-			local function fmt(integer, x) 
-				local fmt = '%0.2f'
-				if integer then fmt,x = '%.0f', math.floor(x+.5) end
-				return sprintf(fmt, x) 
-			end
-			
-			local kinds = {}
-			local total1,total2,total3,last=0,0,0
-			for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
-			writer:id("hints")
-			writer:title(1, 'Optimization hints (%d / %.2f ms)', #l, total3/1000)
-			writer:header{'>"Addr','"Hint','>vCount','>v(~)','"Initial Code','>v(~)','"Suggested Code','>vGain(~)','>vGain(ms)'}
-			for i,h in ipairs(l) do
-				-- if last and last~=h.lbl then
-					-- writer:row{'','','','','','','','',''}
-				-- end last = h.lbl
-				local asm = h:explain():gsub(' : ',':')
-				local integer = not h.m.asm:match('^LB')
-				writer:row{ --'#'..i, 
-					h.addr, 
-					h.lbl, 
-					h.x,
-					fmt(integer, h.t0), h:asm(h.m.asm):gsub('%s+',' '), 
-					fmt(integer, h.t1), asm,
-					fmt(integer, h.t0-h.t1),
-					fmt(false,   h.g/1000),
-					nil}
-				total1,total2 = total1+h.t0*h.x,total2+h.t1*h.x
-				do local k = kinds[h.lbl] if k==nil then k = {g=0,n=0}; kinds[h.lbl] = k end
-					k.n,k.g = k.n + 1, k.g + h.g
-				end
-			end
-			writer:footer{'Total',
-				'',
-				'',
-				fmt(true,total1),'',
-				fmt(true,total2),'',
-				'',
-				fmt(false,total3/1000)}
-			
-			-- another table
-			writer:title(2,'Summary')
-			local l_ = {} for k,_ in pairs(kinds) do table.insert(l_,k) end
-			table.sort(l_, function(x,y) local a,b=kinds[x],kinds[y]
-				local d = a.g - b.g
-				if d==0 then d = a.n - b.n end
-				return d>0 or d==0 and x<y 
-			end)
-			writer:header{'/"Hint','>vCount','>v(%)','>*vGain(~)', '>v(%)'}
-			for _,k in ipairs(l_) do local h = kinds[k]
-				writer:row{k, h.n, fmt(false,100*h.n/#l), fmt(true, h.g), fmt(false,100*h.g/total3)}
-			end
-			writer:footer()
-		end
+    _saveTimes = function(self, writer)
+        if not TIMES.active then return end
         profile:_()
-	end,
+        local watches = TIMES:getWatches()
+        -- if all are looping, use Hz
+        -- local useHz = true;  for _,w in ipairs(watches) do if w.to then useHz = false; break end end
+        writer:id("times")
+        writer:title(1, "Timings")
+        writer:header{'"From','"To',">^Samples",">^Min(~)",">^Avg(~)",">^Max(~)",">^Avg(VBL)", ">Avg(Hz)",">^Std Dev"}
+        for _,w in ipairs(watches) do
+            local function fmt(x)
+                return sprintf(x>=1000 and "%.0f" or '%.02f', x)
+            end
+            local function symb(x)
+                return EQUATES[x] and x..' '..EQUATES[x] or x
+            end
+            local mean = w:mean()
+            writer:row{
+                symb(w.from), w.to and symb(w.to) or '<<<<',
+                w.count,
+                w.min,
+                fmt(mean),
+                w.max,
+                fmt(mean/20000),
+                w.to and 'n/a' or fmt(1000000/mean),
+                fmt(100*w:stddev()/mean, false)..'%',
+            nil}
+        end
+        writer:footer()
+        profile:_()
+    end,
+    _saveVars = function(self, writer)
+        profile:_()
+        -- collect stats
+        local total_r, total_w, list, void = 0, 0, {}, {}
+        for i=(OPT_MIN or 0),(OPT_MAX or 65535) do local m = self[i]
+            if m and (m.r_from or m.w_from) and m.x==0 then
+                local xt, rw, a, r, w, r_, w_ = 0, false, hex(i), 0, 0, 0, 0
+                local function cnt(x,x_,v,k,other)
+                    local m = self[tonumber(k,16)]
+                    if  m
+                    and m.hex
+                    and m.hex:sub(-4)==a
+                    and m.asm
+                    and m.asm:find(' $'..a) then xt = xt + 1 end
+                    if other[k] then rw = true end
+                    return x+v, x_+1
+                end
+                for k,v in pairs(m.r_from or void) do r,r_ = cnt(r,r_,v,k,m.w_from or void) end
+                for k,v in pairs(m.w_from or void) do w,w_ = cnt(w,w_,v,k,m.r_from or void) end
+                if xt == r_ + w_ then -- tout le temps accedée en étendu ==> vraie variable
+                    total_r, total_w = total_r+r, total_w+w
+                    table.insert(list, {i=i,a=a,r=r,w=w,r_=r_,w_=w_,comment=
+                            r==0             and 'never read' or
+                            w==0             and 'never modified' or
+                            w>1.2*r          and 'low read/write ratio' or
+                            r_==1 and not rw and 'consider inlining' or
+                            nil
+                    })
+                end
+            end
+        end
+        -- frequent vars go to dp
+        local total, commented = total_r + total_w,0
+        for i=#list,1,-1 do local v = list[i]
+            if v.r+v.w>1.2*(total/#list) and nil==v.comment then v.comment = 'relocate to dp' end
+            -- if nil==v.comment then table.remove(list, i) end
+            if v.comment then commented = commented + 1 end
+        end
+        -- write section if not empty
+        if #list>0 then
+            local stat = {}
+            writer:id("vars")
+            writer:title(1, 'Global variables ('..#list..' / '..commented..' of interrest)')
+            writer:header{'<"Addr','>^#R','>v#W','>*v#R+W','>^R/loc','>^W/loc','>#R+W/loc','/"Comment'}
+            for _,v in ipairs(list) do
+                local a = v.a
+                local t = EQUATES[a] if t then a = a ..' ('..t..')' end
+                writer:row{a,
+                    v.r, v.w,
+                    v.r + v.w,
+                    v.r_, v.w_,
+                    v.r_ + v.w_,
+                    v.comment or '',
+                nil}
+                stat[v.comment or '<none>'] = (stat[v.comment or '<none>'] or 0) + 1
+            end
+            writer:footer()
+            -- statistics
+            writer:title(2, 'Summary')
+            local l = {}
+            for k,_ in pairs(stat) do table.insert(l,k) end
+            table.sort(l, function(a,b) return stat[a]>stat[b] end)
+            writer:header{'Comment',">vCount"}
+            for _,k in ipairs(l) do writer:row{k,stat[k]} end
+            writer:footer()
+        end
+        profile:_()
+    end,
+    _saveHints = function(self, writer)
+        profile:_()
+        local l = HINTS:getAllHints()
+        if l[1] then
+            for i,h in ipairs(l) do
+                h.m   = self[tonumber(h.addr,16)]
+                h.x   = h.m.x
+                h.t0  = h:cycles(h.m, true)
+                h.t1  = h:cycles(h.m, false)
+                h.g   = (h.t0 - h.t1)*h.x
+            end
+            table.sort(l, function(a,b)
+                return a.g > b.g
+                -- return a.lbl<b.lbl or a.lbl==b.lbl and a.x > b.x
+            end)
+            local function fmt(integer, x)
+                local fmt = '%0.2f'
+                if integer then fmt,x = '%.0f', math.floor(x+.5) end
+                return sprintf(fmt, x)
+            end
+
+            local kinds = {}
+            local total1,total2,total3,last=0,0,0
+            for _,h in ipairs(l) do total3 = total3 + (h.t0 - h.t1)*h.x end
+            writer:id("hints")
+            writer:title(1, 'Optimization hints (%d / %.2f ms)', #l, total3/1000)
+            writer:header{'>"Addr','"Hint','>vCount','>v(~)','"Initial Code','>v(~)','"Suggested Code','>vGain(~)','>vGain(ms)'}
+            for i,h in ipairs(l) do
+                -- if last and last~=h.lbl then
+                    -- writer:row{'','','','','','','','',''}
+                -- end last = h.lbl
+                local asm = h:explain():gsub(' : ',':')
+                local integer = not h.m.asm:match('^LB')
+                writer:row{ --'#'..i,
+                    h.addr,
+                    h.lbl,
+                    h.x,
+                    fmt(integer, h.t0), h:asm(h.m.asm):gsub('%s+',' '),
+                    fmt(integer, h.t1), asm,
+                    fmt(integer, h.t0-h.t1),
+                    fmt(false,   h.g/1000),
+                    nil}
+                total1,total2 = total1+h.t0*h.x,total2+h.t1*h.x
+                do local k = kinds[h.lbl] if k==nil then k = {g=0,n=0}; kinds[h.lbl] = k end
+                    k.n,k.g = k.n + 1, k.g + h.g
+                end
+            end
+            writer:footer{'Total',
+                '',
+                '',
+                fmt(true,total1),'',
+                fmt(true,total2),'',
+                '',
+                fmt(false,total3/1000)}
+
+            -- another table
+            writer:title(2,'Summary')
+            local l_ = {} for k,_ in pairs(kinds) do table.insert(l_,k) end
+            table.sort(l_, function(x,y) local a,b=kinds[x],kinds[y]
+                local d = a.g - b.g
+                if d==0 then d = a.n - b.n end
+                return d>0 or d==0 and x<y
+            end)
+            writer:header{'/"Hint','>vCount','>v(%)','>*vGain(~)', '>v(%)'}
+            for _,k in ipairs(l_) do local h = kinds[k]
+                writer:row{k, h.n, fmt(false,100*h.n/#l), fmt(true, h.g), fmt(false,100*h.g/total3)}
+            end
+            writer:footer()
+        end
+        profile:_()
+    end,
     _saveHotspot = function(self, writer)
         local spots,total,count = self._hotspots or findHotspots(self),0,0
         profile:_()
@@ -2921,34 +2923,62 @@ local mem = {
         writer:title(1, 'Hot spots (runtime: ~%.2fs)', total/1000000)
         writer:header{'*Number','Addr','<*Assembly','<Label','>*Count','>Percent (Time)      '}
         for i,s in ipairs(spots) do
-			if i>1 then writer:row{'', '', '', '', '', ''} end
+            if i>1 then writer:row{'', '', '', '', '', ''} end
             local EMPTY='     '
             s.p = s.p or {s.a}
-			local x_times = ''
+            local x_times = ''
             for j,p in ipairs(s.p) do
-				if p==-1 then
-					writer:row{'', '....', '...', '', x_times, ''}
-				else
-					local m = self[tonumber(p,16)]
-					local equate_ptn = EQUATES:t(p):gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')		
-					local asm = m.asm:gsub(equate_ptn,''):gsub('<%-unreached','') or ''
-					-- local taken,addr = asm:match('^([L]?[BJ]%S%S)%s+%$(%x%x%x%x)')
-					-- taken = taken=='BRA' or taken=='LBRA' or taken=='JMP' or addr==s.p[j+1]
-					-- if addr and not taken then asm = asm..' !' end
-					x_times = sprintf('%5d', m.x) -- %5d pour éviter de matcher une adresse (4 chiffres)
-					writer:row{
-						j==1 and sprintf('  #%-4d',i) or EMPTY,
-						p,
-						asm,
-						EQUATES[p] or '',
-						x_times, 
-						j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000) 
-						or EMPTY,
-					nil}
-				end
+                if p==-1 then
+                    writer:row{'', '....', '...', '', x_times, ''}
+                else
+                    local m = self[tonumber(p,16)]
+                    local equate_ptn = EQUATES:t(p):gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')
+                    local asm = m.asm:gsub(equate_ptn,''):gsub('<%-unreached','') or ''
+                    -- local taken,addr = asm:match('^([L]?[BJ]%S%S)%s+%$(%x%x%x%x)')
+                    -- taken = taken=='BRA' or taken=='LBRA' or taken=='JMP' or addr==s.p[j+1]
+                    -- if addr and not taken then asm = asm..' !' end
+                    x_times = sprintf('%5d', m.x) -- %5d pour éviter de matcher une adresse (4 chiffres)
+                    writer:row{
+                        j==1 and sprintf('  #%-4d',i) or EMPTY,
+                        p,
+                        asm,
+                        EQUATES[p] or '',
+                        x_times,
+                        j==1 and sprintf('%5.2f%% (%.3fs)',  100*s.t/total, s.t/1000000)
+                        or EMPTY,
+                    nil}
+                end
             end
             count = count + s.t
             if i>=3 and count >= .8 * total then break end
+        end
+        writer:footer()
+        profile:_()
+    end,
+    _saveExecs = function(self, writer)
+        profile:_()
+        local jumps, maxim = {},0
+        for i=OPT_MIN,OPT_MAX do
+            local m=self[i]
+            if m and m.asm and m.x>0 and m.r~=NOADDR then
+                table.insert(jumps, {a=hex(i),x=m.x})
+                maxim = math.max(maxim, m.x)
+            end
+        end
+        table.sort(jumps, function(a,b) return a.x > b.x end)
+        -- remove lowest freq
+        for i=#jumps,1,-1 do if jumps[i].x<10 then jumps[i] = nil end end
+        writer:id("jumps")
+        writer:title(1, 'Jump Statistics')
+        writer:header{'vAddr','<Label','>*vCount','*Histogram'}
+        local colors = "@#*=-:."
+        for i,j in ipairs(jumps) do
+            local c = 1+math.floor(colors:len()*(i-1)/#jumps)
+            writer:row{ j.a,
+                        EQUATES[j.a] or '',
+                        j.x,
+                        string.rep(colors:sub(c,c), math.floor(.5+50*j.x/maxim)),
+                    nil}
         end
         writer:footer()
         profile:_()
@@ -2968,15 +2998,15 @@ local mem = {
         }
         writer:id('info')
         writer:header{'<','<'}
-		local cmdLen,cmdLine = 0,''
-		for i,s in ipairs(ARGV) do 
-			if cmdLen+1+s:len()>=65 then
-				cmdLen,cmdLine = 0,cmdLine..' \n'
+        local cmdLen,cmdLine = 0,''
+        for i,s in ipairs(ARGV) do
+            if cmdLen+1+s:len()>=65 then
+                cmdLen,cmdLine = 0,cmdLine..' \n'
             elseif i>1 then
-				cmdLen,cmdLine = cmdLen+1,cmdLine..' '
-			end
-			cmdLen,cmdLine = cmdLen+s:len(),cmdLine..s
-		end
+                cmdLen,cmdLine = cmdLen+1,cmdLine..' '
+            end
+            cmdLen,cmdLine = cmdLen+s:len(),cmdLine..s
+        end
         writer:row{     'CLI Arguments' , cmdLine}
         writer:row{      'Current Date' , os.date('%Y-%m-%d %H:%M:%S')}
         writer:row{     self._cycles_hd , sprintf('%d (~%.0fs)', self.cycles, self.cycles/1000000)}
@@ -2984,9 +3014,9 @@ local mem = {
         writer:row{   'Stack (guessed)' , stack or "n/a"}
         writer:row{     'Start Address' , '$'..hex(OPT_MIN)}
         writer:row{      'Stop Address' , '$'..hex(OPT_MAX)}
-		if OPT_HINTS then
-		writer:row{'Optimization Hints' , sprintf("%d / %d cycles", HINTS:count(), HINTS:total_gain(self))}
-		end
+        if OPT_HINTS then
+        writer:row{'Optimization Hints' , sprintf("%d / %d cycles", HINTS:count(), HINTS:total_gain(self))}
+        end
         writer:footer()
     end,
     _saveFlatMap = function(self, writer)
@@ -3034,7 +3064,7 @@ local mem = {
         if OPT_EQU and not self[OPT_MIN] then self:pc(OPT_MIN):a('* Start of range') end
         if OPT_EQU and not self[OPT_MAX] then self:pc(OPT_MAX):a('* End of range')   end
 
-		local hint_no = 0
+        local hint_no = 0
         for i=OPT_MIN,OPT_MAX do
             local m=self[i]
             if m then
@@ -3061,13 +3091,13 @@ local mem = {
                         m.cycles or VOID,
                         asm or VOID,
                         nil}
-					local hints = HINTS:getHints(adr)
-					if hints[1] then
-						for i,h in ipairs(hints) do 
-							hint_no = hint_no + 1
-							row{VOID, VOID, VOID, VOID, VOID, 'HINT', h:explain()}
-						end
-					end
+                    local hints = HINTS:getHints(adr)
+                    if hints[1] then
+                        for i,h in ipairs(hints) do
+                            hint_no = hint_no + 1
+                            row{VOID, VOID, VOID, VOID, VOID, 'HINT', h:explain()}
+                        end
+                    end
                 end
             else
                 n = n + 1
@@ -3156,11 +3186,12 @@ local mem = {
     save = function(self, writer)
         writer = writer or newParallelWriter()
         self:_saveInfos(writer)
-        self:_saveFlatMap(writer)     if OPT_TIMES then 
-		self:_saveTimes(writer)   end if OPT_HOT   then
+        self:_saveFlatMap(writer)     if OPT_TIMES then
+        self:_saveTimes(writer)   end if OPT_HOT   then
         self:_saveHotspot(writer) end if OPT_HINTS then
-		self:_saveHints(writer)   end if OPT_VARS  then
-		self:_saveVars(writer)    end if OPT_MAP   then
+        self:_saveHints(writer)   end if OPT_VARS  then
+        self:_saveVars(writer)    end if OPT_EXECS then
+        self:_saveExecs(writer)   end if OPT_MAP   then
         self:_save_Memmap(writer) end
         return writer
     end
@@ -3312,8 +3343,8 @@ end
 -- ouverture et analyse du fichier de trace
 local function read_trace(filename)
     local num,f   = 0, assert(io.open(filename,'r'))
-    local size	  = f:seek('end') f:seek('set')
-	local rd_size = 0
+    local size    = f:seek('end') f:seek('set')
+    local rd_size = 0
 
     local start_time = os.clock()
 
@@ -3347,45 +3378,45 @@ local function read_trace(filename)
     DISPATCH:_(R16, function() local a = getaddr(args,regs) if a then mem:r(a,2) else return true end end)
     DISPATCH:_(W16, function() local a = getaddr(args,regs) if a then mem:w(a,2) else return true end end)
 
-	local _parse = {}
+    local _parse = {}
     local function parse(s)
-		s = s:sub(1,42)
-		local r = _parse[s]
-		if r==nil then
-			r = {s:match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')}
-			_parse[s] = r 
-		end
-		return unpack(r)
+        s = s:sub(1,42)
+        local r = _parse[s]
+        if r==nil then
+            r = {s:match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')}
+            _parse[s] = r
+        end
+        return unpack(r)
     end
     -- parse = memoize:ret_n(parse)
 
-	HINTS.mem = mem
-	TIMES.mem = mem
+    HINTS.mem = mem
+    TIMES.mem = mem
     local OK_START,last = set{'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',
-							  48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,
-							  nil}
-	-- local byte,space3 = string.byte,function(a,b,c) return 0x202020==c+b*256+a*65536 end
+                              48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,
+                              nil}
+    -- local byte,space3 = string.byte,function(a,b,c) return 0x202020==c+b*256+a*65536 end
     profile:_()
     for s in f:lines() do
-		rd_size = rd_size + s:len()
+        rd_size = rd_size + s:len()
         -- print(s) io.stdout:flush()
         if 50000==num then num = 0
             local txt = sprintf('%6.02f%%', 100*f:seek()/size)
             out('%s%s', txt, string.rep('\b', txt:len()))
         end
-		local c = s:byte(1)
-        if 32==c and 
-			-- space3(byte(s,2,4)) then 
-			-- 0x202020==byte(s,2)+byte(s,3)*256+byte(s,4)*65536 then 
-			'    '==s:sub(1,4) then 
-			-- '   '==s:sub(2,4) then 
-			-- 32==byte(s,2) and 32==byte(s,3) and 32==byte(s,4) then
-			regs_next = s:sub(61,106)
-        elseif 
-			-- OK_START[c] then
-			c>=48 and c<=57 or c>=65 and c<=70 then
-			-- string.find('0123456789ABCDEF', s:sub(1,1)) then 
-			-- OK_START[s:sub(1,1)] then
+        local c = s:byte(1)
+        if 32==c and
+            -- space3(byte(s,2,4)) then
+            -- 0x202020==byte(s,2)+byte(s,3)*256+byte(s,4)*65536 then
+            '    '==s:sub(1,4) then
+            -- '   '==s:sub(2,4) then
+            -- 32==byte(s,2) and 32==byte(s,3) and 32==byte(s,4) then
+            regs_next = s:sub(61,106)
+        elseif
+            -- OK_START[c] then
+            c>=48 and c<=57 or c>=65 and c<=70 then
+            -- string.find('0123456789ABCDEF', s:sub(1,1)) then
+            -- OK_START[s:sub(1,1)] then
             num,last,pc,hexa,opcode,args = num+1,s,parse(s)--s:sub(1,42):match('(%x+)%s+(%x+)%s+(%S+)%s+(%S*)%s*$')
             -- print(pc,hex,opcode,args)
             -- curr_pc, sig = tonumber(pc,16), hexa
@@ -3399,11 +3430,12 @@ local function read_trace(filename)
                 sig, jmp, mem[curr_pc].rel_jmp = pc..':'..hexa, curr_pc, args
             else
                 sig = hexa
+                if args:match('PC')  then jmp = curr_pc end
             end
             -- sig = REL_BRANCH[hexa] and pc..':'..hexa or hexa
             regs,regs_next = regs_next,s:sub(61,106)
-			HINTS:analyze(pc, hexa, opcode, args, regs)
-			TIMES:analyze(pc, s)
+            HINTS:analyze(pc, hexa, opcode, args, regs)
+            TIMES:analyze(pc, s)
             if nomem_asm[sig] then
                 mem:a(nomem_asm[sig][1],nomem_asm[sig][2],nomem_asm[sig][3])
             else
@@ -3413,8 +3445,8 @@ local function read_trace(filename)
                 local asm, cycles =
                     args=='' and opcode or sprintf("%-5s %s", opcode, args),
                     trim(s:sub(43,46))
-				local dp = args:match('<%$(%x%x)$') and regs:match('DP=(%x+)') or nil		
-                -- local addr   = args:match('%$(%x%x%x%x)')²	
+                local dp = args:match('<%$(%x%x)$') and regs:match('DP=(%x+)') or nil
+                -- local addr   = args:match('%$(%x%x%x%x)')²
                 -- local equate = addr and EQUATES:t(addr) or ''
                 -- if equate~='' then -- remore duplicate
                     -- protect special chars
@@ -3425,20 +3457,20 @@ local function read_trace(filename)
                 -- nomem_asm[sig] = nomem and asm or nomem_asm[sig]
                 if nomem then nomem_asm[sig] = {asm,cycles,dp} end
             end
-			
-			if OPT_DURING and OPT_DURING<mem.cycles + tonumber(last:sub(48):match('%s+(%d+)') or '0') then
-				OPT_DURING = nil
-				break 
-			end
+
+            if OPT_DURING and OPT_DURING<mem.cycles + tonumber(last:sub(48):match('%s+(%d+)') or '0') then
+                OPT_DURING = nil
+                break
+            end
         else
             jmp = nil
         end
     end
     f:close() parse,_parse = nil
     out(string.rep(' ', 10) .. string.rep('\b',10))
-    if last then 
+    if last then
         local num = last:sub(48):match('%s+(%d+)') or '0'
-        mem.cycles = mem.cycles + tonumber(num) 
+        mem.cycles = mem.cycles + tonumber(num)
     end
     profile:_()
 
@@ -3459,7 +3491,7 @@ local function read_trace(filename)
             else
                 last_bcc  = nil
                 last_arg  = nil
-            end			
+            end
         end
     end
 
@@ -3493,14 +3525,14 @@ end
 -- boucle principale (sortie par ctrl-c)
 ------------------------------------------------------------------------------
 if OPT_DURING then
-	local multiplier = 1
-	for k,v in pairs{s=1000000, ms=1000, us=1, c=1, 
-	                 sec=1000000, min=60000000, 
-	                 secs=1000000, millis=1000, micros=1, cycles=1, mins=60000000} do
-		local t = OPT_DURING:match('(%S+)%s*'..k..'%s*$') 
-		if t then OPT_DURING=tonumber(t)*v break end
-	end
-	if type(OPT_DURING)=='string' then OPT_DURING = tonumber(OPT_DURING) end
+    local multiplier = 1
+    for k,v in pairs{s=1000000, ms=1000, us=1, c=1,
+                     sec=1000000, min=60000000,
+                     secs=1000000, millis=1000, micros=1, cycles=1, mins=60000000} do
+        local t = OPT_DURING:match('(%S+)%s*'..k..'%s*$')
+        if t then OPT_DURING=tonumber(t)*v break end
+    end
+    if type(OPT_DURING)=='string' then OPT_DURING = tonumber(OPT_DURING) end
 end
 repeat
     -- attente de l'arrivée d'un fichier de trace
@@ -3516,15 +3548,15 @@ repeat
     read_trace(TRACE)
 
     -- effacement fichier trace consomé
-    if OPT_DURING then 
-		log('Removing trace.'); assert(os.remove(TRACE)); 
-		log('Do it again...') 
-		--  si le min/max n'est pas encore trouvé
-		OPT_MIN,OPT_MAX = _MIN,_MAX
-	end
+    if OPT_DURING then
+        log('Removing trace.'); assert(os.remove(TRACE));
+        log('Do it again...')
+        --  si le min/max n'est pas encore trouvé
+        OPT_MIN,OPT_MAX = _MIN,_MAX
+    end
 until not OPT_DURING
 -- écriture résultat TSV & html
 mem:save(newParallelWriter(
-	newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
-	OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
+    newTSVWriter (assert(io.open(RESULT .. '.csv', 'w'))),
+    OPT_HTML and newHtmlWriter(assert(io.open(RESULT .. '.html','w')), mem) or nil
 )):close()
