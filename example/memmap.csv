@@ -1,13 +1,13 @@
 sep=\t	(use a tabulation of 8)
 
 CLI Arguments	-equ -verbose=2 -during=20s -html -smooth -mach=?? -from=4000 \n-map -vars -hot=colors -hints \n-times=737A-739F,7117-7142,69AC-69F9,6DA7
-Current Date	2026-05-31 13:49:52                                                                                                             
+Current Date	2026-09-13 00:23:53                                                                                                             
 Total Cycles	20000002 (~20s)                                                                                                                 
 Machine Type	TO7(70)/TO8/TO9(+)                                                                                                              
 Stack (guessed)	$6114                                                                                                                           
 Start Address	$4000                                                                                                                           
 Stop Address	$DFFF                                                                                                                           
-Optimization Hints	63 / 300952 cycles                                                                                                              
+Optimization Hints	37 / 301300 cycles                                                                                                              
 
 Collected addresses:
 ~~~~~~~~~~~~~~~~~~~~
@@ -6997,7 +6997,8 @@ Collected addresses:
  6165	 ----	 ----	      1	E684    	      4	LDB   ,X        
  6167	 ----	 ----	      1	F7994E  	      5	STB   $994E     
  616A	 ----	 ----	      1	BD61B7  	      8	JSR   $61B7     
- 616D	 ----	 ----	      1	F6981F  	      5	LDB   $981F     
+
+ 616D	 61D0	 ----	      1	F6981F  	      5	LDB   $981F     
  6170	 ----	 ----	      1	58      	      2	ASLB            
  6171	 ----	 ----	      1	8EA000  	      3	LDX   #$A000    
  6174	 ----	 ----	      1	3A      	      3	ABX             
@@ -7008,7 +7009,8 @@ Collected addresses:
  617E	 ----	 ----	      1	2503    	      3	BCS   $6183     
    	   	   	       	        	   HINT	(removed)       
  6180	 ----	 ----	      1	BD61BD  	      8	JSR   $61BD     
- 6183	 ----	 ----	      1	CE78DC  	      3	LDU   #$78DC    
+
+ 6183	 61D0	 ----	      1	CE78DC  	      3	LDU   #$78DC    
  6186	 ----	 ----	      1	EC81    	      8	LDD   ,X++      
  6188	 ----	 ----	      1	EDC1    	      8	STD   ,U++      
  618A	 ----	 ----	      1	A680    	      6	LDA   ,X+       
@@ -7035,7 +7037,8 @@ Collected addresses:
  61AD	 ----	 ----	     19	20E2    	      3	BRA   $6191     
 
  61AF	 6195	 ----	      1	BD61BD  	      8	JSR   $61BD     
- 61B2	 ----	 ----	      1	10FE6154	      7	LDS   $6154     
+
+ 61B2	 61D0	 ----	      1	10FE6154	      7	LDS   $6154     
  61B6	 ----	 ----	      1	39      	      5	RTS             
 
  61B7	 616A	 ----	      1	3406    	      7	PSHS  B,A       
@@ -7084,7 +7087,6 @@ Collected addresses:
  62F3	 ----	 ----	   1457	2706    	      3	BEQ   $62FB     
  62F5	 ----	 ----	    744	8181    	      2	CMPA  #$81      
  62F7	 ----	 ----	    744	2641    	      3	BNE   $633A     
-   	   	   	       	        	   HINT	BRA $633A       
 
  62F9	 ----	 ----	       	        	       	                
  62FA	 ----	 ----	       	        	       	                
@@ -7101,7 +7103,6 @@ Collected addresses:
  630E	 ----	 ----	    561	CE635B  	      3	LDU   #$635B    
  6311	 ----	 ----	    561	4A      	      2	DECA            
  6312	 ----	 ----	    561	2A0B    	      3	BPL   $631F     
-   	   	   	       	        	   HINT	BRA $631F       
 
 11 bytes untouched
 
@@ -7109,7 +7110,6 @@ Collected addresses:
  6321	 ----	 ----	    561	A6C6    	      5	LDA   A,U       
  6323	 ----	 ----	    561	A4E0    	      6	ANDA  ,S+       
  6325	 ----	 ----	    561	2713    	      3	BEQ   $633A     
-   	   	   	       	        	   HINT	BRA $633A       
 
 19 bytes untouched
 
@@ -7152,7 +7152,6 @@ Collected addresses:
  638F	 ----	 ----	     88	A607    	      5	LDA   $07,X     
  6391	 ----	 ----	     88	8508    	      2	BITA  #$08      
  6393	 ----	 ----	     88	2706    	      3	BEQ   $639B     
-   	   	   	       	        	   HINT	BRA $639B       
 
 6 bytes untouched
 
@@ -7164,13 +7163,11 @@ Collected addresses:
  63A6	 ----	 ----	     88	3404    	      6	PSHS  B         
  63A8	 ----	 ----	     88	8508    	      2	BITA  #$08      
  63AA	 ----	 ----	     88	270D    	      3	BEQ   $63B9     
-   	   	   	       	        	   HINT	BRA $63B9       
 
 13 bytes untouched
 
  63B9	 63AA	 ----	     88	8510    	      2	BITA  #$10      
  63BB	 ----	 ----	     88	2705    	      3	BEQ   $63C2     
-   	   	   	       	        	   HINT	BRA $63C2       
 
 5 bytes untouched
 
@@ -7178,7 +7175,6 @@ Collected addresses:
  63C4	 ----	 ----	     88	2715    	      3	BEQ   $63DB     
  63C6	 ----	 ----	      8	8501    	      2	BITA  #$01      
  63C8	 ----	 ----	      8	2703    	      3	BEQ   $63CD     
-   	   	   	       	        	   HINT	BRA $63CD       
 
  63CA	 ----	 ----	       	        	       	                
  63CB	 ----	 ----	       	        	       	                
@@ -7189,7 +7185,6 @@ Collected addresses:
  63D1	 ----	 ----	      8	BD6437  	      8	JSR   $6437     
  63D4	 ----	 ----	      8	8504    	      2	BITA  #$04      
  63D6	 ----	 ----	      8	2703    	      3	BEQ   $63DB     
-   	   	   	       	        	   HINT	BRA $63DB       
 
  63D8	 ----	 ----	       	        	       	                
  63D9	 ----	 ----	       	        	       	                
@@ -7198,7 +7193,6 @@ Collected addresses:
  63DD	 ----	 ----	     88	3502    	      6	PULS  A         
  63DF	 ----	 ----	     88	8508    	      2	BITA  #$08      
  63E1	 ----	 ----	     88	2703    	      3	BEQ   $63E6     
-   	   	   	       	        	   HINT	BRA $63E6       
 
  63E3	 ----	 ----	       	        	       	                
  63E4	 ----	 ----	       	        	       	                
@@ -7228,7 +7222,8 @@ Collected addresses:
  6483	 6606	 ----	    350	7F981A  	      7	CLR   $981A     
  6486	 ----	 ----	    350	1F12    	      6	TFR   X,Y       
  6488	 ----	 ----	    350	BD65D1  	      8	JSR   $65D1     
- 648B	 ----	 ----	    350	FC7D7B  	      6	LDD   $7D7B     
+
+ 648B	 65DD	 ----	    350	FC7D7B  	      6	LDD   $7D7B     
  648E	 ----	 ----	    350	58      	      2	ASLB            
  648F	 ----	 ----	    350	3406    	      7	PSHS  B,A       
  6491	 ----	 ----	    350	A061    	      5	SUBA  $01,S     
@@ -7252,7 +7247,8 @@ Collected addresses:
  64B7	 ----	 ----	    700	102700B2	    6/5	LBEQ  $656D     
    	   	   	       	        	   HINT	BNE *+5 : JMP $656D
  64BB	 ----	 ----	    350	BD65D1  	      8	JSR   $65D1     
- 64BE	 ----	 ----	    350	F67D7B  	      5	LDB   $7D7B     
+
+ 64BE	 65DD	 ----	    350	F67D7B  	      5	LDB   $7D7B     
  64C1	 ----	 ----	    350	B67D7C  	      5	LDA   $7D7C     
  64C4	 ----	 ----	    350	48      	      2	ASLA            
  64C5	 ----	 ----	    350	3406    	      7	PSHS  B,A       
@@ -7291,7 +7287,6 @@ Collected addresses:
  6507	 6502	 ----	      2	3402    	      6	PSHS  A         
  6509	 ----	 ----	      2	E1E0    	      6	CMPB  ,S+       
  650B	 ----	 ----	      2	2260    	      3	BHI   $656D     
-   	   	   	       	        	   HINT	BRA $656D       
 
 96 bytes untouched
 
@@ -7305,7 +7300,8 @@ Collected addresses:
 
  657C	 6998	 ----	    174	A603    	      5	LDA   $03,X     
  657E	 ----	 ----	    174	BD6931  	      8	JSR   $6931     
- 6581	 ----	 ----	    174	BD65AC  	      8	JSR   $65AC     
+
+ 6581	 6967	 ----	    174	BD65AC  	      8	JSR   $65AC     
  6584	 ----	 ----	    174	CC2C06  	      3	LDD   #$2C06    
 
  6587	 6596	 ----	   7651	3446    	      9	PSHS  U,B,A     
@@ -7333,7 +7329,8 @@ Collected addresses:
 
  65AC	 6581	 ----	    174	8DEB    	      7	BSR   $6599     
  65AE	 ----	 ----	    174	8D21    	      7	BSR   $65D1     
- 65B0	 ----	 ----	    174	A606    	      5	LDA   $06,X     
+
+ 65B0	 65DD	 ----	    174	A606    	      5	LDA   $06,X     
  65B2	 ----	 ----	    174	BB7D7B  	      5	ADDA  $7D7B     
  65B5	 ----	 ----	    174	8B06    	      2	ADDA  #$06      
  65B7	 ----	 ----	    174	C626    	      2	LDB   #$26      
@@ -7371,14 +7368,15 @@ Collected addresses:
  65F4	 ----	 ----	    350	3402    	      6	PSHS  A         
  65F6	 ----	 ----	    350	E609    	      5	LDB   $09,X     
  65F8	 ----	 ----	    350	2707    	      3	BEQ   $6601     
-   	   	   	       	        	   HINT	BRA $6601       
 
 7 bytes untouched
 
  6601	 65F8	 ----	    350	3502    	      6	PULS  A         
  6603	 ----	 ----	    350	BD6931  	      8	JSR   $6931     
- 6606	 ----	 ----	    350	BD6483  	      8	JSR   $6483     
- 6609	 ----	 ----	    350	A606    	      5	LDA   $06,X     
+
+ 6606	 6967	 ----	    350	BD6483  	      8	JSR   $6483     
+
+ 6609	 657A	 ----	    350	A606    	      5	LDA   $06,X     
  660B	 ----	 ----	    350	44      	      2	LSRA            
  660C	 ----	 ----	    350	44      	      2	LSRA            
  660D	 ----	 ----	    350	44      	      2	LSRA            
@@ -7394,7 +7392,6 @@ Collected addresses:
  6624	 ----	 ----	    350	54      	      2	LSRB            
  6625	 ----	 ----	    350	54      	      2	LSRB            
  6626	 ----	 ----	    350	2602    	      3	BNE   $662A     
-   	   	   	       	        	   HINT	BRA $662A       
 
  6628	 ----	 ----	       	        	       	                
  6629	 ----	 ----	       	        	       	                
@@ -7410,7 +7407,8 @@ Collected addresses:
  663E	 ----	 ----	   1400	58      	      2	ASLB            
  663F	 ----	 ----	   1400	CE668D  	      3	LDU   #$668D    
  6642	 ----	 ----	   1400	ADD5    	     11	JSR   [B,U]     
- 6644	 ----	 ----	   1400	7C9819  	      7	INC   $9819     
+
+ 6644	 670D	 ----	   1400	7C9819  	      7	INC   $9819     
  6647	 ----	 ----	   1400	B69819  	      5	LDA   $9819     
  664A	 ----	 ----	   1400	8104    	      2	CMPA  #$04      
  664C	 ----	 ----	   1400	26ED    	      3	BNE   $663B     
@@ -7429,7 +7427,8 @@ Collected addresses:
  6667	 ----	 ----	   1400	CE668D  	      3	LDU   #$668D    
  666A	 ----	 ----	   1400	58      	      2	ASLB            
  666B	 ----	 ----	   1400	ADD5    	     11	JSR   [B,U]     
- 666D	 ----	 ----	   1400	3504    	      6	PULS  B         
+
+ 666D	 675D	 ----	   1400	3504    	      6	PULS  B         
  666F	 ----	 ----	   1400	5C      	      2	INCB            
  6670	 ----	 ----	   1400	C104    	      2	CMPB  #$04      
  6672	 ----	 ----	   1400	26F1    	      3	BNE   $6665     
@@ -7476,7 +7475,8 @@ Collected addresses:
  66B5	 ----	 ----	   2800	3410    	      7	PSHS  X         
  66B7	 ----	 ----	   2800	1E89    	      8	EXG   A,B       
  66B9	 ----	 ----	   2800	BD670F  	      8	JSR   $670F     
- 66BC	 ----	 ----	   2800	2403    	      3	BCC   $66C1     
+
+ 66BC	 6743	 ----	   2800	2403    	      3	BCC   $66C1     
  66BE	 ----	 ----	      1	3264    	      5	LEAS  $04,S     
  66C0	 ----	 ----	      1	39      	      5	RTS             
 
@@ -7499,7 +7499,6 @@ Collected addresses:
  66E2	 ----	 ----	     57	3414    	      8	PSHS  X,B       
  66E4	 ----	 ----	     57	E609    	      5	LDB   $09,X     
  66E6	 ----	 ----	     57	2707    	      3	BEQ   $66EF     
-   	   	   	       	        	   HINT	BRA $66EF       
 
 7 bytes untouched
 
@@ -7512,7 +7511,8 @@ Collected addresses:
  66FA	 ----	 ----	     57	847F    	      2	ANDA  #$7F      
  66FC	 ----	 ----	     57	B7982E  	      5	STA   $982E     
  66FF	 ----	 ----	     57	BD62E4  	      8	JSR   $62E4     
- 6702	 ----	 ----	     57	3504    	      6	PULS  B         
+
+ 6702	 633D	 ----	     57	3504    	      6	PULS  B         
 
  6704	 66D0	 ----	   5596	31A851  	      5	LEAY  $51,Y     
  6707	 ----	 ----	   5596	5C      	      2	INCB            
@@ -7563,7 +7563,8 @@ Collected addresses:
  6755	 6750	 ----	   1400	847F    	      2	ANDA  #$7F      
  6757	 ----	 ----	   1400	B7982E  	      5	STA   $982E     
  675A	 ----	 ----	   1400	BD62E4  	      8	JSR   $62E4     
- 675D	 ----	 ----	   1400	3586    	      9	PULS  A,B,PC    
+
+ 675D	 633D	 ----	   1400	3586    	      9	PULS  A,B,PC    
 
 9 bytes untouched
 
@@ -7715,7 +7716,6 @@ Collected addresses:
  68FA	 ----	 ----	     53	A603    	      5	LDA   $03,X     
  68FC	 ----	 ----	     53	8440    	      2	ANDA  #$40      
  68FE	 ----	 ----	     53	2608    	      3	BNE   $6908     
-   	   	   	       	        	   HINT	BRA $6908       
 
 8 bytes untouched
 
@@ -7821,7 +7821,8 @@ Collected addresses:
 
  69AC	 6998	 ----	    174	BD6599  	      8	JSR   $6599     
  69AF	 ----	 ----	    174	BD65D1  	      8	JSR   $65D1     
- 69B2	 ----	 ----	    174	A606    	      5	LDA   $06,X     
+
+ 69B2	 65DD	 ----	    174	A606    	      5	LDA   $06,X     
  69B4	 ----	 ----	    174	BB7D7B  	      5	ADDA  $7D7B     
  69B7	 ----	 ----	    174	8B06    	      2	ADDA  #$06      
  69B9	 ----	 ----	    174	C628    	      2	LDB   #$28      
@@ -7832,6 +7833,7 @@ Collected addresses:
  69C2	 ----	 ----	    174	C628    	      2	LDB   #$28      
  69C4	 ----	 ----	    174	3D      	     11	MUL             
  69C5	 ----	 ----	    174	C34000  	      4	ADDD  #$4000 <-VRAM
+   	   	   	       	        	   HINT	ADDA #$40       
  69C8	 ----	 ----	    174	A3E1    	      9	SUBD  ,S++      
  69CA	 ----	 ----	    174	1F03    	      6	TFR   D,U       
  69CC	 ----	 ----	    174	A602    	      5	LDA   $02,X     
@@ -7841,7 +7843,6 @@ Collected addresses:
  69D4	 ----	 ----	    174	BD6862  	      8	JSR   $6862     
  69D7	 ----	 ----	    174	6D84    	      6	TST   ,X        
  69D9	 ----	 ----	    174	2A02    	      3	BPL   $69DD     
-   	   	   	       	        	   HINT	BRA $69DD       
 
  69DB	 ----	 ----	       	        	       	                
  69DC	 ----	 ----	       	        	       	                
@@ -7974,7 +7975,8 @@ Collected addresses:
  6AB8	 ----	 ----	    346	3504    	      6	PULS  B         
  6ABA	 ----	 ----	    346	BD6AD0  	      8	JSR   $6AD0     
  6ABD	 ----	 ----	    346	BD65D1  	      8	JSR   $65D1     
- 6AC0	 ----	 ----	    346	EC01    	      6	LDD   $01,X     
+
+ 6AC0	 65DD	 ----	    346	EC01    	      6	LDD   $01,X     
  6AC2	 ----	 ----	    346	54      	      2	LSRB            
  6AC3	 ----	 ----	    346	54      	      2	LSRB            
  6AC4	 ----	 ----	    346	54      	      2	LSRB            
@@ -8089,12 +8091,12 @@ Collected addresses:
  6C77	 ----	 ----	      1	BD9F0C  	      8	JSR   $9F0C             
  6C7A	 ----	 ----	      1	7D983D  	      7	TST   $983D             
  6C7D	 ----	 ----	      1	2708    	      3	BEQ   $6C87             
-   	   	   	       	        	   HINT	BRA $6C87               
 
 8 bytes untouched
 
  6C87	 6CBD	 ----	     88	BD73EA  	      8	JSR   $73EA             
- 6C8A	 ----	 ----	     88	BD697B  	      8	JSR   $697B             
+
+ 6C8A	 7403	 ----	     88	BD697B  	      8	JSR   $697B             
  6C8D	 ----	 ----	     88	BD9E9F  	      8	JSR   $9E9F             
  6C90	 ----	 ----	     88	BD6879  	      8	JSR   $6879             
  6C93	 ----	 ----	     88	BD697E  	      8	JSR   $697E             
@@ -8106,23 +8108,21 @@ Collected addresses:
  6CA2	 ----	 ----	     87	BD6DBD  	      8	JSR   $6DBD             
  6CA5	 ----	 ----	     87	BD9DD7  	      8	JSR   $9DD7             
  6CA8	 ----	 ----	     87	BDE806  	      8	JSR   $E806 <-GETC      
- 6CAB	 ----	 ----	     87	C102    	      2	CMPB  #$02              
+
+ 6CAB	 FFBE	 ----	     87	C102    	      2	CMPB  #$02              
  6CAD	 ----	 ----	     87	2608    	      3	BNE   $6CB7             
-   	   	   	       	        	   HINT	BRA $6CB7               
 
 8 bytes untouched
 
  6CB7	 6CAD	 ----	     87	BD9CF2  	      8	JSR   $9CF2             
  6CBA	 ----	 ----	     87	7D78DF  	      7	TST   $78DF             
  6CBD	 ----	 ----	     87	26C8    	      3	BNE   $6C87             
-   	   	   	       	        	   HINT	BRA $6C87               
 
 45 bytes untouched
 
  6CEC	 6C9B	 ----	      1	B69845  	      5	LDA   $9845             
  6CEF	 ----	 ----	      1	8102    	      2	CMPA  #$02              
  6CF1	 ----	 ----	      1	2628    	      3	BNE   $6D1B             
-   	   	   	       	        	   HINT	BRA $6D1B               
 
 40 bytes untouched
 
@@ -8214,7 +8214,6 @@ Collected addresses:
 
  6DBD	 6CA2	 ----	     87	B6983D  	      5	LDA   $983D             
  6DC0	 ----	 ----	     87	271D    	      3	BEQ   $6DDF             
-   	   	   	       	        	   HINT	BRA $6DDF               
 
 29 bytes untouched
 
@@ -8477,7 +8476,6 @@ Collected addresses:
  7175	 ----	 ----	   1426	B09809  	      5	SUBA  $9809             
  7178	 ----	 ----	   1426	B0980A  	      5	SUBA  $980A             
  717B	 ----	 ----	   1426	2401    	      3	BCC   $717E             
-   	   	   	       	        	   HINT	BRA $717E               
 
  717D	 ----	 ----	       	        	       	                        
  717E	 717B	 ----	   1426	FD97FE  	      6	STD   $97FE             
@@ -8613,7 +8611,6 @@ Collected addresses:
  724E	 7293	 ----	      2	6F1F    	      7	CLR   -$01,X            
  7250	 ----	 ----	      2	8520    	      2	BITA  #$20              
  7252	 ----	 ----	      2	26B4    	      3	BNE   $7208             
-   	   	   	       	        	   HINT	BRA $7208               
 
 52 bytes untouched
 
@@ -8654,7 +8651,6 @@ Collected addresses:
  72CC	 ----	 ----	      2	3A      	      3	ABX                     
  72CD	 ----	 ----	      2	A584    	      4	BITA  ,X                
  72CF	 ----	 ----	      2	2702    	      3	BEQ   $72D3             
-   	   	   	       	        	   HINT	BRA $72D3               
 
  72D1	 ----	 ----	       	        	       	                        
  72D2	 ----	 ----	       	        	       	                        
@@ -8679,12 +8675,14 @@ Collected addresses:
  72EC	 ----	 ----	      2	A706    	      5	STA   $06,X             
  72EE	 ----	 ----	      2	FC980C  	      6	LDD   $980C             
  72F1	 ----	 ----	      2	BD71A1  	      8	JSR   $71A1             
- 72F4	 ----	 ----	      2	58      	      2	ASLB                    
+
+ 72F4	 71B9	 ----	      2	58      	      2	ASLB                    
  72F5	 ----	 ----	      2	58      	      2	ASLB                    
  72F6	 ----	 ----	      2	58      	      2	ASLB                    
  72F7	 ----	 ----	      2	ED01    	      6	STD   $01,X             
  72F9	 ----	 ----	      2	BD65D1  	      8	JSR   $65D1             
- 72FC	 ----	 ----	      2	C004    	      2	SUBB  #$04              
+
+ 72FC	 65DD	 ----	      2	C004    	      2	SUBB  #$04              
  72FE	 ----	 ----	      2	50      	      2	NEGB                    
  72FF	 ----	 ----	      2	58      	      2	ASLB                    
  7300	 ----	 ----	      2	1F98    	      6	TFR   B,A               
@@ -8717,7 +8715,8 @@ Collected addresses:
  7331	 ----	 ----	     74	3406    	      7	PSHS  B,A               
  7333	 ----	 ----	     74	FC980C  	      6	LDD   $980C             
  7336	 ----	 ----	     74	BD71A1  	      8	JSR   $71A1             
- 7339	 ----	 ----	     74	A084    	      4	SUBA  ,X                
+
+ 7339	 71B9	 ----	     74	A084    	      4	SUBA  ,X                
  733B	 ----	 ----	     74	3404    	      6	PSHS  B                 
  733D	 ----	 ----	     74	C626    	      2	LDB   #$26              
  733F	 ----	 ----	     74	3D      	     11	MUL                     
@@ -8786,7 +8785,8 @@ Collected addresses:
 
  73A9	 73B2	 ----	  19968	A680    	      6	LDA   ,X+               
  73AB	 ----	 ----	  19968	8D10    	      7	BSR   $73BD             
- 73AD	 ----	 ----	  19968	A7A4    	      4	STA   ,Y                
+
+ 73AD	 73D1	 ----	  19968	A7A4    	      4	STA   ,Y                
  73AF	 ----	 ----	  19968	313F    	      5	LEAY  -$01,Y            
  73B1	 ----	 ----	  19968	5A      	      2	DECB                    
  73B2	 ----	 ----	  19968	26F5    	      3	BNE   $73A9             
@@ -17304,7 +17304,8 @@ Collected addresses:
 105 bytes untouched
 
  99B8	 9E0A	 ----	      3	BD9E7B  	      8	JSR   $9E7B             
- 99BB	 ----	 ----	      3	F6983C  	      5	LDB   $983C             
+
+ 99BB	 9E85	 ----	      3	F6983C  	      5	LDB   $983C             
  99BE	 ----	 ----	      3	8E99F2  	      3	LDX   #$99F2            
  99C1	 ----	 ----	      3	E685    	      5	LDB   B,X               
  99C3	 ----	 ----	      3	8628    	      2	LDA   #$28              
@@ -17554,7 +17555,6 @@ Collected addresses:
 
  9CF2	 6CB7	 ----	     87	7D9841  	      7	TST   $9841             
  9CF5	 ----	 ----	     87	2712    	      3	BEQ   $9D09             
-   	   	   	       	        	   HINT	BRA $9D09               
 
 18 bytes untouched
 
@@ -17576,7 +17576,6 @@ Collected addresses:
  9DF4	 ----	 ----	      1	B69840  	      5	LDA   $9840             
  9DF7	 ----	 ----	      1	81FF    	      2	CMPA  #$FF              
  9DF9	 ----	 ----	      1	2604    	      3	BNE   $9DFF             
-   	   	   	       	        	   HINT	BRA $9DFF               
 
 4 bytes untouched
 
@@ -17585,7 +17584,7 @@ Collected addresses:
  9E05	 ----	 ----	      2	86D8    	      2	LDA   #$D8              
  9E07	 ----	 ----	      2	BD9FF9  	      8	JSR   $9FF9             
 
- 9E0A	 9DEC	 ----	      3	BD99B8  	      8	JSR   $99B8             
+ 9E0A	 A01B	 ----	      3	BD99B8  	      8	JSR   $99B8             
  9E0D	 ----	 ----	      3	B69840  	      5	LDA   $9840             
  9E10	 ----	 ----	      3	CE57C7  	      3	LDU   #$57C7 <-VRAM.L152+7
  9E13	 ----	 ----	      3	BD9FC9  	      8	JSR   $9FC9             
@@ -17595,7 +17594,8 @@ Collected addresses:
 82 bytes untouched
 
  9E69	 9F19	 ----	     14	8D10    	      7	BSR   $9E7B             
- 9E6B	 ----	 ----	     14	3406    	      7	PSHS  B,A               
+
+ 9E6B	 9E85	 ----	     14	3406    	      7	PSHS  B,A               
  9E6D	 ----	 ----	     14	C608    	      2	LDB   #$08              
 
  9E6F	 9E77	 ----	    112	A680    	      6	LDA   ,X+               
@@ -17623,7 +17623,6 @@ Collected addresses:
 
  9E9F	 6C8D	 ----	     88	7D9E93  	      7	TST   $9E93             
  9EA2	 ----	 ----	     88	272D    	      3	BEQ   $9ED1             
-   	   	   	       	        	   HINT	BRA $9ED1               
 
 45 bytes untouched
 
@@ -17650,7 +17649,8 @@ Collected addresses:
  9F14	 9F21	 ----	     14	3440    	      7	PSHS  U                 
  9F16	 ----	 ----	     14	8E9EDE  	      3	LDX   #$9EDE            
  9F19	 ----	 ----	     14	BD9E69  	      8	JSR   $9E69             
- 9F1C	 ----	 ----	     14	3540    	      7	PULS  U                 
+
+ 9F1C	 9E79	 ----	     14	3540    	      7	PULS  U                 
  9F1E	 ----	 ----	     14	3341    	      5	LEAU  $01,U             
  9F20	 ----	 ----	     14	4A      	      2	DECA                    
  9F21	 ----	 ----	     14	26F1    	      3	BNE   $9F14             
@@ -17662,13 +17662,13 @@ Collected addresses:
  9FBC	 ----	 ----	      1	CE57E2  	      3	LDU   #$57E2 <-VRAM.L152+34
  9FBF	 ----	 ----	      1	86D8    	      2	LDA   #$D8              
  9FC1	 ----	 ----	      1	8D36    	      7	BSR   $9FF9             
- 9FC3	 ----	 ----	      1	B69842  	      5	LDA   $9842             
+
+ 9FC3	 A01B	 ----	      1	B69842  	      5	LDA   $9842             
  9FC6	 ----	 ----	      1	CE57E0  	      3	LDU   #$57E0 <-VRAM.L152+32
 
  9FC9	 9E13	 ----	      4	8B30    	      2	ADDA  #$30              
  9FCB	 ----	 ----	      4	8139    	      2	CMPA  #$39              
  9FCD	 ----	 ----	      4	2302    	      3	BLS   $9FD1             
-   	   	   	       	        	   HINT	BRA $9FD1               
 
  9FCF	 ----	 ----	       	        	       	                        
  9FD0	 ----	 ----	       	        	       	                        
@@ -17677,7 +17677,8 @@ Collected addresses:
  9FD4	 ----	 ----	      4	C399FA  	      4	ADDD  #$99FA            
  9FD7	 ----	 ----	      4	1F01    	      6	TFR   D,X               
  9FD9	 ----	 ----	      4	BD9E87  	      8	JSR   $9E87             
- 9FDC	 ----	 ----	      4	8608    	      2	LDA   #$08              
+
+ 9FDC	 9E91	 ----	      4	8608    	      2	LDA   #$08              
 
  9FDE	 9FF6	 ----	     32	E682    	      6	LDB   ,-X               
  9FE0	 ----	 ----	     32	7CE7C3  	      7	INC   $E7C3 <-PRC       
@@ -17694,7 +17695,8 @@ Collected addresses:
 
  9FF9	 9E07	 ----	      3	3402    	      6	PSHS  A                 
  9FFB	 ----	 ----	      3	BD9E87  	      8	JSR   $9E87             
- 9FFE	 ----	 ----	      3	EC81    	      8	LDD   ,X++              
+
+ 9FFE	 9E91	 ----	      3	EC81    	      8	LDD   ,X++              
 
  A000	 A019	 ----	     96	3446    	      9	PSHS  U,B,A             
 
@@ -22302,7 +22304,7 @@ Number	Addr	Assembly	Label	  Count	         Percent (Time)
 	73BB	BRA   $739C		    104	                       
 =======================================================================
 
-Optimization hints (63 / 300.95 ms):
+Optimization hints (37 / 301.30 ms):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    Addr	Hint	  Count	    (~)	Initial Code	    (~)	Suggested Code	Gain(~)	       Gain(ms)
 ===============================================================================================
@@ -22326,6 +22328,7 @@ Optimization hints (63 / 300.95 ms):
    6AE8	puls-rts	    173	     12	PULS X:RTS	      9	PULS X,PC       	      3	           0.52
    6AE3	always-false	    172	      3	BEQ $6AEA	      0	(removed)       	      3	           0.52
    64B7	rarely-taken	    700	   5.50	LBEQ $656D	   5.00	BNE *+5:JMP $656D	   0.50	           0.35
+   69C5	zero-lsb	    174	      4	ADDD #$4000	      2	ADDA #$40       	      2	           0.35
    638A	always-false	     88	      3	BEQ $639D	      0	(removed)       	      3	           0.26
    71F5	short-branch	     90	   5.89	LBNE $71D0	   3.00	BNE $71D0       	   2.89	           0.26
    6C9B	short-branch	     88	   5.01	LBNE $6CEC	   3.00	BNE $6CEC       	   2.01	           0.18
@@ -22337,53 +22340,26 @@ Optimization hints (63 / 300.95 ms):
    72D9	puls-rts	      2	     16	PULS A,B,X,U:RTS	     13	PULS A,B,X,U,PC 	      3	           0.01
    62A3	puls-rts	      2	     11	PULS B:RTS	      8	PULS B,PC       	      3	           0.01
    7297	always-false	      1	   5.00	LBEQ $7203	   0.00	(removed)       	   5.00	           0.01
-   617E	always-false	      1	      3	BCS $6183	      0	(removed)       	      3	           0.00
    692B	always-false	      1	      3	BEQ $68F7	      0	(removed)       	      3	           0.00
-   71BE	clear-reg	      2	      2	LDB #$00	      2	CLRB            	      0	           0.00
-   6393	always-true	     88	      3	BEQ $639B	      3	BRA $639B       	      0	           0.00
-   6325	always-true	    561	      3	BEQ $633A	      3	BRA $633A       	      0	           0.00
-   717B	always-true	   1426	      3	BCC $717E	      3	BRA $717E       	      0	           0.00
-   63BB	always-true	     88	      3	BEQ $63C2	      3	BRA $63C2       	      0	           0.00
-   63AA	always-true	     88	      3	BEQ $63B9	      3	BRA $63B9       	      0	           0.00
-   63C8	always-true	      8	      3	BEQ $63CD	      3	BRA $63CD       	      0	           0.00
-   6C7D	always-true	      1	      3	BEQ $6C87	      3	BRA $6C87       	      0	           0.00
-   6312	always-true	    561	      3	BPL $631F	      3	BRA $631F       	      0	           0.00
-   9DF9	always-true	      1	      3	BNE $9DFF	      3	BRA $9DFF       	      0	           0.00
-   7252	always-true	      2	      3	BNE $7208	      3	BRA $7208       	      0	           0.00
-   9CF5	always-true	     87	      3	BEQ $9D09	      3	BRA $9D09       	      0	           0.00
-   72CF	always-true	      2	      3	BEQ $72D3	      3	BRA $72D3       	      0	           0.00
-   62F7	always-true	    744	      3	BNE $633A	      3	BRA $633A       	      0	           0.00
-   9EA2	always-true	     88	      3	BEQ $9ED1	      3	BRA $9ED1       	      0	           0.00
-   63D6	always-true	      8	      3	BEQ $63DB	      3	BRA $63DB       	      0	           0.00
-   650B	always-true	      2	      3	BHI $656D	      3	BRA $656D       	      0	           0.00
-   6CF1	always-true	      1	      3	BNE $6D1B	      3	BRA $6D1B       	      0	           0.00
-   6DC0	always-true	     87	      3	BEQ $6DDF	      3	BRA $6DDF       	      0	           0.00
-   6CBD	always-true	     87	      3	BNE $6C87	      3	BRA $6C87       	      0	           0.00
-   69D9	always-true	    174	      3	BPL $69DD	      3	BRA $69DD       	      0	           0.00
-   6CAD	always-true	     87	      3	BNE $6CB7	      3	BRA $6CB7       	      0	           0.00
-   63E1	always-true	     88	      3	BEQ $63E6	      3	BRA $63E6       	      0	           0.00
-   6981	clear-reg	    437	      2	LDB #$00	      2	CLRB            	      0	           0.00
-   66E6	always-true	     57	      3	BEQ $66EF	      3	BRA $66EF       	      0	           0.00
+   617E	always-false	      1	      3	BCS $6183	      0	(removed)       	      3	           0.00
    6576	rarely-taken	   1050	   5.67	LBCS $64A9	   5.67	BCC *+5:JMP $64A9	   0.00	           0.00
-   68FE	always-true	     53	      3	BNE $6908	      3	BRA $6908       	      0	           0.00
-   65F8	always-true	    350	      3	BEQ $6601	      3	BRA $6601       	      0	           0.00
-   6626	always-true	    350	      3	BNE $662A	      3	BRA $662A       	      0	           0.00
-   9FCD	always-true	      4	      3	BLS $9FD1	      3	BRA $9FD1       	      0	           0.00
-  Total	        	       	 352364	        	  51412	                	       	         300.95
+   71BE	clear-reg	      2	      2	LDB #$00	      2	CLRB            	      0	           0.00
+   6981	clear-reg	    437	      2	LDB #$00	      2	CLRB            	      0	           0.00
+  Total	        	       	 337781	        	  36481	                	       	         301.30
 ===============================================================================================
 
 Summary:
 ~~~~~~~~
 Hint	  Count	    (%)	Gain(~)	    (%)
 =======================================
-always-false	     19	  30.16	 286199	  95.10
-short-branch	      6	   9.52	  11647	   3.87
-rarely-taken	      3	   4.76	   1400	   0.47
-puls-rts	      4	   6.35	   1050	   0.35
-addr-reg	      1	   1.59	    561	   0.19
-leax-abx	      1	   1.59	     95	   0.03
-always-true	     27	  42.86	      0	   0.00
-clear-reg	      2	   3.17	      0	   0.00
+always-false	     19	  51.35	 286199	  94.99
+short-branch	      6	  16.22	  11647	   3.87
+rarely-taken	      3	   8.11	   1400	   0.46
+puls-rts	      4	  10.81	   1050	   0.35
+addr-reg	      1	   2.70	    561	   0.19
+zero-lsb	      1	   2.70	    348	   0.12
+leax-abx	      1	   2.70	     95	   0.03
+clear-reg	      2	   5.41	      0	   0.00
 =======================================
 
 Global variables (19 / 16 of interrest):
@@ -22487,30 +22463,30 @@ Memory map: $4100 -> $A17F:
  5F80	--------------------------------------------------------------------------------------------------------------------------------
  6000	----------RR-------------R-----------------------------------------------------------MM-------R--------R------------------------
  6080	--------------------------------------------------------------------------------------------------------------------------------
- 6100	--------------------***M**M**MMMM******************************-----------------****MMYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
- 6180	XXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXYXXXXXXYXXXXXXXXYXXXXXXXYXXXXXYXXXYXXXXXXXXXXXXXXXX----------------------------------------------
+ 6100	--------------------***M**M**MMMM******************************-----------------****MMYXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXX
+ 6180	XXXYXXXXXXXXXXXXXYXXXXXXXXXXXXXYXXXXXXYXXXXXXXXYXXYXXXXYXXXXXYXXXYXXXXXXXXXXXXXXXX----------------------------------------------
  6200	--------------------------------------------------------------------------------------------------------------------------------
  6280	--------------R---YXXXXXXXXXXXXXXXXXXX--------------------------------------------------------------YXXXXXXXXXXXXXXXXXXXX--YXXXX
  6300	XXXXXXXXXXXXXXXXXXXX-----------YXXXXXXX-------------------YXXXX-----------------R----------R--------YXXXXYXXXXXXXXXXXXXXXXXXXXYX
  6380	XXXXXXXXXXXXXXXXXXXXX------YXXXXXXXXXXXXXXXX-------------YXXX-----YXXXXXXX---YXXXXXXXXXX---YXXXXXXX---Y-------------------------
  6400	-------------------------------------------------------YXX---------------------------------------------------YXXXXXXXXXXXXXXXXXX
- 6480	XXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXX
+ 6480	XXXYXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXX
  6500	XXXXXXXYXXXXX------------------------------------------------------------------------------------------------YXXXXXXXXXXXXXXYXXX
- 6580	XXXXXXXYXYXXXXXXXXXXXXXXXYXXXXXXXXXXRR------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXX------
- 6600	-YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--YXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXX
- 6680	XXXXXXXXYXXXYRR------YXXXXXXXXYXXXXXYXXXXXYXXXXXYXXXXXXXXXXXXXXXXYXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXX-------YXXXXXXXXXXXXXXXX
- 6700	XXXXYXXXXXXXXXXYXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXYXXXYXXXXXXXXXXXXYXXYXXXXXXXXX---------YXXXXXXXXXXXXXXXXXXXXXXX
+ 6580	XYXXXXXYXYXXXXXXXXXXXXXXXYXXXXXXXXXXRR------YXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXX------
+ 6600	-YXXXXYXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--YXXXXXXXXXXXXXXXXYXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXYXXXXXXXXXXXXXXXXXX
+ 6680	XXXXXXXXYXXXYRR------YXXXXXXXXYXXXXXYXXXXXYXXXXXYXXXXXXXXXXXYXXXXYXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXX-------YXXXXXXXXXXXXXXXX
+ 6700	XXYXYXXXXXXXXXXYXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXYXXXYXXXXXXXXXXXXYXXYXXXXXXXYX---------YXXXXXXXXXXXXXXXXXXXXXXX
  6780	XXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXR---RRRR----------------------------RRRR------------RRRR--------------------------
  6800	--------------------------------------------------------------------------------------------------YXXXXXXXXR---YXXXXXXXXXYXXXXXX
  6880	XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXYXYXXXXXXXXXXXXXXXXXXXXXXXXXX------YXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXYXXXXXXXX
  6900	--------YXXXXXXXXXXXYYXXXXXXXXXXXXXXXXXXXYXXXXXXXYXXXXXXXXXYXXXXXYXXXXXXXXXXXYXXXXXXXYXXXXXXXYXXXXXXXYXXXYXXXXYXXXXXXXXXYXXYXXYX
- 6980	XYXXXXXYXXXXXXXXXXXXXXXXXXYXXXXXXXRR--------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--YXXYXYXXXXXXXXXXXXXXXXXXXXXXXYXXYXX
+ 6980	XYXXXXXYXXXXXXXXXXXXXXXXXXYXXXXXXXRR--------YXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--YXXYXYXXXXXXXXXXXXXXXXXXXXXXXYXXYXX
  6A00	XXXXXYXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXYXXXXXXXYXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXYXXXXXX
- 6A80	XXXXXYXYXXXXXXXXXXXXXXXXXXXYXYXXXXXXXXXXXXXXXYXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXYYXXXXXXXXXYXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXX
+ 6A80	XXXXXYXYXXXXXXXXXXXXXXXXXXXYXYXXXXXXXXXXXXXXXYXXXXXYXXXXXXXXXXXXYXXXXXXXXXXXXXXYYXXXXXXXXXYXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXX
  6B00	XXYXXXXXXXXXXXXXXXXXXXXXXYXXYXXXXXXX-------------------------------------------------------------------YXXXXXXXXXXXXXXXXXXYXXXXX
  6B80	XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-------------------------------------------------------------
  6C00	-----------------------------------------------------------------------------------------------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-
- 6C80	-------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--------YXXXXXXX---------------------------------------------YXXXXXX-------------
+ 6C80	-------YXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXX--------YXXXXXXX---------------------------------------------YXXXXXX-------------
  6D00	---------------------------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXRR------R-------YXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXYXXXXXXXXXXXY
  6D80	XXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXYXXXX-----------------------------Y--------------------------------
  6E00	--------------------------------------------------------------------------------------------------------------------------------
@@ -22522,9 +22498,9 @@ Memory map: $4100 -> $A17F:
  7100	XXXXXXXXXXXXXXXXXXXXYXXYXXXXXXXXXXYXXXYXZZXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-YX
  7180	XXYXXXXXXXRR----------------YYXXXYXXXXXXXXXXXXXXXXXXXXXXXXXYXXYXXXXXXXXXXXYXXXXXYXXXYXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXX
  7200	XXXXRR--YXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXX--RR--RR--YXXXYXYXXXXX--------------------------------------------
- 7280	--------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXX--YXXXXXXXYYXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXX
- 7300	XXXXXXXXXXXXXXXXXXXXR------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXYXZZXXXXXXXXXXXXXYXXXXXXXXXXXXXXXYXXXXX
- 7380	XXXXXYXXXXXXXXXXXXXXXYXXXXXXXXXXYXXXXYXXXYXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXYXXXYXXXXXXXXXXXXXXXXX
+ 7280	--------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXX--YXXXXXXXYYXXXXXXXXXYXXXXXXXXXXXXXYXXXXXXXYXXX
+ 7300	XXXXXXXXXXXXXXXXXXXXR------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXYXZZXXXXXXXXXXXXXYXXXXXXXXXXXXXXXYXXXXX
+ 7380	XXXXXYXXXXXXXXXXXXXXXYXXXXXXXXXXYXXXXYXXXYXXXYXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXYXXXYXXXXXXXXXXXXXXXXX
  7400	XXXXX---------------------------------------------------------------------------------------------------------------------------
  7480	--------------------------------------------------------------------------------------------------------------------------------
  7500	--------------------------------------------------------------------------------------------------------------------------------
@@ -22600,7 +22576,7 @@ Memory map: $4100 -> $A17F:
  9800	MMMMMMMMMMMMMMMMMWMMMWMMMMMWMMWMWWMWWWWWWWWWWWMMMWWWWWWWWWWWMR--MRR-RM---------------------------M------------------------------
  9880	--------------------------------------------------------------------------------------------------------------------------------
  9900	----------------------------------------------------------------------------MMM-------------------------------------------------
- 9980	--------------------------------------------------------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXYR---------RRRR
+ 9980	--------------------------------------------------------YXXYXXXXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXYR---------RRRR
  9A00	RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
  9A80	RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR---R-R-R-R-R-R-R-R-R------------------------------------------------------------------------------
  9B00	------------------------------------------------------------------------------------------------------------------RRRRRRRR------
@@ -22609,10 +22585,10 @@ Memory map: $4100 -> $A17F:
  9C80	------------------------------------------------------------------------------------------------------------------YXXXX---------
  9D00	---------Y----------------------------------------------------------------------------------------------------------------------
  9D80	---------------------------------------------------------------------------------------YXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX----Y
- 9E00	XXXXXXXXXXYXXXXXXXXXXXY----------------------------------------------------------------------------------YXXXXXYXXXXXXXXXXXYXXXX
+ 9E00	XXXXXXXXXXYXXXXXXXXXXXY----------------------------------------------------------------------------------YXYXXXYXXXXXXXXXXXYXXXX
  9E80	XXXXXXXYXXXXXXXXXXXR-----------YXXXX---------------------------------------------YXXX---------RRRRRRRR--------------------------
- 9F00	------------YXXXXXXXYXXXXXXXXXXXXXXX--------------------------------------------------------------------------------------------
- 9F80	---------------------------------------------------------YXXXXXXXXXXXXXXXYXXXXX--YXXXXXXXXXXXXYXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXXX
+ 9F00	------------YXXXXXXXYXXXXXXXYXXXXXXX--------------------------------------------------------------------------------------------
+ 9F80	---------------------------------------------------------YXXXXXXXXXYXXXXXYXXXXX--YXXXXXXXXXXYXYXXXXXXXXXXXXXXXXXXXXXXXXXXYXXXXYX
  A000	YXYXXXXXXXXXXXXXXXXXXXXXXXXXX----------------------R----------------------------------------------------------------------------
  A080	----------------------------------------RR--------------------------------------------------------------------------------------
  A100	---R----------------------------------------------------------------------------------------------------------------------------

@@ -2590,7 +2590,7 @@ local HINTS = OPT_HINTS and {
                 if (OPT_MIN or 0)<=n and n<=(OPT_MAX or 0xFFFF) then
                     self:_lbranch             (addr, hexa, opcode, arg, regs)
                     self:_puls_rts            (addr, hexa, opcode, arg, regs)
-                    self:_ld0                 (addr, hexa, opcode, arg, regs)
+                    -- self:_ld0                 (addr, hexa, opcode, arg, regs)
                     self:_ldd                 (addr, hexa, opcode, arg, regs)
                     self:_cmp0                (addr, hexa, opcode, arg, regs)
                     self:_dp                  (addr, hexa, opcode, arg, regs)
@@ -2965,12 +2965,12 @@ local mem = {
                 maxim = math.max(maxim, m.x)
             end
         end
-        table.sort(jumps, function(a,b) return a.x > b.x end)
+        table.sort(jumps, function(a,b) return a.x > b.x or a.x==b.x and a.a<b.a end)
         -- remove lowest freq
         for i=#jumps,1,-1 do if jumps[i].x<10 then jumps[i] = nil end end
         writer:id("jumps")
         writer:title(1, 'Jump Statistics')
-        writer:header{'vAddr','<Label','>*vCount','*Histogram'}
+        writer:header{'"Addr','<Label','>*vCount','*Histogram'}
         local colors = "@#*=-:."
         for i,j in ipairs(jumps) do
             local c = 1+math.floor(colors:len()*(i-1)/#jumps)
