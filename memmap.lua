@@ -2554,12 +2554,12 @@ local HINTS = OPT_HINTS and {
                 self:_add(h._nxt, h)
                 h.check = function(self, addr, hexa, opcode, arg, regs)
                     if addr ~= self.addr and self._valid then
-                        local AB = REG=='A' or REG=='B'
+                        local AB = REG=='A' or REG=='B' or REG=='D'
                         self._valid = opcode=='CLR'..REG
                                   or  opcode=='LD'..REG
                                   or (opcode=='LDD' and AB)
-                        if     arg:match(','..REG) and not AB then self._valid = false
-                        elseif arg:match(REG..',') and     AB then self._valid = false end
+                        if             arg:match(','..REG) and not AB          then self._valid = false
+                        elseif AB and (arg:match(REG..',') or arg:match('D,')) then self._valid = false end
                     end
                 end
                 h.cycles  = function(self, mem, orig)
@@ -2950,7 +2950,7 @@ local mem = {
                 end
             end
             count = count + s.t
-            if i>=3 and count >= .8 * total then break end
+            if i>=3 and count >= .9 * total then break end
         end
         writer:footer()
         profile:_()
@@ -3241,6 +3241,8 @@ function getaddr(args, regs)
 
     -- PCR
     x   = args:match('^%$(%x%x%x%x),PCR$')      if x then return tonumber(x,16) end
+
+    if args=='invalid' then return end
 
     -- inconnu
     error(args)
